@@ -4,11 +4,7 @@ import java.awt.event._
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val frameRate = 1000 / 60
-    val x = 500
-    val y = x / 4 * 3
-
-    val gui = Gui.start(x, y)
+    val gui = Gui.start(dimension)
 
     var state = Point(250, 250)
 
@@ -21,9 +17,14 @@ object Main {
     }
   }
 
-  def evolve(point: Point, input: Cmd): Point =
-    point.move(input.toPoint)
+  val frameRate = 1000 / 60
+  val dimension: Point = {
+    val x = 500
+      Point(x, x / 4 * 3)
+  }
 
+  def evolve(point: Point, input: Cmd): Point =
+    point.move(input.toPoint).wrap(dimension)
 }
 
 sealed trait Cmd {
@@ -42,6 +43,17 @@ case object Right extends Cmd
 case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
+
+  def scale(k: Int): Point =
+    Point(x*k, y*k)
+
+  // TODO there's a dead zone now, because the rectangle
+  // is drawn outside of the logic so it doesn't get wrapped properly
+  def wrap(dimension: Point): Point =
+    Point(
+      if (x < 0) dimension.x - x.abs else x % dimension.x,
+      if (y < 0) dimension.y - y.abs else y % dimension.y
+    )
 }
 
 
@@ -75,14 +87,15 @@ class Gui extends JComponent {
   override def paint(g: Graphics) =
     image.foreach { point =>
       g.fillRect(point.x, point.y, 20, 20)
+      g.fillRect(point.x + 20, point.y + 20, 20, 20)
     }
 }
 object Gui {
-  def start(x: Int, y: Int): Gui = {
+  def start(dimension: Point): Gui = {
     val gui = new Gui
     SwingUtilities.invokeLater { () =>
       val app = new JFrame("Snake")
-      app.setSize(x, y)
+      app.setSize(dimension.x, dimension.y)
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       app.setResizable(false)
       app.setLocationRelativeTo(null) // centers
