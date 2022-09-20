@@ -171,18 +171,18 @@ object Gui {
 
 object Ex {
   import Point.{apply => p}
-  val initial = p(250, 250)
-  val points = Set(p(0, 0), p(0, 1), p(1, 1), p(2, 1))
+  val origin = p(0, 0)
+  val snake = Vector(p(0, 0), p(0, 1), p(1, 1), p(2, 1)).map(origin.move(_))
 
   // TODO the scale algo only works at the origin
-  val out: Set[Point] = scale(points, 20).map(it => initial.move(it))
-  val res = Set(Point(253,252), Point(251,251), Point(250,250), Point(250,251), Point(250,252), Point(251,252), Point(253,251), Point(252,252), Point(251,250), Point(252,251))
+  val out: Set[Point] = scale(snake, 30).toSet
+  // val res = Set(Point(253,252), Point(251,251), Point(250,250), Point(250,251), Point(250,252), Point(251,252), Point(253,251), Point(252,252), Point(251,250), Point(252,251))
 
-  def normalise(points: Set[Point]): List[Point] =
-    points.toList.map(it => p(it.x - initial.x, it.y - initial.y)).sortBy(it => (it.y, it.x))
+  // def normalise(points: Set[Point]): List[Point] =
+  //   points.toList.map(it => p(it.x - initial.x, it.y - initial.y)).sortBy(it => (it.y, it.x))
 
-  def scale(points: Set[Point], k: Int): Set[Point] =
-    points.map(_.scale(k)).flatMap(_.square(k - 1))
+  def scale(points: Vector[Point], k: Int): Vector[Point] =
+    points.map(_.scale(k)).flatMap(_.square(k - 1)).map(_.move(points.head.scale(-(k -1))))
 
 }
 
