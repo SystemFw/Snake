@@ -6,21 +6,16 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
-    var state = State(Square.at(initial))
+    var state = State(Snake.at(initial))
 
     while(true) {
       Thread.sleep(frameRate)
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.render)
+      gui.draw(state.render.map(_.wrap(dimension))) // TODO wrapping should go back to game logic
     }
   }
-
-  // val snake =
-  //   List.iterate(initial, 4)(p => p.move(Point(20, 0)))
-  //     .toSet
-  //     .flatMap(square)
 
   val frameRate = 1000 / 60
   val dimension: Point = {
@@ -34,8 +29,9 @@ object Main {
   // Also, the horizonal wrapping in that case shows half the square
   // on each side, whereas the vertical doesn't, there probably is some
   // hidden space
-  def evolve(state: State, input: Cmd): State =
-    State(state.body.move(input.toPoint.scale(3)).wrap(dimension))
+  def evolve(state: State, input: Cmd): State = State {
+    state.snake.move(input.toPoint.scale(3))
+  }
 }
 
 sealed trait Cmd {
@@ -69,20 +65,38 @@ case class Square(points: Set[Point]) {
   def move(to: Point): Square =
     Square(points.map(_.move(to)))
 
-  def wrap(dimension: Point): Square =
-    Square(points.map(_.wrap(dimension)))
+  def render: Set[Point] = points
 }
 object Square {
-  def at(pos: Point): Square = Square {
-    0.to(20).flatMap { x =>
-      0.to(20).map(y => pos.move(Point(x, y)))
+  def at(pos: Point, size: Int): Square = Square {
+    0.to(size).flatMap { x =>
+      0.to(size).map(y => pos.move(Point(x, y)))
     }.toSet
   }
 }
 
-case class State(body: Square) {
+case class Snake(body: Vector[Square]) {
+  def move(to: Point): Snake = Snake {
+    body.head.move(to) +: body.init
+  }
+
+  def render: Set[Point] = body.toSet.flatMap(_.render)
+}
+
+object Snake {
+  def at(pos: Point): Snake = Snake {
+    val size = 4
+    val squareSize = 20
+
+    Vector
+      .iterate(pos, size)(p => p.move(Point(squareSize, 0)))
+      .map(p => Square.at(p, squareSize))
+  }
+}
+
+case class State(snake: Snake) {
   def render: Set[Point] =
-    body.points
+    snake.render
 }
 
 
