@@ -6,41 +6,36 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
-    val initial = Point(250, 250)
-    def square(initial: Point) =
-      0.to(20).flatMap { x =>
-        0.to(20).map { y =>
-          initial.move(Point(x, y))
-        }
-      }.toSet
-
-    val snake =
-      List.range(0, 4, step = 20)
-
-    var state = square(initial)
+    var state = State(Square.at(initial))
 
     while(true) {
       Thread.sleep(frameRate)
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state)
+      gui.draw(state.render)
     }
   }
+
+  // val snake =
+  //   List.iterate(initial, 4)(p => p.move(Point(20, 0)))
+  //     .toSet
+  //     .flatMap(square)
 
   val frameRate = 1000 / 60
   val dimension: Point = {
     val x = 500
-      Point(x, x / 4 * 3)
+    Point(x, x / 4 * 3)
   }
+  val initial = Point(250, 250)
 
   // TODO wrapping is incorrect, should wrap up a whole square
   // if any point of it is outside the boundary
   // Also, the horizonal wrapping in that case shows half the square
   // on each side, whereas the vertical doesn't, there probably is some
   // hidden space
-  def evolve(points: Set[Point], input: Cmd): Set[Point] =
-    points.map(p => p.move(input.toPoint.scale(3)).wrap(dimension))
+  def evolve(state: State, input: Cmd): State =
+    State(state.body.move(input.toPoint.scale(3)).wrap(dimension))
 }
 
 sealed trait Cmd {
@@ -68,6 +63,26 @@ case class Point(x: Int, y: Int) {
       if (x < 0) dimension.x - x.abs else x % dimension.x,
       if (y < 0) dimension.y - y.abs else y % dimension.y
     )
+}
+
+case class Square(points: Set[Point]) {
+  def move(to: Point): Square =
+    Square(points.map(_.move(to)))
+
+  def wrap(dimension: Point): Square =
+    Square(points.map(_.wrap(dimension)))
+}
+object Square {
+  def at(pos: Point): Square = Square {
+    0.to(20).flatMap { x =>
+      0.to(20).map(y => pos.move(Point(x, y)))
+    }.toSet
+  }
+}
+
+case class State(body: Square) {
+  def render: Set[Point] =
+    body.points
 }
 
 
