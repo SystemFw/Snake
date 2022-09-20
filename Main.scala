@@ -14,7 +14,7 @@ object Main {
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.render(initial, 10))
+      gui.draw(state.render(initial, 1))
     }
   }
 
