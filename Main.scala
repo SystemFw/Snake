@@ -1,19 +1,30 @@
-import javax.swing._
-import java.awt._
-import java.awt.event._
+import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
+import java.awt.{Graphics}
+import java.awt.event.{KeyEvent, KeyListener}
 
 object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
-    var state = Point(250, 250)
+    val initial = Point(250, 250)
+    def square(initial: Point) =
+      0.to(20).flatMap { x =>
+        0.to(20).map { y =>
+          initial.move(Point(x, y))
+        }
+      }.toSet
+
+    val snake =
+      List.range(0, 4, step = 20)
+
+    var state = square(initial)
 
     while(true) {
       Thread.sleep(frameRate)
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(Set(state))
+      gui.draw(state)
     }
   }
 
@@ -23,8 +34,13 @@ object Main {
       Point(x, x / 4 * 3)
   }
 
-  def evolve(point: Point, input: Cmd): Point =
-    point.move(input.toPoint).wrap(dimension)
+  // TODO wrapping is incorrect, should wrap up a whole square
+  // if any point of it is outside the boundary
+  // Also, the horizonal wrapping in that case shows half the square
+  // on each side, whereas the vertical doesn't, there probably is some
+  // hidden space
+  def evolve(points: Set[Point], input: Cmd): Set[Point] =
+    points.map(p => p.move(input.toPoint.scale(3)).wrap(dimension))
 }
 
 sealed trait Cmd {
@@ -47,8 +63,6 @@ case class Point(x: Int, y: Int) {
   def scale(k: Int): Point =
     Point(x*k, y*k)
 
-  // TODO there's a dead zone now, because the rectangle
-  // is drawn outside of the logic so it doesn't get wrapped properly
   def wrap(dimension: Point): Point =
     Point(
       if (x < 0) dimension.x - x.abs else x % dimension.x,
@@ -86,8 +100,7 @@ class Gui extends JComponent {
   // TODO build proper image instead
   override def paint(g: Graphics) =
     image.foreach { point =>
-      g.fillRect(point.x, point.y, 20, 20)
-      g.fillRect(point.x + 20, point.y + 20, 20, 20)
+      g.drawLine(point.x, point.y, point.x, point.y)
     }
 }
 object Gui {
