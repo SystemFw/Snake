@@ -1,24 +1,20 @@
 import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
 import java.awt.{Graphics}
 import java.awt.event.{KeyEvent, KeyListener}
+import scala.util.chaining._
 
 object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
-    val out = Ex.out
-    // println(out)
-    // println(Ex.normalise(out))
-    gui.draw(out)
+    var state = Snake.at(initial)
 
-    var state = State(Snake.at(initial))
-
-    while(false) {
+    while(true) {
       Thread.sleep(frameRate)
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.render.map(_.wrap(dimension))) // TODO wrapping should go back to game logic
+      gui.draw(state.body.toSet)
     }
   }
 
@@ -34,49 +30,33 @@ object Main {
   // Also, the horizonal wrapping in that case shows half the square
   // on each side, whereas the vertical doesn't, there probably is some
   // hidden space
-  def evolve(state: State, input: Cmd): State = State {
-    state.snake.move(input.toPoint.scale(3))
-  }
+  def evolve(state: State, input: Cmd): State =
+    state.move(input.toPoint.scale(3))
 }
 
+type State = Snake
 
 
-case class Square(points: Set[Point]) {
-  def move(to: Point): Square =
-    Square(points.map(_.move(to)))
-
-  def render: Set[Point] = points
-}
-object Square {
-  def at(pos: Point, size: Int): Square = Square {
-    0.to(size).flatMap { x =>
-      0.to(size).map(y => pos.move(Point(x, y)))
-    }.toSet
-  }
-}
-
-case class Snake(body: Vector[Square]) {
-  def move(to: Point): Snake = Snake {
+case class Snake(body: Vector[Point]) {
+  def move(to: Point) = Snake {
     body.head.move(to) +: body.init
   }
 
-  def render: Set[Point] = body.toSet.flatMap(_.render)
+  // TODO should it wrap before or after scaling?
+  def render(dimension: Point, k: Int): Set[Point] =
+    body
+      .map(_.scale(k))
+      .flatMap(_.square(k - 1))
+      .map(_.move(body.head.scale(-(k -1))))
+      .map(_.wrap(dimension))
+      .toSet
 }
-
 object Snake {
-  def at(pos: Point): Snake = Snake {
-    val size = 4
-    val squareSize = 20
-
+  def at(pos: Point): Snake =
     Vector
-      .iterate(pos, size)(p => p.move(Point(squareSize, 0)))
-      .map(p => Square.at(p, squareSize))
-  }
-}
-
-case class State(snake: Snake) {
-  def render: Set[Point] =
-    snake.render
+      .range(0, 10)
+      .map(x => pos.move(Right.toPoint.scale(x)))
+      .pipe(Snake.apply)
 }
 
 
@@ -167,22 +147,3 @@ object Gui {
     gui
   }
 }
-
-
-object Ex {
-  import Point.{apply => p}
-  val origin = p(0, 0)
-  val snake = Vector(p(0, 0), p(0, 1), p(1, 1), p(2, 1)).map(origin.move(_))
-
-  // TODO the scale algo only works at the origin
-  val out: Set[Point] = scale(snake, 30).toSet
-  // val res = Set(Point(253,252), Point(251,251), Point(250,250), Point(250,251), Point(250,252), Point(251,252), Point(253,251), Point(252,252), Point(251,250), Point(252,251))
-
-  // def normalise(points: Set[Point]): List[Point] =
-  //   points.toList.map(it => p(it.x - initial.x, it.y - initial.y)).sortBy(it => (it.y, it.x))
-
-  def scale(points: Vector[Point], k: Int): Vector[Point] =
-    points.map(_.scale(k)).flatMap(_.square(k - 1)).map(_.move(points.head.scale(-(k -1))))
-
-}
-
