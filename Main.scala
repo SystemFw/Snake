@@ -6,9 +6,14 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
+    val out = Ex.out
+    // println(out)
+    // println(Ex.normalise(out))
+    gui.draw(out)
+
     var state = State(Snake.at(initial))
 
-    while(true) {
+    while(false) {
       Thread.sleep(frameRate)
       gui.getInput.foreach { in =>
         state = evolve(state, in)
@@ -34,32 +39,7 @@ object Main {
   }
 }
 
-sealed trait Cmd {
-  def toPoint = this match {
-    case Up => Point(0, -1)
-    case Down => Point(0, 1)
-    case Left => Point(-1, 0)
-    case Right => Point(1, 0)
-  }
-}
-case object Up    extends Cmd
-case object Down  extends Cmd
-case object Left  extends Cmd
-case object Right extends Cmd
 
-case class Point(x: Int, y: Int) {
-  def move(to: Point): Point =
-    Point(x + to.x, y + to.y)
-
-  def scale(k: Int): Point =
-    Point(x*k, y*k)
-
-  def wrap(dimension: Point): Point =
-    Point(
-      if (x < 0) dimension.x - x.abs else x % dimension.x,
-      if (y < 0) dimension.y - y.abs else y % dimension.y
-    )
-}
 
 case class Square(points: Set[Point]) {
   def move(to: Point): Square =
@@ -99,6 +79,38 @@ case class State(snake: Snake) {
     snake.render
 }
 
+
+sealed trait Cmd {
+  def toPoint = this match {
+    case Up => Point(0, -1)
+    case Down => Point(0, 1)
+    case Left => Point(-1, 0)
+    case Right => Point(1, 0)
+  }
+}
+case object Up    extends Cmd
+case object Down  extends Cmd
+case object Left  extends Cmd
+case object Right extends Cmd
+
+case class Point(x: Int, y: Int) {
+  def move(to: Point): Point =
+    Point(x + to.x, y + to.y)
+
+  def scale(k: Int): Point =
+    Point(x*k, y*k)
+
+  def wrap(dimension: Point): Point =
+    Point(
+      if (x < 0) dimension.x - x.abs else x % dimension.x,
+      if (y < 0) dimension.y - y.abs else y % dimension.y
+    )
+
+  def square(size: Int): Set[Point] =
+    0.to(size).flatMap { x =>
+      0.to(size).map(y => this.move(Point(x, y)))
+    }.toSet
+}
 
 class Gui extends JComponent {
 
@@ -156,4 +168,21 @@ object Gui {
   }
 }
 
+
+object Ex {
+  import Point.{apply => p}
+  val initial = p(250, 250)
+  val points = Set(p(0, 0), p(0, 1), p(1, 1), p(2, 1))
+
+  // TODO the scale algo only works at the origin
+  val out: Set[Point] = scale(points, 20).map(it => initial.move(it))
+  val res = Set(Point(253,252), Point(251,251), Point(250,250), Point(250,251), Point(250,252), Point(251,252), Point(253,251), Point(252,252), Point(251,250), Point(252,251))
+
+  def normalise(points: Set[Point]): List[Point] =
+    points.toList.map(it => p(it.x - initial.x, it.y - initial.y)).sortBy(it => (it.y, it.x))
+
+  def scale(points: Set[Point], k: Int): Set[Point] =
+    points.map(_.scale(k)).flatMap(_.square(k - 1))
+
+}
 
