@@ -14,7 +14,7 @@ object Main {
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.body.toSet)
+      gui.draw(state.render(initial, 10))
     }
   }
 
@@ -30,14 +30,19 @@ object Main {
   // Also, the horizonal wrapping in that case shows half the square
   // on each side, whereas the vertical doesn't, there probably is some
   // hidden space
+  // TODO ^^ might be obsolete with scaling approach
   def evolve(state: State, input: Cmd): State =
-    state.move(input.toPoint.scale(3))
+    state.move(input.toPoint)
 }
 
 type State = Snake
 
 
 case class Snake(body: Vector[Point]) {
+
+  //TODO it moves, but the logic is not correct
+  // TODO ban touching itself
+  // TODO ban head going backward
   def move(to: Point) = Snake {
     body.head.move(to) +: body.init
   }
@@ -48,13 +53,13 @@ case class Snake(body: Vector[Point]) {
       .map(_.scale(k))
       .flatMap(_.square(k - 1))
       .map(_.move(body.head.scale(-(k -1))))
-      .map(_.wrap(dimension))
+//      .map(_.wrap(dimension))
       .toSet
 }
 object Snake {
   def at(pos: Point): Snake =
     Vector
-      .range(0, 10)
+      .range(0, 50)
       .map(x => pos.move(Right.toPoint.scale(x)))
       .pipe(Snake.apply)
 }
