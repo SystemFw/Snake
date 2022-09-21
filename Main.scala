@@ -2,28 +2,23 @@ import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
 import java.awt.{Graphics}
 import java.awt.event.{KeyEvent, KeyListener}
 import scala.util.chaining._
+import Params._
 
 object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
-    var state = Snake.at(initial)
+    var state = Snake.create
 
     while(true) {
       Thread.sleep(frameRate)
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.render(dimension, 3, initial))
+      gui.draw(state.render)
     }
   }
 
-  val frameRate = 1000 / 60
-  val dimension: Point = {
-    val x = 500
-    Point(x, x / 4 * 3)
-  }
-  val initial = Point(250, 250)
 
   def evolve(state: State, input: Cmd): State =
     state.move(input.toPoint)
@@ -32,16 +27,18 @@ object Main {
 type State = Snake
 
 object Params {
-  val framerate = ???
-  val dimension = ???
-  val origin = ???
-  val scale = ???
-  val initialSnakeSize = ???
+  val frameRate = 1000 / 60
+  val dimension: Point = {
+    val x = 500
+    Point(x, x / 4 * 3)
+  }
+  val origin = Point(250, 250)
+  val scale = 3
+  val initialSnakeSize = 20
 }
 
 case class Snake(body: Vector[Point]) {
 
-  //TODO it moves, but the logic is not correct
   // TODO ban touching itself
   // TODO ban head going backward
   def move(to: Point) = Snake {
@@ -50,17 +47,17 @@ case class Snake(body: Vector[Point]) {
 
   // TODO should it wrap before or after scaling?
   // currently it's kinda broken
-  def render(dimension: Point, k: Int, origin: Point): Set[Point] =
+  def render: Set[Point] =
     body
-      .flatMap(_.scale(k).square(k -1))
-      .map(_.move(origin.scale(-(k-1))).wrap(dimension))
+      .flatMap(_.scaleBy(scale).square(scale-1))
+      .map(_.move(origin.scaleBy(-1).scaleBy(scale-1)).wrap(dimension))
       .toSet
 }
 object Snake {
-  def at(pos: Point): Snake =
+  def create: Snake =
     Vector
-      .range(0, 20)
-      .map(x => pos.move(Right.toPoint.scale(x)))
+      .range(0, initialSnakeSize)
+      .map(x => origin.move(Right.toPoint.scaleBy(x)))
       .pipe(Snake.apply)
 }
 
@@ -82,7 +79,7 @@ case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
 
-  def scale(k: Int): Point =
+  def scaleBy(k: Int): Point =
     Point(x*k, y*k)
 
   def wrap(dimension: Point): Point =
