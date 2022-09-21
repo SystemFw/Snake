@@ -25,12 +25,6 @@ object Main {
   }
   val initial = Point(250, 250)
 
-  // TODO wrapping is incorrect, should wrap up a whole square
-  // if any point of it is outside the boundary
-  // Also, the horizonal wrapping in that case shows half the square
-  // on each side, whereas the vertical doesn't, there probably is some
-  // hidden space
-  // TODO ^^ might be obsolete with scaling approach
   def evolve(state: State, input: Cmd): State =
     state.move(input.toPoint)
 }
@@ -48,12 +42,13 @@ case class Snake(body: Vector[Point]) {
   }
 
   // TODO should it wrap before or after scaling?
+  // currently it's kinda broken
   def render(dimension: Point, k: Int, origin: Point): Set[Point] =
     body
       .map(_.scale(k))
       .flatMap(_.square(k - 1))
       .map(_.move(origin.scale(-(k -1))))
-//      .map(_.wrap(dimension))
+      .map(_.wrap(dimension))
       .toSet
 }
 object Snake {
