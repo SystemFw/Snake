@@ -45,12 +45,12 @@ case class Snake(body: Vector[Point]) {
     body.head.move(to) +: body.init
   }
 
-  // TODO should it wrap before or after scaling?
-  // currently it's kinda broken
+  // TODO wrapping still kinda broken: sometimes it doesn't wrap
+  // also there might be hidden space on top
   def render: Set[Point] =
     body
-      .flatMap(_.scaleBy(scale).square(scale-1))
-      .map(_.move(origin.scaleBy(-1).scaleBy(scale-1)).wrap(dimension))
+      .flatMap { _.scaleBy(scale).square(scale - 1) }
+      .map { _.move(origin.scaleBy(-scale + 1)).wrap(dimension) }
       .toSet
 }
 object Snake {
