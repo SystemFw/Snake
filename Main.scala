@@ -8,10 +8,10 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start(dimension)
 
-    var state = Snake.create
+    var state = State.create
 
     while(true) {
-      Thread.sleep(frameRate)
+      Thread.sleep(frameRate) // TODO this is pretty rudimentary
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
@@ -21,10 +21,8 @@ object Main {
 
 
   def evolve(state: State, input: Cmd): State =
-    state.move(input.toPoint)
+    state.move(input)
 }
-
-type State = Snake
 
 object Params {
   val frameRate = 1000 / 60
@@ -33,32 +31,35 @@ object Params {
     Point(x, x / 4 * 3)
   }
   val origin = Point(250, 250)
-  val scale = 3
+  val scale = 5
   val initialSnakeSize = 20
 }
 
-case class Snake(body: Vector[Point]) {
+case class State(snake: Vector[Point], direction: Cmd) {
 
   // TODO ban touching itself
-  // TODO ban head going backward
-  def move(to: Point) = Snake {
-    body.head.move(to) +: body.init
+  def move(cmd: Cmd): State = {
+    val directionNow = if (cmd == direction.opposite) direction else cmd
+    State(
+      snake.head.move(directionNow.toPoint) +: snake.init,
+      directionNow
+    )
   }
 
   // TODO wrapping still kinda broken: sometimes it doesn't wrap
   // also there might be hidden space on top
   def render: Set[Point] =
-    body
+    snake
       .flatMap { _.scaleBy(scale).square(scale - 1) }
       .map { _.move(origin.scaleBy(-scale + 1)).wrap(dimension) }
       .toSet
 }
-object Snake {
-  def create: Snake =
+object State {
+  def create: State =
     Vector
       .range(0, initialSnakeSize)
       .map(x => origin.move(Right.toPoint.scaleBy(x)))
-      .pipe(Snake.apply)
+      .pipe(snake => State(snake, Left))
 }
 
 
@@ -68,6 +69,13 @@ sealed trait Cmd {
     case Down => Point(0, 1)
     case Left => Point(-1, 0)
     case Right => Point(1, 0)
+  }
+
+  def opposite: Cmd = this match {
+    case Up => Down
+    case Down => Up
+    case Left => Right
+    case Right => Left
   }
 }
 case object Up    extends Cmd
