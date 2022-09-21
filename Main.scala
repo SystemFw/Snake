@@ -14,7 +14,7 @@ object Main {
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.render(dimension, 5, initial))
+      gui.draw(state.render(dimension, 3, initial))
     }
   }
 
@@ -31,6 +31,13 @@ object Main {
 
 type State = Snake
 
+object Params {
+  val framerate = ???
+  val dimension = ???
+  val origin = ???
+  val scale = ???
+  val initialSnakeSize = ???
+}
 
 case class Snake(body: Vector[Point]) {
 
@@ -45,16 +52,14 @@ case class Snake(body: Vector[Point]) {
   // currently it's kinda broken
   def render(dimension: Point, k: Int, origin: Point): Set[Point] =
     body
-      .map(_.scale(k))
-      .flatMap(_.square(k - 1))
-      .map(_.move(origin.scale(-(k -1))))
-      .map(_.wrap(dimension))
+      .flatMap(_.scale(k).square(k -1))
+      .map(_.move(origin.scale(-(k-1))).wrap(dimension))
       .toSet
 }
 object Snake {
   def at(pos: Point): Snake =
     Vector
-      .range(0, 50)
+      .range(0, 20)
       .map(x => pos.move(Right.toPoint.scale(x)))
       .pipe(Snake.apply)
 }
