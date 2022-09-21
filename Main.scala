@@ -14,7 +14,7 @@ object Main {
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      gui.draw(state.render(initial, 1))
+      gui.draw(state.render(dimension, 5, initial))
     }
   }
 
@@ -48,11 +48,11 @@ case class Snake(body: Vector[Point]) {
   }
 
   // TODO should it wrap before or after scaling?
-  def render(dimension: Point, k: Int): Set[Point] =
+  def render(dimension: Point, k: Int, origin: Point): Set[Point] =
     body
       .map(_.scale(k))
       .flatMap(_.square(k - 1))
-      .map(_.move(body.head.scale(-(k -1))))
+      .map(_.move(origin.scale(-(k -1))))
 //      .map(_.wrap(dimension))
       .toSet
 }
