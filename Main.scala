@@ -1,4 +1,4 @@
-import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
+import javax.swing.{JComponent, JFrame, JPanel, SwingUtilities, WindowConstants}
 import java.awt.{Graphics}
 import java.awt.event.{KeyEvent, KeyListener}
 import scala.util.chaining._
@@ -151,7 +151,12 @@ object Gui {
           def keyTyped(e: KeyEvent): Unit = ()
         }
       }
-      app.add(gui)
+      val panel = new JPanel
+      app.add(panel)
+      gui.setPreferredSize(java.awt.Dimension(dimension.x, dimension.y))
+      panel.add(gui)
+      panel.setBackground(java.awt.Color.red)
+      app.pack()
       app.setVisible(true)
     }
     gui
