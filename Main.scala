@@ -1,6 +1,9 @@
-import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
-import java.awt.{Graphics}
-import java.awt.event.{KeyEvent, KeyListener}
+// import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
+// import java.awt.{Graphics}
+// import java.awt.event.{KeyEvent, KeyListener}
+import javax.swing._
+import java.awt._
+import java.awt.event._
 import scala.util.chaining._
 import Params._
 
@@ -115,7 +118,7 @@ class Gui extends JComponent {
       repaint()
     }
 
-  def onKey(e: KeyEvent): Unit = 
+  def onKey(e: KeyEvent): Unit =
     e.getKeyCode match {
       case KeyEvent.VK_UP =>
         input = Some(Up)
@@ -129,22 +132,30 @@ class Gui extends JComponent {
     }
 
   // TODO build proper image instead
-  override def paint(g: Graphics) =
+  override def paintComponent(g: Graphics) = {
+    g.drawLine(0,0,dimension.x,0)
+    g.drawLine(2,0,2,dimension.y)
+    g.drawLine(dimension.x - 2 ,0,dimension.x - 2 ,dimension.y)
+    g.drawLine(0,dimension.y - 2  ,dimension.x,dimension.y - 2)
     image.foreach { point =>
       g.drawLine(point.x, point.y, point.x, point.y)
     }
+  }
+
+  override def getPreferredSize = Dimension(dimension.x, dimension.y)
 }
 object Gui {
   def start(dimension: Point): Gui = {
     val gui = new Gui
     SwingUtilities.invokeLater { () =>
       val app = new JFrame("Snake")
-      app.setSize(dimension.x, dimension.y)
+//      app.setSize(dimension.x, dimension.y)
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       app.setResizable(false)
+      // TODO no longer works
       app.setLocationRelativeTo(null) // centers
 
-      app.addKeyListener {
+      app.addKeyListener { // TODO consider keybindings instead
         new KeyListener {
           def keyPressed(e: KeyEvent): Unit = gui.onKey(e)
           def keyReleased(e: KeyEvent): Unit = ()
@@ -152,8 +163,10 @@ object Gui {
         }
       }
       app.add(gui)
+      app.pack
       app.setVisible(true)
     }
     gui
   }
+
 }
