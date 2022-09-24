@@ -13,10 +13,16 @@ object Main {
 
     var state = State.create
 
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import scala.concurrent.Future
     while(true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
       gui.getInput.foreach { in =>
         state = evolve(state, in)
+      }
+      Future {
+        println(state.snake)
+        println(state.render)
       }
       gui.draw(state.render)
     }
@@ -32,10 +38,10 @@ object Params {
   val dimension: Point = {
     val x = 500
     Point(x, x / 4 * 3)
-  }
+  } // 500, 375, verified
   val origin = Point(250, 250)
-  val scale = 5
-  val initialSnakeSize = 20
+  val scale = 1 // 5
+  val initialSnakeSize = 1 // 20
 }
 
 case class State(snake: Vector[Point], direction: Cmd) {
@@ -44,17 +50,20 @@ case class State(snake: Vector[Point], direction: Cmd) {
   def move(cmd: Cmd): State = {
     val directionNow = if (cmd == direction.opposite) direction else cmd
     State(
-      snake.head.move(directionNow.toPoint) +: snake.init,
+      (snake.head.move(directionNow.toPoint) +: snake.init).map(_.wrap(dimension)),
       directionNow
     )
   }
 
   // TODO wrapping still kinda broken: sometimes it doesn't wrap
   // also there might be hidden space on top
+  // Repro: go in one direction, disappears at the second wrapping round
+  /// cannot reproduce with a single point
   def render: Set[Point] =
     snake
       .flatMap { _.scaleBy(scale).square(scale - 1) }
-      .map { _.move(origin.scaleBy(-scale + 1)).wrap(dimension) }
+      .map { _.move(origin.scaleBy(-scale + 1)) }
+      .map(_.wrap(dimension))
       .toSet
 }
 object State {
@@ -132,15 +141,10 @@ class Gui extends JComponent {
     }
 
   // TODO build proper image instead
-  override def paintComponent(g: Graphics) = {
-    g.drawLine(0,0,dimension.x,0)
-    g.drawLine(2,0,2,dimension.y)
-    g.drawLine(dimension.x - 2 ,0,dimension.x - 2 ,dimension.y)
-    g.drawLine(0,dimension.y - 2  ,dimension.x,dimension.y - 2)
+  override def paintComponent(g: Graphics) =
     image.foreach { point =>
       g.drawLine(point.x, point.y, point.x, point.y)
     }
-  }
 
   override def getPreferredSize = Dimension(dimension.x, dimension.y)
 }
