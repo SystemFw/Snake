@@ -102,7 +102,7 @@ case class Point(x: Int, y: Int) {
     }.toSet
 }
 
-class Gui extends JComponent {
+class Gui extends JPanel {
 
   @volatile private var input: Option[Cmd] = None
   private var image: Set[Point] = Set()
@@ -129,10 +129,12 @@ class Gui extends JComponent {
     }
 
   // TODO build proper image instead
-  override def paint(g: Graphics) =
+  override def paint(g: Graphics) = {
+  //  println(getSize())
     image.foreach { point =>
       g.drawLine(point.x, point.y, point.x, point.y)
     }
+  }
 }
 object Gui {
   def start(dimension: Point): Gui = {
@@ -151,12 +153,10 @@ object Gui {
           def keyTyped(e: KeyEvent): Unit = ()
         }
       }
-      val panel = new JPanel
-      app.add(panel)
-      gui.setPreferredSize(java.awt.Dimension(dimension.x, dimension.y))
-      panel.add(gui)
-      panel.setBackground(java.awt.Color.red)
-      app.pack()
+      gui.setBackground(java.awt.Color.green)
+      gui.setPreferredSize(java.awt.Dimension(10, 10))
+      app.add(gui, java.awt.BorderLayout.CENTER)
+      //app.pack
       app.setVisible(true)
     }
     gui
