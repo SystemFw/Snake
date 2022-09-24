@@ -93,8 +93,8 @@ case class Point(x: Int, y: Int) {
 
   def wrap(dimension: Point): Point =
     Point(
-      if (x < 0) dimension.x - (x.abs % dimension.x) else x % dimension.x,
-      if (y < 0) dimension.y - (y.abs % dimension.y) else y % dimension.y
+      (if (x < 0) dimension.x else 0) + (x % dimension.x),
+      (if (y < 0) dimension.y else 0) + (y % dimension.y)
     )
 
   def square(size: Int): Set[Point] =
