@@ -102,7 +102,7 @@ case class Point(x: Int, y: Int) {
     }.toSet
 }
 
-class Gui extends JPanel {
+class Gui extends JComponent {
 
   @volatile private var input: Option[Cmd] = None
   private var image: Set[Point] = Set()
@@ -129,23 +129,21 @@ class Gui extends JPanel {
     }
 
   // TODO build proper image instead
-  override def paint(g: Graphics) = {
-  //  println(getSize())
+  override def paintComponent(g: Graphics) =
     image.foreach { point =>
       g.drawLine(point.x, point.y, point.x, point.y)
     }
-  }
 }
 object Gui {
   def start(dimension: Point): Gui = {
     val gui = new Gui
     SwingUtilities.invokeLater { () =>
       val app = new JFrame("Snake")
-      app.setSize(dimension.x, dimension.y)
+//      app.setSize(dimension.x, dimension.y)
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       app.setResizable(false)
       app.setLocationRelativeTo(null) // centers
-
+      // TODO use keybindings? https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
       app.addKeyListener {
         new KeyListener {
           def keyPressed(e: KeyEvent): Unit = gui.onKey(e)
@@ -153,10 +151,9 @@ object Gui {
           def keyTyped(e: KeyEvent): Unit = ()
         }
       }
-      gui.setBackground(java.awt.Color.green)
-      gui.setPreferredSize(java.awt.Dimension(10, 10))
-      app.add(gui, java.awt.BorderLayout.CENTER)
-      //app.pack
+      gui.setPreferredSize(java.awt.Dimension(dimension.x, dimension.y))
+      app.add(gui)
+      app.pack
       app.setVisible(true)
     }
     gui
