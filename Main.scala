@@ -1,6 +1,3 @@
-// import javax.swing.{JComponent, JFrame, SwingUtilities, WindowConstants}
-// import java.awt.{Graphics}
-// import java.awt.event.{KeyEvent, KeyListener}
 import javax.swing._
 import java.awt._
 import java.awt.event._
@@ -20,10 +17,6 @@ object Main {
       gui.getInput.foreach { in =>
         state = evolve(state, in)
       }
-      Future {
-        println(state.snake)
-        println(state.render)
-      }
       gui.draw(state.render)
     }
   }
@@ -38,7 +31,7 @@ object Params {
   val dimension: Point = {
     val x = 500
     Point(x, x / 4 * 3)
-  } // 500, 375, verified
+  }
   val origin = Point(250, 250)
   val scale = 5
   val initialSnakeSize = 20
@@ -55,10 +48,6 @@ case class State(snake: Vector[Point], direction: Cmd) {
     )
   }
 
-  // TODO wrapping still kinda broken: sometimes it doesn't wrap
-  // also there might be hidden space on top
-  // Repro: go in one direction, disappears at the second wrapping round
-  /// cannot reproduce with a single point
   def render: Set[Point] =
     snake
       .flatMap { _.scaleBy(scale).square(scale - 1) }
@@ -153,7 +142,6 @@ object Gui {
     val gui = new Gui
     SwingUtilities.invokeLater { () =>
       val app = new JFrame("Snake")
-//      app.setSize(dimension.x, dimension.y)
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       app.setResizable(false)
       // TODO no longer works
