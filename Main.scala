@@ -1,6 +1,9 @@
-import javax.swing.{JComponent, JFrame, JPanel, SwingUtilities, WindowConstants}
-import java.awt.{Graphics}
-import java.awt.event.{KeyEvent, KeyListener}
+// import javax.swing.{JComponent, JFrame, JPanel, SwingUtilities, WindowConstants}
+// import java.awt.{Graphics}
+// import java.awt.event.{KeyEvent, KeyListener}
+import javax.swing._
+import java.awt._
+import java.awt.event._
 import scala.util.chaining._
 import Params._
 
@@ -130,7 +133,7 @@ class Gui extends JComponent {
 
   // TODO build proper image instead
   override def paintComponent(g: Graphics) =
-    image.foreach { point =>
+    image.map(_.wrap(Point(getWidth, getHeight))).foreach { point =>
       g.drawLine(point.x, point.y, point.x, point.y)
     }
 }
@@ -139,9 +142,9 @@ object Gui {
     val gui = new Gui
     SwingUtilities.invokeLater { () =>
       val app = new JFrame("Snake")
-//      app.setSize(dimension.x, dimension.y)
+     // app.setSize(dimension.x, dimension.y) // TODO this vs setPreferredSize on component and packing
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-      app.setResizable(false)
+ //     app.setResizable(false)
       app.setLocationRelativeTo(null) // centers
       // TODO use keybindings? https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html
       app.addKeyListener {
@@ -151,9 +154,16 @@ object Gui {
           def keyTyped(e: KeyEvent): Unit = ()
         }
       }
-      gui.setPreferredSize(java.awt.Dimension(dimension.x, dimension.y))
+
+      // import javax.swing._
+      // val button = new JButton("hello")
+      // button.setSize(java.awt.Dimension(dimension.x / 2, dimension.y / 2))
+      // app.add(new JButton("hello"))
+       app.setSize(dimension.x, dimension.y)
+      app.getContentPane.setSize(java.awt.Dimension(dimension.x, dimension.y))
+//      app.pack
+//      gui.setBorder(BorderFactory.createLineBorder(Color.red, 15))
       app.add(gui)
-      app.pack
       app.setVisible(true)
     }
     gui
