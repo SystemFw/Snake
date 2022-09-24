@@ -40,8 +40,8 @@ object Params {
     Point(x, x / 4 * 3)
   } // 500, 375, verified
   val origin = Point(250, 250)
-  val scale = 1 // 5
-  val initialSnakeSize = 1 // 20
+  val scale = 5
+  val initialSnakeSize = 20
 }
 
 case class State(snake: Vector[Point], direction: Cmd) {
@@ -104,8 +104,8 @@ case class Point(x: Int, y: Int) {
 
   def wrap(dimension: Point): Point =
     Point(
-      if (x < 0) dimension.x - x.abs else x % dimension.x,
-      if (y < 0) dimension.y - y.abs else y % dimension.y
+      if (x < 0) dimension.x - (x.abs % dimension.x) else x % dimension.x,
+      if (y < 0) dimension.y - (y.abs % dimension.y) else y % dimension.y
     )
 
   def square(size: Int): Set[Point] =
