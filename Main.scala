@@ -30,7 +30,7 @@ object Params {
   val frameRate = 1000 / 60
   val dimension: Point = {
     val x = 500
-    Point(x, x / 4 * 3)
+    new Point(x, x / 4 * 3)
   }
   val origin = Point(250, 250)
   val scale = 5
@@ -43,7 +43,7 @@ case class State(snake: Vector[Point], direction: Cmd) {
   def move(cmd: Cmd): State = {
     val directionNow = if (cmd == direction.opposite) direction else cmd
     State(
-      (snake.head.move(directionNow.toPoint) +: snake.init).map(_.wrap(dimension)),
+      (snake.head.move(directionNow.toPoint) +: snake.init),
       directionNow
     )
   }
@@ -52,7 +52,6 @@ case class State(snake: Vector[Point], direction: Cmd) {
     snake
       .flatMap { _.scaleBy(scale).square(scale - 1) }
       .map { _.move(origin.scaleBy(-scale + 1)) }
-      .map(_.wrap(dimension))
       .toSet
 }
 object State {
@@ -70,21 +69,18 @@ case class Point(x: Int, y: Int) {
   def scaleBy(k: Int): Point =
     Point(x*k, y*k)
 
-  def wrap(dimension: Point): Point =
-    Point(
-      x.sign.min(0).abs * dimension.x + (x % dimension.x),
-      y.sign.min(0).abs * dimension.y + (y % dimension.y)
-    )
-
-  // dimension.x + (-x % dimension.x)
   def square(size: Int): Set[Point] =
     0.to(size).flatMap { x =>
       0.to(size).map(y => this.move(Point(x, y)))
     }.toSet
 }
 object Point {
+  /* Wraps around dimensions */
   def apply(x: Int, y: Int): Point =
-    new Point(x, y)
+    new Point(
+      x.sign.min(0).abs * dimension.x + (x % dimension.x),
+      y.sign.min(0).abs * dimension.y + (y % dimension.y)
+    )
 }
 
 sealed trait Cmd {
