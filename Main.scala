@@ -6,7 +6,7 @@ import Params._
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val gui = Gui.start(dimension)
+    val gui = Gui.start
 
     var state = State.create
 
@@ -28,10 +28,8 @@ object Main {
 
 object Params {
   val frameRate = 1000 / 60
-  val dimension: Point = {
-    val x = 500
-    new Point(x, x / 4 * 3)
-  }
+  val X = 500
+  val Y = X / 4 * 3
   val origin = Point(250, 250)
   val scale = 5
   val initialSnakeSize = 20
@@ -78,8 +76,8 @@ object Point {
   /* Wraps around dimensions */
   def apply(x: Int, y: Int): Point =
     new Point(
-      x.sign.min(0).abs * dimension.x + (x % dimension.x),
-      y.sign.min(0).abs * dimension.y + (y % dimension.y)
+      x.sign.min(0).abs * X + (x % X),
+      y.sign.min(0).abs * Y + (y % Y)
     )
 }
 
@@ -135,10 +133,10 @@ class Gui extends JComponent {
       g.drawLine(point.x, point.y, point.x, point.y)
     }
 
-  override def getPreferredSize = Dimension(dimension.x, dimension.y)
+  override def getPreferredSize = Dimension(X, Y)
 }
 object Gui {
-  def start(dimension: Point): Gui = {
+  def start: Gui = {
     val gui = new Gui
     SwingUtilities.invokeLater { () =>
       val app = new JFrame("Snake")
