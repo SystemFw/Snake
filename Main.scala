@@ -63,6 +63,29 @@ object State {
       .pipe(snake => State(snake, Left))
 }
 
+case class Point(x: Int, y: Int) {
+  def move(to: Point): Point =
+    Point(x + to.x, y + to.y)
+
+  def scaleBy(k: Int): Point =
+    Point(x*k, y*k)
+
+  def wrap(dimension: Point): Point =
+    Point(
+      x.sign.min(0).abs * dimension.x + (x % dimension.x),
+      y.sign.min(0).abs * dimension.y + (y % dimension.y)
+    )
+
+  // dimension.x + (-x % dimension.x)
+  def square(size: Int): Set[Point] =
+    0.to(size).flatMap { x =>
+      0.to(size).map(y => this.move(Point(x, y)))
+    }.toSet
+}
+object Point {
+  def apply(x: Int, y: Int): Point =
+    new Point(x, y)
+}
 
 sealed trait Cmd {
   def toPoint = this match {
@@ -83,26 +106,6 @@ case object Up    extends Cmd
 case object Down  extends Cmd
 case object Left  extends Cmd
 case object Right extends Cmd
-
-case class Point(x: Int, y: Int) {
-  def move(to: Point): Point =
-    Point(x + to.x, y + to.y)
-
-  def scaleBy(k: Int): Point =
-    Point(x*k, y*k)
-
-  def wrap(dimension: Point): Point =
-    Point(
-      x.sign.min(0).abs * dimension.x + (x % dimension.x),
-      y.sign.min(0).abs * dimension.y + (y % dimension.y)
-    )
-
-  // dimension.x + (-x % dimension.x)
-  def square(size: Int): Set[Point] =
-    0.to(size).flatMap { x =>
-      0.to(size).map(y => this.move(Point(x, y)))
-    }.toSet
-}
 
 class Gui extends JComponent {
 
