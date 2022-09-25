@@ -10,13 +10,9 @@ object Main {
 
     var state = State.create
 
-    import scala.concurrent.ExecutionContext.Implicits.global
-    import scala.concurrent.Future
     while(true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
-      gui.getInput.foreach { input =>
-        state = state.evolve(input)
-      }
+      gui.getInput.foreach { input => state = state.evolve(input) }
       gui.update(state)
     }
   }
@@ -98,11 +94,10 @@ case object Down  extends Cmd
 case object Left  extends Cmd
 case object Right extends Cmd
 
-
-
 class Gui extends JPanel {
 
   @volatile private var input: Option[Cmd] = None
+  // Updated from EDT thread, no volatile needed
   private var image: Set[Point] = Set()
   private val score = new JLabel("Score")
 
@@ -123,7 +118,7 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"Score: ${state.score}") // TODO doesn't have any effect
+      score.setText(s"Score: ${state.score}")
       repaint()
     }
 
