@@ -105,9 +105,20 @@ class Gui extends JPanel {
 
   Vector[Cmd](Up, Down, Left, Right).foreach { cmd =>
     val name = cmd.toString.toUpperCase
-    val action: AbstractAction = _ => input = Some(cmd)
+    val released = s"released $name"
+
+    val action: AbstractAction = _ => {
+      println(s"$cmd at ${Thread.currentThread}")
+      input = Some(cmd)
+    }
     getActionMap.put(name, action)
     getInputMap.put(KeyStroke.getKeyStroke(name), name)
+
+    val releasedAction: AbstractAction = _ => {
+      println(s"$cmd released at ${Thread.currentThread}")
+    }
+    getActionMap.put(released, releasedAction)
+    getInputMap.put(KeyStroke.getKeyStroke(released), released)
   }
 
   setLayout(new BorderLayout)
