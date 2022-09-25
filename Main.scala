@@ -142,9 +142,6 @@ object Gui {
       val app = new JFrame("Snake")
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       app.setResizable(false)
-      // TODO no longer works
-      app.setLocationRelativeTo(null) // centers
-
       app.addKeyListener { // TODO consider keybindings instead
         new KeyListener {
           def keyPressed(e: KeyEvent): Unit = gui.onKey(e)
@@ -154,6 +151,8 @@ object Gui {
       }
       app.add(gui)
       app.pack
+      // centers the window, needs to be called after `pack`
+      app.setLocationRelativeTo(null)
       app.setVisible(true)
     }
     gui
