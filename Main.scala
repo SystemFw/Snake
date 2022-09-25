@@ -101,7 +101,9 @@ case object Down  extends Cmd
 case object Left  extends Cmd
 case object Right extends Cmd
 
-class Gui extends JComponent {
+
+
+class Gui extends JPanel {
 
   @volatile private var input: Option[Cmd] = None
   private var image: Set[Point] = Set()
@@ -113,6 +115,11 @@ class Gui extends JComponent {
     getInputMap.put(KeyStroke.getKeyStroke(name), name)
   }
 
+  setLayout(new BorderLayout)
+  add(new Canvas,  BorderLayout.CENTER)
+  add(new JLabel("Score"), BorderLayout.NORTH)
+
+
   def getInput: Option[Cmd] = input
 
   def draw(newImage: Set[Point]): Unit =
@@ -121,13 +128,15 @@ class Gui extends JComponent {
       repaint()
     }
 
-  // TODO build proper image instead
-  override def paintComponent(g: Graphics) =
-    image.foreach { point =>
-      g.drawLine(point.x, point.y, point.x, point.y)
-    }
+  class Canvas extends JComponent {
+    // TODO build proper image instead
+    override def paintComponent(g: Graphics) =
+      image.foreach { point =>
+        g.drawLine(point.x, point.y, point.x, point.y)
+      }
 
-  override def getPreferredSize = Dimension(X, Y)
+    override def getPreferredSize = Dimension(X, Y)
+  }
 }
 object Gui {
   def start: Gui = {
