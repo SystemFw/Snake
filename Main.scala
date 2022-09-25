@@ -68,7 +68,7 @@ case class Point(x: Int, y: Int) {
     }.toSet
 }
 object Point {
-  /* Wraps around dimensions */
+  // Wraps around dimensions
   def apply(x: Int, y: Int): Point =
     new Point(
       x.sign.min(0).abs * X + (x % X),
@@ -98,27 +98,29 @@ case object Right extends Cmd
 
 class Gui extends JPanel {
 
+  // Writes from event listeners which run on single EDT thread: no atomics needed
+  // Reads from main thread: volatile needed
   @volatile private var input: Option[Cmd] = None
-  // Updated from EDT thread, no volatile needed
+  // All read and writes from single EDT thread: can be standard references
   private var image: Set[Point] = Set()
   private val score = new JLabel("Score")
 
   Vector[Cmd](Up, Down, Left, Right).foreach { cmd =>
-    val name = cmd.toString.toUpperCase
-    val released = s"released $name"
+    def add(name: String)(action: AbstractAction) = {
+      getActionMap.put(name, action)
+      getInputMap.put(KeyStroke.getKeyStroke(name), name)
+    }
 
-    val action: AbstractAction = _ => {
-      println(s"$cmd at ${Thread.currentThread}")
+    val name = cmd.toString.toUpperCase
+    add(name) { _ =>
       input = Some(cmd)
     }
-    getActionMap.put(name, action)
-    getInputMap.put(KeyStroke.getKeyStroke(name), name)
 
-    val releasedAction: AbstractAction = _ => {
-      println(s"$cmd released at ${Thread.currentThread}")
+    val released = s"released $name"
+    add(released) { _ =>
+      // TODO conditional to avoid overwriting if another button has been pressed already?
+      input = None
     }
-    getActionMap.put(released, releasedAction)
-    getInputMap.put(KeyStroke.getKeyStroke(released), released)
   }
 
   setLayout(new BorderLayout)
