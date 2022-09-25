@@ -106,25 +106,19 @@ class Gui extends JComponent {
   @volatile private var input: Option[Cmd] = None
   private var image: Set[Point] = Set()
 
+  Vector[Cmd](Up, Down, Left, Right).foreach { cmd =>
+    val name = cmd.toString.toUpperCase
+    val action: AbstractAction = _ => input = Some(cmd)
+    getActionMap.put(name, action)
+    getInputMap.put(KeyStroke.getKeyStroke(name), name)
+  }
+
   def getInput: Option[Cmd] = input
 
   def draw(newImage: Set[Point]): Unit =
     SwingUtilities.invokeLater { () =>
       image = newImage
       repaint()
-    }
-
-  def onKey(e: KeyEvent): Unit =
-    e.getKeyCode match {
-      case KeyEvent.VK_UP =>
-        input = Some(Up)
-      case KeyEvent.VK_DOWN =>
-        input = Some(Down)
-      case KeyEvent.VK_LEFT =>
-        input = Some(Left)
-      case KeyEvent.VK_RIGHT =>
-        input = Some(Right)
-      case _  => ()
     }
 
   // TODO build proper image instead
@@ -142,17 +136,9 @@ object Gui {
       val app = new JFrame("Snake")
       app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
       app.setResizable(false)
-      app.addKeyListener { // TODO consider keybindings instead
-        new KeyListener {
-          def keyPressed(e: KeyEvent): Unit = gui.onKey(e)
-          def keyReleased(e: KeyEvent): Unit = ()
-          def keyTyped(e: KeyEvent): Unit = ()
-        }
-      }
       app.add(gui)
       app.pack
-      // centers the window, needs to be called after `pack`
-      app.setLocationRelativeTo(null)
+      app.setLocationRelativeTo(null) // centers the window if called after `pack`
       app.setVisible(true)
     }
     gui
