@@ -14,16 +14,12 @@ object Main {
     import scala.concurrent.Future
     while(true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
-      gui.getInput.foreach { in =>
-        state = evolve(state, in)
+      gui.getInput.foreach { input =>
+        state = state.evolve(input)
       }
-      gui.draw(state.render)
+      gui.update(state)
     }
   }
-
-
-  def evolve(state: State, input: Cmd): State =
-    state.move(input)
 }
 
 object Params {
@@ -35,14 +31,15 @@ object Params {
   val initialSnakeSize = 20
 }
 
-case class State(snake: Vector[Point], direction: Cmd) {
+case class State(snake: Vector[Point], direction: Cmd, score: Int) {
 
   // TODO ban touching itself
-  def move(cmd: Cmd): State = {
+  def evolve(cmd: Cmd): State = {
     val directionNow = if (cmd == direction.opposite) direction else cmd
     State(
       (snake.head.move(directionNow.toPoint) +: snake.init),
-      directionNow
+      directionNow,
+      score + 1
     )
   }
 
@@ -57,7 +54,7 @@ object State {
     Vector
       .range(0, initialSnakeSize)
       .map(x => origin.move(Right.toPoint.scaleBy(x)))
-      .pipe(snake => State(snake, Left))
+      .pipe(snake => State(snake, Left, 0))
 }
 
 case class Point(x: Int, y: Int) {
@@ -107,6 +104,7 @@ class Gui extends JPanel {
 
   @volatile private var input: Option[Cmd] = None
   private var image: Set[Point] = Set()
+  private val score = new JLabel("Score")
 
   Vector[Cmd](Up, Down, Left, Right).foreach { cmd =>
     val name = cmd.toString.toUpperCase
@@ -117,14 +115,15 @@ class Gui extends JPanel {
 
   setLayout(new BorderLayout)
   add(new Canvas,  BorderLayout.CENTER)
-  add(new JLabel("Score"), BorderLayout.NORTH)
+  add(score, BorderLayout.NORTH)
 
 
   def getInput: Option[Cmd] = input
 
-  def draw(newImage: Set[Point]): Unit =
+  def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
-      image = newImage
+      image = state.render
+      score.setText(s"Score: ${state.score}") // TODO doesn't have any effect
       repaint()
     }
 
