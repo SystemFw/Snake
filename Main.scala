@@ -22,9 +22,10 @@ object Params {
   val frameRate = 1000 / 60
   val X = 500
   val Y = X / 4 * 3
-  val origin = Point(250, 250)
   val scale = 5
   val initialSnakeSize = 20
+  val initialSnakePosition = Point(X / 2 - initialSnakeSize * 2, Y / 2 - scale)
+
 }
 
 case class State(snake: Vector[Point], direction: Option[Cmd], score: Int) {
@@ -53,14 +54,14 @@ case class State(snake: Vector[Point], direction: Option[Cmd], score: Int) {
   def render: Set[Point] =
     snake
       .flatMap { _.scaleBy(scale).square(scale - 1) }
-      .map { _.move(origin.scaleBy(-scale + 1)) }
+      .map { _.move(initialSnakePosition.scaleBy(-scale + 1)) }
       .toSet
 }
 object State {
   val initial: State =
     Vector
       .range(0, initialSnakeSize)
-      .map(x => origin.move(Right.toPoint.scaleBy(x)))
+      .map(x => initialSnakePosition.move(Right.toPoint.scaleBy(x)))
       .pipe(snake => State(snake, None, 0))
 }
 
