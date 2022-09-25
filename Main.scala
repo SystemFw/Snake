@@ -30,44 +30,25 @@ object Params {
 case class State(snake: Vector[Point], direction: Option[Cmd], score: Int) {
 
   // TODO ban touching itself
-  def evolve(cmd: Option[Cmd]): State = {
+  def evolve(cmd: Option[Cmd]): State =
     (direction, cmd) match {
       case (None, None) => State.initial
-      case (None, Some(directionNow)) =>
-        val headNow = snake.head.move(directionNow.toPoint)
-        if (snake.contains(headNow)) State.initial
-        else State(
-          headNow +: snake.init,
-          Option(directionNow),
-          score + 1
-        )
-      case (Some(direction), Some(cmd)) =>
-        val directionNow = if (cmd == direction.opposite) direction else cmd
-        val headNow = snake.head.move(directionNow.toPoint)
-        if (snake.contains(headNow)) State.initial
-        else State(
-          headNow +: snake.init,
-          Option(directionNow),
-          score + 1
-        )
-     // TODO case some, none
+      case (Some(currentDirection), None) => move(currentDirection)
+      case (None, Some(newDirection)) => move(newDirection)
+      case (Some(currentDirection), Some(newDirection)) =>
+        if (newDirection != currentDirection.opposite) move(newDirection)
+        else move(currentDirection)
     }
+
+  private def move(direction: Cmd): State = {
+    val headNow = snake.head.move(direction.toPoint)
+    if (snake.contains(headNow)) State.initial
+    else State(
+      headNow +: snake.init,
+      Option(direction),
+      score + 1
+    )
   }
-
-
-
-  //     case None =>
-  //       direction match {
-  //         case None => State.initial
-  //         case Some(direction) => // move same direction
-  //       }
-  //     case Some(cmd) =>
-  //   }
-  // }
-  //   direction match {
-  //     case None => State.initial
-  //     case Some(direction) =>
-  // }
 
   def render: Set[Point] =
     snake
@@ -144,12 +125,12 @@ class Gui extends JPanel {
       input = Some(cmd)
     }
 
-    // val released = s"released $name"
-    // add(released) { _ =>
-    //   // TODO conditional to avoid overwriting if another button has been pressed already?
-    //   input = None
-    //   ()
-    // }
+    val released = s"released $name"
+    add(released) { _ =>
+      // TODO conditional to avoid overwriting if another button has been pressed already?
+      input = None
+      ()
+    }
   }
 
   setLayout(new BorderLayout)
