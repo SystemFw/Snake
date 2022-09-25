@@ -8,7 +8,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.create
+    var state = State.initial
 
     while(true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
@@ -32,8 +32,10 @@ case class State(snake: Vector[Point], direction: Cmd, score: Int) {
   // TODO ban touching itself
   def evolve(cmd: Cmd): State = {
     val directionNow = if (cmd == direction.opposite) direction else cmd
-    State(
-      (snake.head.move(directionNow.toPoint) +: snake.init),
+    val headNow = snake.head.move(directionNow.toPoint)
+    if (snake.contains(headNow)) State.initial
+    else State(
+      headNow +: snake.init,
       directionNow,
       score + 1
     )
@@ -46,7 +48,7 @@ case class State(snake: Vector[Point], direction: Cmd, score: Int) {
       .toSet
 }
 object State {
-  def create: State =
+  val initial: State =
     Vector
       .range(0, initialSnakeSize)
       .map(x => origin.move(Right.toPoint.scaleBy(x)))
