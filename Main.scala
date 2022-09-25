@@ -28,27 +28,39 @@ object Params {
 
 }
 
-case class State(snake: Vector[Point], direction: Option[Cmd], score: Int) {
-
+case class State(
+  snake: Vector[Point],
+  direction: Option[Cmd],
+  score: Int,
+  lost: Boolean,
+  time: Long
+) {
   // TODO ban touching itself
-  def evolve(cmd: Option[Cmd]): State =
-    (direction, cmd) match {
-      case (None, None) => State.initial
-      case (Some(currentDirection), None) => move(currentDirection)
-      case (None, Some(newDirection)) => move(newDirection)
+  def evolve(cmd: Option[Cmd]): State = {
+
+    val directionNow = (direction, cmd) match {
+      case (None, None) => None
+      case (Some(currentDirection), None) => Some(currentDirection)
+      case (None, Some(newDirection)) => Some(newDirection)
       case (Some(currentDirection), Some(newDirection)) =>
-        if (newDirection != currentDirection.opposite) move(newDirection)
-        else move(currentDirection)
+        if (newDirection != currentDirection.opposite) Some(newDirection)
+        else Some(currentDirection)
     }
 
-  private def move(direction: Cmd): State = {
-    val headNow = snake.head.move(direction.toPoint)
-    if (snake.contains(headNow)) State.initial
-    else State(
-      headNow +: snake.init,
-      Option(direction),
-      score + 1
-    )
+    def move(direction: Cmd): State = {
+      val headNow = snake.head.move(direction.toPoint)
+      if (snake.contains(headNow)) State.initial
+      else State(
+        headNow +: snake.init,
+        Option(direction),
+        score + 1,
+        false,
+        time + 1
+      )
+    }
+
+
+    directionNow.map(move).getOrElse(State.initial)
   }
 
   def render: Set[Point] =
@@ -56,13 +68,19 @@ case class State(snake: Vector[Point], direction: Option[Cmd], score: Int) {
       .flatMap { _.scaleBy(scale).square(scale - 1) }
       .map { _.move(initialSnakePosition.scaleBy(-scale + 1)) }
       .toSet
+
+  private def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] =
+    for {
+      a <- fa
+      b <- fb
+    } yield f(a, b)
 }
 object State {
   val initial: State =
     Vector
       .range(0, initialSnakeSize)
       .map(x => initialSnakePosition.move(Right.toPoint.scaleBy(x)))
-      .pipe(snake => State(snake, None, 0))
+      .pipe(snake => State(snake, None, 0, false, 0))
 }
 
 case class Point(x: Int, y: Int) {
