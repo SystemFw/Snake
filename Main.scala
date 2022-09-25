@@ -12,7 +12,7 @@ object Main {
 
     while(true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
-      gui.getInput.foreach { input => state = state.evolve(input) }
+      state = state.evolve(gui.getInput)
       gui.update(state)
     }
   }
@@ -27,19 +27,47 @@ object Params {
   val initialSnakeSize = 20
 }
 
-case class State(snake: Vector[Point], direction: Cmd, score: Int) {
+case class State(snake: Vector[Point], direction: Option[Cmd], score: Int) {
 
   // TODO ban touching itself
-  def evolve(cmd: Cmd): State = {
-    val directionNow = if (cmd == direction.opposite) direction else cmd
-    val headNow = snake.head.move(directionNow.toPoint)
-    if (snake.contains(headNow)) State.initial
-    else State(
-      headNow +: snake.init,
-      directionNow,
-      score + 1
-    )
+  def evolve(cmd: Option[Cmd]): State = {
+    (direction, cmd) match {
+      case (None, None) => State.initial
+      case (None, Some(directionNow)) =>
+        val headNow = snake.head.move(directionNow.toPoint)
+        if (snake.contains(headNow)) State.initial
+        else State(
+          headNow +: snake.init,
+          Option(directionNow),
+          score + 1
+        )
+      case (Some(direction), Some(cmd)) =>
+        val directionNow = if (cmd == direction.opposite) direction else cmd
+        val headNow = snake.head.move(directionNow.toPoint)
+        if (snake.contains(headNow)) State.initial
+        else State(
+          headNow +: snake.init,
+          Option(directionNow),
+          score + 1
+        )
+     // TODO case some, none
+    }
   }
+
+
+
+  //     case None =>
+  //       direction match {
+  //         case None => State.initial
+  //         case Some(direction) => // move same direction
+  //       }
+  //     case Some(cmd) =>
+  //   }
+  // }
+  //   direction match {
+  //     case None => State.initial
+  //     case Some(direction) =>
+  // }
 
   def render: Set[Point] =
     snake
@@ -52,7 +80,7 @@ object State {
     Vector
       .range(0, initialSnakeSize)
       .map(x => origin.move(Right.toPoint.scaleBy(x)))
-      .pipe(snake => State(snake, Left, 0))
+      .pipe(snake => State(snake, None, 0))
 }
 
 case class Point(x: Int, y: Int) {
@@ -116,11 +144,12 @@ class Gui extends JPanel {
       input = Some(cmd)
     }
 
-    val released = s"released $name"
-    add(released) { _ =>
-      // TODO conditional to avoid overwriting if another button has been pressed already?
-      input = None
-    }
+    // val released = s"released $name"
+    // add(released) { _ =>
+    //   // TODO conditional to avoid overwriting if another button has been pressed already?
+    //   input = None
+    //   ()
+    // }
   }
 
   setLayout(new BorderLayout)
