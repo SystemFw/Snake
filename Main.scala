@@ -93,10 +93,11 @@ case class Point(x: Int, y: Int) {
 
   def wrap(dimension: Point): Point =
     Point(
-      (if (x < 0) dimension.x else 0) + (x % dimension.x),
-      (if (y < 0) dimension.y else 0) + (y % dimension.y)
+      x.sign.min(0).abs * dimension.x + (x % dimension.x),
+      y.sign.min(0).abs * dimension.y + (y % dimension.y)
     )
 
+  // dimension.x + (-x % dimension.x)
   def square(size: Int): Set[Point] =
     0.to(size).flatMap { x =>
       0.to(size).map(y => this.move(Point(x, y)))
