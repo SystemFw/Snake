@@ -1,7 +1,7 @@
 import javax.swing._
 import java.awt._
 import java.awt.event._
-import scala.util.chaining._
+import scala.util.Random
 import Shared._
 
 /** Recreate the basic version of the classic Nokia 3310 Snake, no extras
@@ -35,7 +35,7 @@ object Shared {
 case class State(
     snake: Vector[Point],
     direction: Point,
-    apple: Point = Point(6, 6),
+    apple: Point,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
@@ -53,6 +53,7 @@ case class State(
       val stateNow = State(
         snakeNow,
         directionNow,
+        apple,
         score = score + 1 // TODO proper treatment of score
       ).tick.rendered
 
@@ -74,16 +75,19 @@ case class State(
   }
 
   def tick: State = copy(time = time + 1)
-  def rendered: State = copy(render = Point.scaled(snake.toSet + apple))
-
-
+  def rendered: State = copy(render = Point.scaled(snake.toSet + apple)) // TODO sprites?
 }
 object State {
-  val initial: State = {
+  def initial: State = {
     val snake =
       Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x)))
+    State(snake, Point.right, newApple(snake)).rendered
+  }
 
-    State(snake, Point.right).rendered
+  def newApple(snake: Vector[Point]): Point = {
+    val apple = Point(Random.nextInt(X), Random.nextInt(Y))
+    if (snake.contains(apple)) newApple(snake)
+    else apple
   }
 }
 
