@@ -4,6 +4,9 @@ import java.awt.event._
 import scala.util.chaining._
 import Shared._
 
+/**
+  * Recreate the basic version of the classic Nokia 3310 Snake, no extras
+  */
 object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
@@ -35,17 +38,17 @@ object Shared {
 
 case class State(
     snake: Vector[Point] = Vector.empty,
-    direction: Option[Cmd] = None,
+    direction: Option[Point] = None,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
     render: Set[Point] = Set.empty
 ) {
   // TODO apples
-  def evolve(cmd: Option[Cmd]): State = {
+  def evolve(cmd: Option[Point]): State = {
 
-    def move(direction: Cmd): State = {
-      val headNow = snake.head.move(direction.toPoint)
+    def move(direction: Point): State = {
+      val headNow = snake.head.move(direction)
       val newState = State(
         headNow +: snake.init,
         Option(direction),
@@ -86,7 +89,7 @@ object State {
   val initial: State =
     Vector
       .range(0, snakeSize)
-      .map(x => origin.move(Right.toPoint.times(x)))
+      .map(x => origin.move(Point.right.times(x)))
       .pipe(snake => State(snake).rendered)
 }
 
@@ -96,6 +99,9 @@ case class Point(x: Int, y: Int) {
 
   def times(k: Int): Point =
     Point(x * k, y * k)
+
+  def opposite: Point =
+    times(-1)
 
   def square(size: Int): Set[Point] =
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
@@ -112,55 +118,44 @@ object Point {
     points
       .flatMap { _.times(scale).square(scale - 1) }
       .map { _.move(origin.times(-scale + 1)) }
-}
 
-sealed trait Cmd {
-  def toPoint = this match {
-    case Up    => Point(0, -1)
-    case Down  => Point(0, 1)
-    case Left  => Point(-1, 0)
-    case Right => Point(1, 0)
-  }
+  def up   : Point = Point(0, -1)
+  def down : Point = Point(0, 1)
+  def left : Point = Point(-1, 0)
+  def right: Point = Point(1, 0)
 
-  def opposite: Cmd = this match {
-    case Up    => Down
-    case Down  => Up
-    case Left  => Right
-    case Right => Left
-  }
+  def directions: Map[String, Point] = Map(
+    "UP" -> up,
+    "DOWN" -> down,
+    "LEFT" -> left,
+    "RIGHT" -> right,
+  )
 }
-case object Up extends Cmd
-case object Down extends Cmd
-case object Left extends Cmd
-case object Right extends Cmd
 
 class Gui extends JPanel {
 
   // Writes from event listeners which run on single EDT thread: no atomics needed
   // Reads from main thread: volatile needed
-  @volatile private var input: Option[Cmd] = None
+  @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
   private var image: Set[Point] = Set()
   private val score = new JLabel("Score")
 
-  Vector[Cmd](Up, Down, Left, Right).foreach { cmd =>
+  Point.directions.keys.foreach { cmd =>
     def add(name: String)(action: AbstractAction) = {
       getActionMap.put(name, action)
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    val name = cmd.toString.toUpperCase
-    add(name) { _ => input = Some(cmd) }
-
-    val released = s"released $name"
-    add(released) { _ => input = None }
+    add(cmd) { _ => input = Point.directions.get(cmd) }
+    add(s"released $cmd") { _ => input = None }
   }
 
   setLayout(new BorderLayout)
   add(new Canvas, BorderLayout.CENTER)
   add(score, BorderLayout.NORTH)
 
-  def getInput: Option[Cmd] = input
+  def getInput: Option[Point] = input
 
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
