@@ -65,16 +65,14 @@ case class State(
         .map(move)
         .getOrElse(State.initial) // initial state
 
-    val flickerOnLoss =
-      if ((time - lostAt) > pauseOnLoss) State.initial
-      else
-        {
-          if (
-            (time / flickerDown) % ((flickerDown + flickerUp) / flickerDown) == 0
-          )
-            copy(render = Set())
-          else rendered
-        }.tick
+    val flickerOnLoss = {
+      val flicker =
+        (time / flickerDown) % ((flickerDown + flickerUp) / flickerDown) == 0
+
+      if (time - lostAt > pauseOnLoss) State.initial
+      else if (flicker) copy(render = Set()).tick
+      else rendered.tick
+    }
 
     if (lostAt > 0) flickerOnLoss
     else directionNow
@@ -141,7 +139,7 @@ class Gui extends JPanel {
   // Writes from event listeners which run on single EDT thread: no atomics needed
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Cmd] = None
-  // All read and writes from single EDT thread: can be standard references
+  // All reads and writes from single EDT thread: can be standard references
   private var image: Set[Point] = Set()
   private val score = new JLabel("Score")
 
@@ -152,16 +150,10 @@ class Gui extends JPanel {
     }
 
     val name = cmd.toString.toUpperCase
-    add(name) { _ =>
-      input = Some(cmd)
-    }
+    add(name) { _ => input = Some(cmd) }
 
     val released = s"released $name"
-    add(released) { _ =>
-      // TODO conditional to avoid overwriting if another button has been pressed already?
-      input = None
-      ()
-    }
+    add(released) { _ => input = None }
   }
 
   setLayout(new BorderLayout)
