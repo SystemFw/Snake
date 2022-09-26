@@ -72,6 +72,7 @@ case class State(
       else
         copy(
           time = time + 1,
+          render = if (time % 5 == 0) Set.empty else Point.scaled(snake.toSet),
           score = score + 1
         ) // TODO score only updated to debug
 
