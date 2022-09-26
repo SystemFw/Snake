@@ -66,7 +66,7 @@ case class State(
 
       if (time - lostAt > pauseOnLoss) State.initial
       else if (!flicker) rendered.tick
-      else copy(render = Set(apple)).tick // TODO apple still flickers, shouldn't
+      else copy(render = Point.scaled(Set(apple))).tick
     }
 
     if (lostAt > 0) flickerOnLoss
