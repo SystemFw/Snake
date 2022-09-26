@@ -31,44 +31,36 @@ object Shared {
   val pauseOnLoss = 120
   val flickerDown = 20
   val flickerUp = 30
-
-  def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] =
-    fa.flatMap(a => fb.map(b => f(a, b)))
 }
 
 case class State(
     snake: Vector[Point] = Vector.empty,
-    direction: Option[Point] = None,
+    direction: Point = Point.left,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
     render: Set[Point] = Set.empty
 ) {
-  // TODO apples
-  def evolve(cmd: Option[Point]): State = {
-
-    def move(direction: Point): State = {
-      val headNow = snake.head.move(direction)
+  // TODO apples, they get created at every turn including the first
+  // snake grows once the apple has gone through its body
+  def evolve(nextDirection: Option[Point]): State = {
+    def move = {
+      val directionNow =
+        nextDirection.filter(_ != direction.opposite).getOrElse(direction)
+      val headNow = snake.head.move(directionNow)
       val newState = State(
         headNow +: snake.init,
-        Option(direction),
+        directionNow,
         score + 1 // TODO proper treatment of score
       ).tick.rendered
 
-      if (snake.contains(headNow)) newState.copy(lostAt = time)
+      if (snake.contains(headNow))
+        println("wtf")
+        newState.copy(lostAt = time)
       else newState
     }
 
-    val directionNow =
-      map2(direction, cmd) { (current, next) =>
-        if (next != current.opposite) next // change direction
-        else current
-      }.orElse(direction) // Keep moving
-        .orElse(cmd) // start moving
-        .map(move)
-        .getOrElse(State.initial) // initial state
-
-    val flickerOnLoss = {
+    def flickerOnLoss = {
       val flicker =
         (time / flickerDown) % ((flickerDown + flickerUp) / flickerDown) == 0
 
@@ -78,7 +70,7 @@ case class State(
     }
 
     if (lostAt > 0) flickerOnLoss
-    else directionNow
+    else move
   }
 
   def tick: State = copy(time = time + 1)
@@ -141,14 +133,14 @@ class Gui extends JPanel {
   private var image: Set[Point] = Set()
   private val score = new JLabel("Score")
 
-  Point.directions.keys.foreach { cmd =>
+  Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
       getActionMap.put(name, action)
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    add(cmd) { _ => input = Point.directions.get(cmd) }
-    add(s"released $cmd") { _ => input = None }
+    add(direction) { _ => input = Point.directions.get(direction) }
+    add(s"released $direction") { _ => input = None }
   }
 
   setLayout(new BorderLayout)
