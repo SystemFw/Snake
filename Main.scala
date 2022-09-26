@@ -4,8 +4,7 @@ import java.awt.event._
 import scala.util.chaining._
 import Shared._
 
-/**
-  * Recreate the basic version of the classic Nokia 3310 Snake, no extras
+/** Recreate the basic version of the classic Nokia 3310 Snake, no extras
   */
 object Main {
   def main(args: Array[String]): Unit = {
@@ -34,8 +33,9 @@ object Shared {
 }
 
 case class State(
-    snake: Vector[Point] = Vector.empty,
-    direction: Point = Point.left,
+    snake: Vector[Point] =
+      Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x))),
+    direction: Point = Point.right,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
@@ -65,8 +65,8 @@ case class State(
         (time / flickerDown) % ((flickerDown + flickerUp) / flickerDown) == 0
 
       if (time - lostAt > pauseOnLoss) State.initial
-      else if (flicker) copy(render = Set()).tick
-      else rendered.tick
+      else if (!flicker) rendered.tick
+      else copy(render = Set()).tick
     }
 
     if (lostAt > 0) flickerOnLoss
@@ -78,11 +78,7 @@ case class State(
 
 }
 object State {
-  val initial: State =
-    Vector
-      .range(0, snakeSize)
-      .map(x => origin.move(Point.right.times(x)))
-      .pipe(snake => State(snake).rendered)
+  val initial: State = State().rendered
 }
 
 case class Point(x: Int, y: Int) {
@@ -111,16 +107,16 @@ object Point {
       .flatMap { _.times(scale).square(scale - 1) }
       .map { _.move(origin.times(-scale + 1)) }
 
-  def up   : Point = Point(0, -1)
-  def down : Point = Point(0, 1)
-  def left : Point = Point(-1, 0)
+  def up: Point = Point(0, -1)
+  def down: Point = Point(0, 1)
+  def left: Point = Point(-1, 0)
   def right: Point = Point(1, 0)
 
   def directions: Map[String, Point] = Map(
     "UP" -> up,
     "DOWN" -> down,
     "LEFT" -> left,
-    "RIGHT" -> right,
+    "RIGHT" -> right
   )
 }
 
