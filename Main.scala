@@ -50,20 +50,19 @@ case class State(
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
       val headNow = snake.head.move(directionNow)
       val snakeNow = headNow +: snake.init
-      val stateNow = State(
-        snakeNow,
-        directionNow,
-        apple,
-        score = score + 1 // TODO proper treatment of score
+      val stateNow = copy(
+        snake = snakeNow,
+        direction = directionNow,
       ).tick.rendered
 
       if (snake.contains(headNow)) stateNow.copy(lostAt = time)
       // TODO next apple should be spawned immediately after eating
       // TODO there could be multiple eaten apples before the snake grows
+      // TODO score should be updated immediately after eating
       else if (snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
-        val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.times(-1))
+        val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.opposite)
         val appleNow = State.newApple(grownSnake)
-        stateNow.copy(snake = grownSnake, apple = appleNow)
+        stateNow.copy(snake = grownSnake, apple = appleNow, score = score + 9)
       } else stateNow
     }
 
