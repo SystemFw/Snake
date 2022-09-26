@@ -25,7 +25,9 @@ object Shared {
   val scale = 5
   val snakeSize = 20
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
-  val pauseOnLoss = 80 // TODO convert from ticks to actual time
+  // TODO convert these from ticks to actual time
+  val pauseOnLoss = 80
+  val flickerFrequency = 10
 
 
   def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] =
@@ -33,14 +35,14 @@ object Shared {
 }
 
 case class State(
-    snake: Vector[Point],
-    direction: Option[Cmd],
-    score: Int,
-    lostAt: Long,
-    time: Long,
-    render: Set[Point]
+    snake: Vector[Point] = Vector.empty,
+    direction: Option[Cmd] = None,
+    score: Int = 0,
+    lostAt: Long = 0,
+    time: Long = 0,
+    render: Set[Point] = Set.empty
 ) {
-  // TODO ban touching itself
+  // TODO apples
   def evolve(cmd: Option[Cmd]): State = {
 
     def move(direction: Cmd): State = {
@@ -49,10 +51,7 @@ case class State(
         headNow +: snake.init,
         Option(direction),
         score + 1, // TODO proper treatment of score
-        lostAt,
-        time + 1,
-        Point.scaled(snake.toSet)
-      )
+      ).tick.rendered
 
       if (snake.contains(headNow)) newState.copy(lostAt = time)
       else newState
@@ -67,25 +66,28 @@ case class State(
         .map(move)
         .getOrElse(State.initial) // initial state
 
-    val waitOnLoss =
+    val flickerOnLoss =
       if ((time - lostAt) > pauseOnLoss) State.initial
-      else
-        copy(
-          time = time + 1,
-          render = if (time % 5 == 0) Set.empty else Point.scaled(snake.toSet),
-          score = score + 1
-        ) // TODO score only updated to debug
+      else {
+        // TODO slower, not just less frequent, flicker
+        if (time % flickerFrequency == 0) copy(render = Set())
+        else rendered
+      }.tick
 
-    if (lostAt > 0) waitOnLoss
+    if (lostAt > 0) flickerOnLoss
     else directionNow
   }
+
+  def tick: State = copy(time = time + 1)
+  def rendered: State = copy(render = Point.scaled(snake.toSet))
+
 }
 object State {
   val initial: State =
     Vector
       .range(0, snakeSize)
       .map(x => origin.move(Right.toPoint.times(x)))
-      .pipe(snake => State(snake, None, 0, 0, 0, Point.scaled(snake.toSet)))
+      .pipe(snake => State(snake).rendered)
 }
 
 case class Point(x: Int, y: Int) {
