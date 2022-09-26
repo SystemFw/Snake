@@ -33,9 +33,9 @@ object Shared {
 }
 
 case class State(
-    snake: Vector[Point] =
-      Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x))),
-    direction: Point = Point.right,
+    snake: Vector[Point],
+    direction: Point,
+    apple: Point = Point(6, 6),
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
@@ -43,21 +43,21 @@ case class State(
 ) {
   // TODO apples, they get created at every turn including the first
   // snake grows once the apple has gone through its body
+  // there is no minimum distance between apple and snake
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
       val headNow = snake.head.move(directionNow)
-      val newState = State(
-        headNow +: snake.init,
+      val snakeNow = headNow +: snake.init
+      val stateNow = State(
+        snakeNow,
         directionNow,
-        score + 1 // TODO proper treatment of score
+        score = score + 1 // TODO proper treatment of score
       ).tick.rendered
 
-      if (snake.contains(headNow))
-        println("wtf")
-        newState.copy(lostAt = time)
-      else newState
+      if (snake.contains(headNow)) stateNow.copy(lostAt = time)
+      else stateNow
     }
 
     def flickerOnLoss = {
@@ -66,7 +66,7 @@ case class State(
 
       if (time - lostAt > pauseOnLoss) State.initial
       else if (!flicker) rendered.tick
-      else copy(render = Set()).tick
+      else copy(render = Set(apple)).tick // TODO apple still flickers, shouldn't
     }
 
     if (lostAt > 0) flickerOnLoss
@@ -74,11 +74,17 @@ case class State(
   }
 
   def tick: State = copy(time = time + 1)
-  def rendered: State = copy(render = Point.scaled(snake.toSet))
+  def rendered: State = copy(render = Point.scaled(snake.toSet + apple))
+
 
 }
 object State {
-  val initial: State = State().rendered
+  val initial: State = {
+    val snake =
+      Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x)))
+
+    State(snake, Point.right).rendered
+  }
 }
 
 case class Point(x: Int, y: Int) {
