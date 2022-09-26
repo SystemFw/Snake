@@ -10,7 +10,7 @@ object Main {
 
     var state = State.initial
 
-    while(true) {
+    while (true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
       state = state.evolve(gui.getInput)
       gui.update(state)
@@ -23,53 +23,51 @@ object Params {
   val X = 500
   val Y = X / 4 * 3
   val scale = 5
-  val initialSnakeSize = 20
-  val initialSnakePosition = Point(X / 2 - initialSnakeSize * 2, Y / 2 - scale)
+  val snakeSize = 20
+  val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
 
 }
 
 case class State(
-  snake: Vector[Point],
-  direction: Option[Cmd],
-  score: Int,
-  lost: Boolean,
-  time: Long
+    snake: Vector[Point],
+    direction: Option[Cmd],
+    score: Int,
+    lostAt: Option[Boolean],
+    time: Long,
+    render: Set[Point]
 ) {
   // TODO ban touching itself
   def evolve(cmd: Option[Cmd]): State = {
 
-    val directionNow = (direction, cmd) match {
-      case (None, None) => None
-      case (Some(currentDirection), None) => Some(currentDirection)
-      case (None, Some(newDirection)) => Some(newDirection)
-      case (Some(currentDirection), Some(newDirection)) =>
-        if (newDirection != currentDirection.opposite) Some(newDirection)
-        else Some(currentDirection)
-    }
-
     def move(direction: Cmd): State = {
       val headNow = snake.head.move(direction.toPoint)
       if (snake.contains(headNow)) State.initial
-      else State(
-        headNow +: snake.init,
-        Option(direction),
-        score + 1,
-        false,
-        time + 1
-      )
+      else
+        State(
+          headNow +: snake.init,
+          Option(direction),
+          score + 1,
+          None,
+          time + 1,
+          Point.scaled(snake.toSet)
+        )
     }
 
+    val directionNow =
+      map2(direction, cmd) { (current, next) =>
+        if (next != current.opposite) next // change direction
+        else current
+      }.orElse(direction) // Keep moving
+        .orElse(cmd) // start moving
+        .map(move)
+        .getOrElse(State.initial) // initial state
 
-    directionNow.map(move).getOrElse(State.initial)
+    directionNow
   }
 
-  def render: Set[Point] =
-    snake
-      .flatMap { _.scaleBy(scale).square(scale - 1) }
-      .map { _.move(initialSnakePosition.scaleBy(-scale + 1)) }
-      .toSet
-
-  private def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] =
+  def map2[A, B, C](fa: Option[A], fb: Option[B])(
+      f: (A, B) => C
+  ): Option[C] =
     for {
       a <- fa
       b <- fb
@@ -78,22 +76,20 @@ case class State(
 object State {
   val initial: State =
     Vector
-      .range(0, initialSnakeSize)
-      .map(x => initialSnakePosition.move(Right.toPoint.scaleBy(x)))
-      .pipe(snake => State(snake, None, 0, false, 0))
+      .range(0, snakeSize)
+      .map(x => origin.move(Right.toPoint.times(x)))
+      .pipe(snake => State(snake, None, 0, None, 0, Point.scaled(snake.toSet)))
 }
 
 case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
 
-  def scaleBy(k: Int): Point =
-    Point(x*k, y*k)
+  def times(k: Int): Point =
+    Point(x * k, y * k)
 
   def square(size: Int): Set[Point] =
-    0.to(size).flatMap { x =>
-      0.to(size).map(y => this.move(Point(x, y)))
-    }.toSet
+    0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 }
 object Point {
   // Wraps around dimensions
@@ -102,26 +98,31 @@ object Point {
       x.sign.min(0).abs * X + (x % X),
       y.sign.min(0).abs * Y + (y % Y)
     )
+
+  def scaled(points: Set[Point]): Set[Point] =
+    points
+      .flatMap { _.times(scale).square(scale - 1) }
+      .map { _.move(origin.times(-scale + 1)) }
 }
 
 sealed trait Cmd {
   def toPoint = this match {
-    case Up => Point(0, -1)
-    case Down => Point(0, 1)
-    case Left => Point(-1, 0)
+    case Up    => Point(0, -1)
+    case Down  => Point(0, 1)
+    case Left  => Point(-1, 0)
     case Right => Point(1, 0)
   }
 
   def opposite: Cmd = this match {
-    case Up => Down
-    case Down => Up
-    case Left => Right
+    case Up    => Down
+    case Down  => Up
+    case Left  => Right
     case Right => Left
   }
 }
-case object Up    extends Cmd
-case object Down  extends Cmd
-case object Left  extends Cmd
+case object Up extends Cmd
+case object Down extends Cmd
+case object Left extends Cmd
 case object Right extends Cmd
 
 class Gui extends JPanel {
@@ -153,9 +154,8 @@ class Gui extends JPanel {
   }
 
   setLayout(new BorderLayout)
-  add(new Canvas,  BorderLayout.CENTER)
+  add(new Canvas, BorderLayout.CENTER)
   add(score, BorderLayout.NORTH)
-
 
   def getInput: Option[Cmd] = input
 
@@ -185,7 +185,9 @@ object Gui {
       app.setResizable(false)
       app.add(gui)
       app.pack
-      app.setLocationRelativeTo(null) // centers the window if called after `pack`
+      app.setLocationRelativeTo(
+        null
+      ) // centers the window if called after `pack`
       app.setVisible(true)
     }
     gui
