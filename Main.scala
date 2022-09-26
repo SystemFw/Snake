@@ -14,7 +14,7 @@ object Main {
 
     while (true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput) // TODO snake is too fast
+      state = state.evolve(gui.getInput)
       gui.update(state)
     }
   }
@@ -26,6 +26,7 @@ object Shared {
   val Y = X / 4 * 3
   val scale = 5
   val snakeSize = 20
+  val speed = 2
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
   val pauseOnLoss = 120
   val flickerDown = 20
@@ -76,7 +77,8 @@ case class State(
     }
 
     if (lostAt > 0) flickerOnLoss
-    else move
+    else if (time % speed == 0) move
+    else tick
   }
 
   def tick: State = copy(time = time + 1)
