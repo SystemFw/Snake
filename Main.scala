@@ -41,17 +41,17 @@ case class State(
 
     def move(direction: Cmd): State = {
       val headNow = snake.head.move(direction.toPoint)
-      if (snake.contains(headNow))
-        copy(lostAt = time, time = time + 1) // TODO show actual collision
-      else
-        State(
-          headNow +: snake.init,
-          Option(direction),
-          score + 1,
-          lostAt,
-          time + 1,
-          Point.scaled(snake.toSet)
-        )
+      val newState = State(
+        headNow +: snake.init,
+        Option(direction),
+        score + 1, // TODO proper treatment of score
+        lostAt,
+        time + 1,
+        Point.scaled(snake.toSet)
+      )
+
+      if (snake.contains(headNow)) newState.copy(lostAt = time)
+      else newState
     }
 
     val directionNow =
