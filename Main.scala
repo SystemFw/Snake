@@ -57,13 +57,9 @@ case class State(
         score = score + 1 // TODO proper treatment of score
       ).tick.rendered
 
-      println(s"tail: ${snakeNow.last} apple: $apple")
-
       if (snake.contains(headNow)) stateNow.copy(lostAt = time)
-      else if (snakeNow.last == apple) {
-        // TODO broken, prob interaction between scale and collision detection
-        println("eating")
-        val grownSnake = snakeNow :+ apple
+      else if (snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
+        val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.times(-1))
         val appleNow = State.newApple(grownSnake)
         stateNow.copy(snake = grownSnake, apple = appleNow)
       } else stateNow
@@ -75,7 +71,7 @@ case class State(
 
       if (time - lostAt > pauseOnLoss) State.initial
       else if (!flicker) rendered.tick
-      else copy(render = Point.scaled(Set(apple))).tick
+      else copy(render = apple.scaled).tick
     }
 
     if (lostAt > 0) flickerOnLoss
@@ -83,7 +79,7 @@ case class State(
   }
 
   def tick: State = copy(time = time + 1)
-  def rendered: State = copy(render = Point.scaled(snake.toSet + apple)) // TODO sprites?
+  def rendered: State = copy(render = (snake.toSet + apple).flatMap(_.scaled)) // TODO sprites?
 }
 object State {
   def initial: State = {
@@ -111,20 +107,20 @@ case class Point(x: Int, y: Int) {
 
   def square(size: Int): Set[Point] =
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
+
+  def scaled: Set[Point] =
+    times(scale).square(scale - 1)
+      .map { _.move(origin.times(-scale + 1)) }
+
 }
 object Point {
-  // TODO in rare cases still possible to "split" the snake
+  // TODO in rare cases still possible to "split" the snake or the apple
   // Wraps around dimensions
   def apply(x: Int, y: Int): Point =
     new Point(
       x.sign.min(0).abs * X + (x % X),
       y.sign.min(0).abs * Y + (y % Y)
     )
-
-  def scaled(points: Set[Point]): Set[Point] =
-    points
-      .flatMap { _.times(scale).square(scale - 1) }
-      .map { _.move(origin.times(-scale + 1)) }
 
   def up: Point = Point(0, -1)
   def down: Point = Point(0, 1)
