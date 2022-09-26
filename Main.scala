@@ -32,7 +32,7 @@ case class State(
     snake: Vector[Point],
     direction: Option[Cmd],
     score: Int,
-    lostAt: Option[Boolean],
+    lostAt: Long,
     time: Long,
     render: Set[Point]
 ) {
@@ -41,13 +41,14 @@ case class State(
 
     def move(direction: Cmd): State = {
       val headNow = snake.head.move(direction.toPoint)
-      if (snake.contains(headNow)) State.initial
+      if (snake.contains(headNow))
+        copy(lostAt = time, time = time + 1) // TODO show actual collision
       else
         State(
           headNow +: snake.init,
           Option(direction),
           score + 1,
-          None,
+          lostAt,
           time + 1,
           Point.scaled(snake.toSet)
         )
@@ -62,7 +63,13 @@ case class State(
         .map(move)
         .getOrElse(State.initial) // initial state
 
-    directionNow
+    val waitOnLoss =
+      if ((time - lostAt) > 80) State.initial
+      else copy(time = time + 1, score = score + 1) // TODO score only updated to debug
+
+
+    if (lostAt > 0) waitOnLoss
+    else directionNow
   }
 
   def map2[A, B, C](fa: Option[A], fb: Option[B])(
@@ -78,7 +85,7 @@ object State {
     Vector
       .range(0, snakeSize)
       .map(x => origin.move(Right.toPoint.times(x)))
-      .pipe(snake => State(snake, None, 0, None, 0, Point.scaled(snake.toSet)))
+      .pipe(snake => State(snake, None, 0, 0, 0, Point.scaled(snake.toSet)))
 }
 
 case class Point(x: Int, y: Int) {
