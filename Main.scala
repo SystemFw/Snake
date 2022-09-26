@@ -58,6 +58,8 @@ case class State(
       ).tick.rendered
 
       if (snake.contains(headNow)) stateNow.copy(lostAt = time)
+      // TODO next apple should be spawned immediately after eating
+      // TODO there could be multiple eaten apples before the snake grows
       else if (snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
         val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.times(-1))
         val appleNow = State.newApple(grownSnake)
