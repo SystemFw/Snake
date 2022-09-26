@@ -25,10 +25,9 @@ object Shared {
   val scale = 5
   val snakeSize = 20
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
-  // TODO convert these from ticks to actual time
-  val pauseOnLoss = 80
-  val flickerFrequency = 10
-
+  val pauseOnLoss = 120
+  val flickerDown = 20
+  val flickerUp = 30
 
   def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] =
     fa.flatMap(a => fb.map(b => f(a, b)))
@@ -50,7 +49,7 @@ case class State(
       val newState = State(
         headNow +: snake.init,
         Option(direction),
-        score + 1, // TODO proper treatment of score
+        score + 1 // TODO proper treatment of score
       ).tick.rendered
 
       if (snake.contains(headNow)) newState.copy(lostAt = time)
@@ -68,11 +67,14 @@ case class State(
 
     val flickerOnLoss =
       if ((time - lostAt) > pauseOnLoss) State.initial
-      else {
-        // TODO slower, not just less frequent, flicker
-        if (time % flickerFrequency == 0) copy(render = Set())
-        else rendered
-      }.tick
+      else
+        {
+          if (
+            (time / flickerDown) % ((flickerDown + flickerUp) / flickerDown) == 0
+          )
+            copy(render = Set())
+          else rendered
+        }.tick
 
     if (lostAt > 0) flickerOnLoss
     else directionNow
