@@ -2,7 +2,7 @@ import javax.swing._
 import java.awt._
 import java.awt.event._
 import scala.util.chaining._
-import Params._
+import Shared._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -18,14 +18,18 @@ object Main {
   }
 }
 
-object Params {
+object Shared {
   val frameRate = 1000 / 60
   val X = 500
   val Y = X / 4 * 3
   val scale = 5
   val snakeSize = 20
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
+  val pauseOnLoss = 80 // TODO convert from ticks to actual time
 
+
+  def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] =
+    fa.flatMap(a => fb.map(b => f(a, b)))
 }
 
 case class State(
@@ -64,21 +68,16 @@ case class State(
         .getOrElse(State.initial) // initial state
 
     val waitOnLoss =
-      if ((time - lostAt) > 80) State.initial
-      else copy(time = time + 1, score = score + 1) // TODO score only updated to debug
-
+      if ((time - lostAt) > pauseOnLoss) State.initial
+      else
+        copy(
+          time = time + 1,
+          score = score + 1
+        ) // TODO score only updated to debug
 
     if (lostAt > 0) waitOnLoss
     else directionNow
   }
-
-  def map2[A, B, C](fa: Option[A], fb: Option[B])(
-      f: (A, B) => C
-  ): Option[C] =
-    for {
-      a <- fa
-      b <- fb
-    } yield f(a, b)
 }
 object State {
   val initial: State =
