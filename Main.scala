@@ -14,7 +14,7 @@ object Main {
 
     while (true) {
       Thread.sleep(frameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput)
+      state = state.evolve(gui.getInput) // TODO snake is too fast
       gui.update(state)
     }
   }
@@ -57,8 +57,16 @@ case class State(
         score = score + 1 // TODO proper treatment of score
       ).tick.rendered
 
+      println(s"tail: ${snakeNow.last} apple: $apple")
+
       if (snake.contains(headNow)) stateNow.copy(lostAt = time)
-      else stateNow
+      else if (snakeNow.last == apple) {
+        // TODO broken, prob interaction between scale and collision detection
+        println("eating")
+        val grownSnake = snakeNow :+ apple
+        val appleNow = State.newApple(grownSnake)
+        stateNow.copy(snake = grownSnake, apple = appleNow)
+      } else stateNow
     }
 
     def flickerOnLoss = {
@@ -105,6 +113,7 @@ case class Point(x: Int, y: Int) {
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 }
 object Point {
+  // TODO in rare cases still possible to "split" the snake
   // Wraps around dimensions
   def apply(x: Int, y: Int): Point =
     new Point(
