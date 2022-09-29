@@ -1,5 +1,5 @@
 import javax.swing._
-import java.awt._
+import java.awt.{List => _, _}
 import java.awt.event._
 import scala.util.Random
 import Shared._
