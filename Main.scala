@@ -1,5 +1,5 @@
 import javax.swing._
-import java.awt.{List => _, _}
+import java.awt._
 import java.awt.event._
 import scala.util.Random
 import Shared._
@@ -24,7 +24,7 @@ object Shared {
   val frameRate = 1000 / 60
   val X = 500
   val Y = X / 4 * 3
-  val scale = 1
+  val scale = 5
   val snakeSize = 20
   val speed = 2
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
@@ -37,47 +37,34 @@ case class State(
     snake: Vector[Point],
     direction: Point,
     apple: Point,
-    eaten: Vector[Point] = Vector.empty,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
     render: Set[Point] = Set.empty
 ) {
+  // TODO apples, they get created at every turn including the first
+  // snake grows once the apple has gone through its body
+  // there is no minimum distance between apple and snake
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
-
-      val advance = copy(
-        snake = snake.head.move(directionNow) +: snake.init,
-        direction = directionNow
+      val headNow = snake.head.move(directionNow)
+      val snakeNow = headNow +: snake.init
+      val stateNow = copy(
+        snake = snakeNow,
+        direction = directionNow,
       ).tick.rendered
 
-      val grow =
-        if (eaten.nonEmpty && advance.snake.last == eaten.last)
-          advance.copy(
-            snake = advance.snake :+ advance.snake.last.move(directionNow.opposite),
-            eaten = advance.eaten.init
-          )
-        else advance
-
-      val eat =
-        if (grow.snake.head.scaled.intersect(apple.scaled).nonEmpty)
-          grow.copy(
-            apple = State.newApple(grow.snake),
-            // can't be grow.apple because of the scaling issue
-            eaten = grow.snake.head +: grow.eaten,
-            score = grow.score + 9
-          )
-        else grow
-
-
-      val checkLoss =
-        if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
-        else eat
-
-      if (time % speed == 0) checkLoss
-      else tick
+      if (snake.contains(headNow)) stateNow.copy(lostAt = time)
+      // TODO next apple should be spawned immediately after eating
+      // TODO there could be multiple eaten apples before the snake grows
+      // TODO score should be updated immediately after eating
+      else if (snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
+        val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.opposite)
+        val appleNow = State.newApple(grownSnake)
+        stateNow.copy(snake = grownSnake, apple = appleNow, score = score + 9)
+      } else stateNow
     }
 
     def flickerOnLoss = {
@@ -90,7 +77,8 @@ case class State(
     }
 
     if (lostAt > 0) flickerOnLoss
-    else move
+    else if (time % speed == 0) move
+    else tick
   }
 
   def tick: State = copy(time = time + 1)
@@ -124,9 +112,8 @@ case class Point(x: Int, y: Int) {
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 
   def scaled: Set[Point] =
-    square(Point.size)
-    // times(scale).square(scale - 1)
-    //   .map { _.move(origin.times(-scale + 1)) }
+    times(scale).square(scale - 1)
+      .map { _.move(origin.times(-scale + 1)) }
 
 }
 object Point {
@@ -138,12 +125,10 @@ object Point {
       y.sign.min(0).abs * Y + (y % Y)
     )
 
-  // TODO should we make frame into a multiple of this so that we can avoid the split snake
-  val size = 5
-  def up: Point = Point(0, -1).times(size)
-  def down: Point = Point(0, 1).times(size)
-  def left: Point = Point(-1, 0).times(size)
-  def right: Point = Point(1, 0).times(size)
+  def up: Point = Point(0, -1)
+  def down: Point = Point(0, 1)
+  def left: Point = Point(-1, 0)
+  def right: Point = Point(1, 0)
 
   def directions: Map[String, Point] = Map(
     "UP" -> up,
@@ -154,6 +139,7 @@ object Point {
 }
 
 class Gui extends JPanel {
+
   // Writes from event listeners which run on single EDT thread: no atomics needed
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
@@ -174,7 +160,6 @@ class Gui extends JPanel {
   setLayout(new BorderLayout)
   add(new Canvas, BorderLayout.CENTER)
   add(score, BorderLayout.NORTH)
-  add(new Ex, BorderLayout.SOUTH)
 
   def getInput: Option[Point] = input
 
@@ -194,23 +179,7 @@ class Gui extends JPanel {
 
     override def getPreferredSize = Dimension(X, Y)
   }
-
-  class Ex extends JComponent {
-    override def paintComponent(g: Graphics) = {
-      val size = 10
-      List.range(0, Y, size).foreach { y =>
-        g.drawLine(0, y, X, y)
-      }
-
-      List.range(0, X, size).foreach { x =>
-        g.drawLine(x, 0, x, Y)
-      }
-    }
-
-    override def getPreferredSize = Dimension(X, Y)
-  }
 }
-
 object Gui {
   def start: Gui = {
     val gui = new Gui
