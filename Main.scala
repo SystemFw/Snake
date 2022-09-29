@@ -27,7 +27,8 @@ object Shared {
   //val scale = 5
   val scale = 10 // TODO for debug purposes
   val snakeSize = 20
-  val speed = 2
+  // val slowdown = 2
+  val slowdown = 5 // TODO for debug purposes
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
   val pauseOnLoss = 120
   val flickerDown = 20
@@ -78,7 +79,7 @@ case class State(
     }
 
     if (lostAt > 0) flickerOnLoss
-    else if (time % speed == 0) move
+    else if (time % slowdown == 0) move
     else tick
   }
 
