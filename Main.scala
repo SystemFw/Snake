@@ -22,17 +22,18 @@ object Main {
 
 object Shared {
   val frameRate = 1000 / 60
-  val X = 500
-  val Y = X / 4 * 3
+  val X = 500 / 10 * 10
+  val Y = (X / 4 * 3) / 10 * 10
   //val scale = 5
   val scale = 10 // TODO for debug purposes
   val snakeSize = 20
   // val slowdown = 2
-  val slowdown = 5 // TODO for debug purposes
+  val slowdown = 10 // TODO for debug purposes
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
   val pauseOnLoss = 120
   val flickerDown = 20
   val flickerUp = 30
+  val size = scale // TODO for debug purposes for now
 }
 
 case class State(
@@ -62,7 +63,7 @@ case class State(
       // TODO next apple should be spawned immediately after eating
       // TODO there could be multiple eaten apples before the snake grows
       // TODO score should be updated immediately after eating
-      else if (snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
+      else if (snakeNow.last == apple) {//(snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
         val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.opposite)
         val appleNow = State.newApple(grownSnake)
         stateNow.copy(snake = grownSnake, apple = appleNow, score = score + 9)
@@ -78,6 +79,9 @@ case class State(
       else copy(render = apple.scaled).tick
     }
 
+    import scala.concurrent.ExecutionContext.Implicits.global
+    scala.concurrent.Future { println(snake.head)}
+
     if (lostAt > 0) flickerOnLoss
     else if (time % slowdown == 0) move
     else tick
@@ -89,12 +93,12 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x)))
+      Vector.range(0, snakeSize).map(x => origin.round(size).move(Point.left.times(x)))
     State(snake, Point.right, newApple(snake)).rendered
   }
 
   def newApple(snake: Vector[Point]): Point = {
-    val apple = Point(Random.nextInt(X), Random.nextInt(Y))
+    val apple = Point(Random.nextInt(X), Random.nextInt(Y)).round(size)
     if (snake.contains(apple)) newApple(snake)
     else apple
   }
@@ -114,8 +118,12 @@ case class Point(x: Int, y: Int) {
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 
   def scaled: Set[Point] =
-    times(scale).square(scale - 1)
-      .map { _.move(origin.times(-scale + 1)) }
+    square(size)
+    // times(scale).square(scale - 1)
+    //   .map { _.move(origin.times(-scale + 1)) }
+
+  def round(n: Int) =
+    Point(x / n * n, y / n * n)
 
 }
 object Point {
@@ -127,10 +135,10 @@ object Point {
       y.sign.min(0).abs * Y + (y % Y)
     )
 
-  def up: Point = Point(0, -1)
-  def down: Point = Point(0, 1)
-  def left: Point = Point(-1, 0)
-  def right: Point = Point(1, 0)
+  def up: Point = Point(0, -1).times(size)
+  def down: Point = Point(0, 1).times(size)
+  def left: Point = Point(-1, 0).times(size)
+  def right: Point = Point(1, 0).times(size)
 
   def directions: Map[String, Point] = Map(
     "UP" -> up,
@@ -175,7 +183,7 @@ class Gui extends JPanel {
   class Canvas extends JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) = {
-      val size = scale - 1
+      val size = scale
       List.range(0, X, size).foreach { x =>
         g.drawLine(x, 0, x, Y)
       }
