@@ -24,7 +24,8 @@ object Shared {
   val frameRate = 1000 / 60
   val X = 500
   val Y = X / 4 * 3
-  val scale = 5
+  //val scale = 5
+  val scale = 10 // TODO for debug purposes
   val snakeSize = 20
   val speed = 2
   val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
@@ -172,10 +173,18 @@ class Gui extends JPanel {
 
   class Canvas extends JComponent {
     // TODO build proper image instead
-    override def paintComponent(g: Graphics) =
+    override def paintComponent(g: Graphics) = {
+      val size = scale - 1
+      List.range(0, X, size).foreach { x =>
+        g.drawLine(x, 0, x, Y)
+      }
+      List.range(0, Y, size).foreach { y =>
+        g.drawLine(0, y, X, y)
+      }
       image.foreach { point =>
         g.drawLine(point.x, point.y, point.x, point.y)
       }
+    }
 
     override def getPreferredSize = Dimension(X, Y)
   }
