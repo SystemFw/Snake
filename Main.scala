@@ -34,9 +34,12 @@ object Shared {
   lazy val pauseOnLoss = 120
   lazy val flickerDown = 20
   lazy val flickerUp = 30
+  println(s"$X $Y")
+
+  def p[A](v: A): Unit =
+    scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
 }
 
-// TODO wrapping still kinda broken, but less visibly
 case class State(
     snake: Vector[Point],
     direction: Point,
@@ -92,6 +95,7 @@ case class State(
       else copy(render = apple.scaled).tick
     }
 
+    p(snake.head)
     if (lostAt > 0) flickerOnLoss
     else move
   }
@@ -127,7 +131,7 @@ case class Point(x: Int, y: Int) {
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 
   def scaled: Set[Point] =
-    square(scale)
+    square(scale - 1)
     // times(scale).square(scale - 1)
     //   .map { _.move(origin.times(-scale + 1)) }
 
@@ -192,12 +196,12 @@ class Gui extends JPanel {
   class Canvas extends JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) = {
-      List.range(0, X + scale, scale).foreach { x =>
-        g.drawLine(x, 0, x, Y)
-      }
-      List.range(0, Y + scale, scale).foreach { y =>
-        g.drawLine(0, y, X, y)
-      }
+      // List.range(0, X + scale, scale).foreach { x =>
+      //   g.drawLine(x, 0, x, Y)
+      // }
+      // List.range(0, Y + scale, scale).foreach { y =>
+      //   g.drawLine(0, y, X, y)
+      // }
       image.foreach { point =>
         g.drawLine(point.x, point.y, point.x, point.y)
       }
