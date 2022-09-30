@@ -24,11 +24,12 @@ object Shared {
   lazy val frameRate = 1000 / 60
   lazy val X = 500 / scale * scale
   lazy val Y = (X / 4 * 3) / scale * scale
+
   lazy val scale = 5
-  //lazy val scale = 10 // TODO for debug purposes
-  lazy val snakeSize = 20
   lazy val slowdown = 2
+  // lazy val scale = 10 // TODO for debug purposes
   // lazy val slowdown = 10 // TODO for debug purposes
+  lazy val snakeSize = 20
   lazy val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
   lazy val pauseOnLoss = 120
   lazy val flickerDown = 20
@@ -191,12 +192,12 @@ class Gui extends JPanel {
   class Canvas extends JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) = {
-      // List.range(0, X, scale).foreach { x =>
-      //   g.drawLine(x, 0, x, Y)
-      // }
-      // List.range(0, Y, cale).foreach { y =>
-      //   g.drawLine(0, y, X, y)
-      // }
+      List.range(0, X + scale, scale).foreach { x =>
+        g.drawLine(x, 0, x, Y)
+      }
+      List.range(0, Y + scale, scale).foreach { y =>
+        g.drawLine(0, y, X, y)
+      }
       image.foreach { point =>
         g.drawLine(point.x, point.y, point.x, point.y)
       }
