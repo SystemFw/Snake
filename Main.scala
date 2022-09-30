@@ -21,53 +21,65 @@ object Main {
 }
 
 object Shared {
-  val frameRate = 1000 / 60
-  val X = 500 / 10 * 10
-  val Y = (X / 4 * 3) / 10 * 10
-  val scale = 5
-//  val scale = 10 // TODO for debug purposes
-  val snakeSize = 20
-  val slowdown = 2
-  //val slowdown = 10 // TODO for debug purposes
-  val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
-  val pauseOnLoss = 120
-  val flickerDown = 20
-  val flickerUp = 30
-  val size = scale // TODO for debug purposes for now
+  lazy val frameRate = 1000 / 60
+  lazy val X = 500 / scale * scale
+  lazy val Y = (X / 4 * 3) / scale * scale
+  lazy val scale = 5
+  //lazy val scale = 10 // TODO for debug purposes
+  lazy val snakeSize = 20
+  lazy val slowdown = 2
+  // lazy val slowdown = 10 // TODO for debug purposes
+  lazy val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
+  lazy val pauseOnLoss = 120
+  lazy val flickerDown = 20
+  lazy val flickerUp = 30
 }
 
+// TODO wrapping still kinda broken, but less visibly
 case class State(
     snake: Vector[Point],
     direction: Point,
     apple: Point,
+    eaten: Vector[Point] = Vector.empty,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
     render: Set[Point] = Set.empty
 ) {
-  // TODO apples, they get created at every turn including the first
-  // snake grows once the apple has gone through its body
-  // there is no minimum distance between apple and snake
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
-      val headNow = snake.head.move(directionNow)
-      val snakeNow = headNow +: snake.init
-      val stateNow = copy(
-        snake = snakeNow,
-        direction = directionNow,
+
+      val advance = copy(
+        snake = snake.head.move(directionNow) +: snake.init,
+        direction = directionNow
       ).tick.rendered
 
-      if (snake.contains(headNow)) stateNow.copy(lostAt = time)
-      // TODO next apple should be spawned immediately after eating
-      // TODO there could be multiple eaten apples before the snake grows
-      // TODO score should be updated immediately after eating
-      else if (snakeNow.last == apple) {//(snakeNow.last.scaled.intersect(apple.scaled).nonEmpty) {
-        val grownSnake = snakeNow :+ snakeNow.last.move(directionNow.opposite)
-        val appleNow = State.newApple(grownSnake)
-        stateNow.copy(snake = grownSnake, apple = appleNow, score = score + 9)
-      } else stateNow
+      val grow =
+        if (eaten.nonEmpty && advance.snake.last == eaten.last)
+          advance.copy(
+            snake = advance.snake :+ advance.snake.last.move(directionNow.opposite),
+            eaten = advance.eaten.init
+          )
+        else advance
+
+      val eat =
+        if (grow.snake.head == apple)
+          grow.copy(
+            apple = State.newApple(grow.snake),
+            eaten = grow.apple +: grow.eaten,
+            score = grow.score + 9
+          )
+        else grow
+
+
+      val checkLoss =
+        if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
+        else eat
+
+      if (time % slowdown == 0) checkLoss
+      else tick
     }
 
     def flickerOnLoss = {
@@ -79,12 +91,8 @@ case class State(
       else copy(render = apple.scaled).tick
     }
 
-    import scala.concurrent.ExecutionContext.Implicits.global
-    scala.concurrent.Future { println(snake.head)}
-
     if (lostAt > 0) flickerOnLoss
-    else if (time % slowdown == 0) move
-    else tick
+    else move
   }
 
   def tick: State = copy(time = time + 1)
@@ -93,12 +101,12 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, snakeSize).map(x => origin.round(size).move(Point.left.times(x)))
+      Vector.range(0, snakeSize).map(x => origin.round(scale).move(Point.left.times(x)))
     State(snake, Point.right, newApple(snake)).rendered
   }
 
   def newApple(snake: Vector[Point]): Point = {
-    val apple = Point(Random.nextInt(X), Random.nextInt(Y)).round(size)
+    val apple = Point(Random.nextInt(X), Random.nextInt(Y)).round(scale)
     if (snake.contains(apple)) newApple(snake)
     else apple
   }
@@ -118,7 +126,7 @@ case class Point(x: Int, y: Int) {
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 
   def scaled: Set[Point] =
-    square(size)
+    square(scale)
     // times(scale).square(scale - 1)
     //   .map { _.move(origin.times(-scale + 1)) }
 
@@ -135,10 +143,10 @@ object Point {
       y.sign.min(0).abs * Y + (y % Y)
     )
 
-  def up: Point = Point(0, -1).times(size)
-  def down: Point = Point(0, 1).times(size)
-  def left: Point = Point(-1, 0).times(size)
-  def right: Point = Point(1, 0).times(size)
+  def up: Point = Point(0, -1).times(scale)
+  def down: Point = Point(0, 1).times(scale)
+  def left: Point = Point(-1, 0).times(scale)
+  def right: Point = Point(1, 0).times(scale)
 
   def directions: Map[String, Point] = Map(
     "UP" -> up,
@@ -183,11 +191,10 @@ class Gui extends JPanel {
   class Canvas extends JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) = {
-      // val size = scale
-      // List.range(0, X, size).foreach { x =>
+      // List.range(0, X, scale).foreach { x =>
       //   g.drawLine(x, 0, x, Y)
       // }
-      // List.range(0, Y, size).foreach { y =>
+      // List.range(0, Y, cale).foreach { y =>
       //   g.drawLine(0, y, X, y)
       // }
       image.foreach { point =>
