@@ -22,9 +22,10 @@ object Main {
 
 object Shared {
   val FrameRate = 1000 / 60
-  val SlowDown = 2 // TODO is 3 better?
-  val Size = 50
-  val Scale = 5
+  val SlowDown = 4 // TODO is 3 better?
+  // TOOD express size in terms of scale
+  val Size = 70
+  val Scale = 15 // 5 * 3
 
   val Dimensions = Point(Size, Size / 4 * 3)
   val DisplaySize = Dimensions.times(Scale)
@@ -106,7 +107,14 @@ case class State(
   def render: Set[Point] =
     (if (drawSnake) snake.toSet else Set())
       .+(apple)
-      .flatMap(_.times(Scale).square(Scale))
+      .flatMap{
+        _
+          .times(5)
+          .square(5)
+          .collect { case p @ Point(x, y) if x % 2 == 0 &&  y % 2 == 0  => p }
+      }
+      .flatMap(_.times(3).square(3))
+//      .flatMap(_.times(Scale).square(Scale))
 }
 object State {
   def initial: State = {
@@ -187,7 +195,7 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"${DisplaySize.x} x ${DisplaySize.y} Score: ${state.score} Pos: (${state.snake.head.x}, ${state.snake.head.y})")
+      score.setText(s"${DisplaySize.x} x ${DisplaySize.y} Score: ${state.score} Head: (${state.snake.head.x}, ${state.snake.head.y}) Apple: (${state.apple.x}, ${state.apple.y})")
       repaint()
     }
 
