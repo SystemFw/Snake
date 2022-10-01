@@ -32,7 +32,7 @@ object Shared {
   val Dimensions = Point(Size, Size / 4 * 3)
   val DisplaySize = Dimensions.times(FullScale)
 
-  val Origin = Dimensions.times(0.5)
+  val Origin = Dimensions.divideBy(2)
   val SnakeSize = 20
 
   val PauseOnLoss = 120
@@ -105,12 +105,20 @@ case class State(
   }.copy(time = time + 1)
 
   // TODO sprites?
-  def render: Set[Point] =
-    (if (drawSnake) snake.toSet else Set())
-      .+(apple)
-      .flatMap { p =>
-        Sprites.shape.map(p.times(BitMapSize).move(_))
-      }.flatMap(_.times(Scale).square(Scale))
+  def render: Set[Point] = {
+    def shape(p: Point, spec: Set[Point]) =
+      spec.map(p.times(BitMapSize).move(_))
+
+    def renderedHead: Set[Point] = shape(snake.head, Sprites.head)
+    def renderedBody: Set[Point] = snake.tail.flatMap(shape(_,Sprites.body)).toSet
+    def renderedSnake: Set[Point] = renderedHead ++ renderedBody
+    val renderedApple: Set[Point] = shape(apple, Sprites.apple)
+
+
+    (if (drawSnake) renderedHead ++ renderedBody else Set[Point]())
+      .++(renderedApple)
+      .flatMap(_.times(Scale).square(Scale))
+  }
 }
 object State {
   def debug: State = {
@@ -140,8 +148,11 @@ case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
 
-  def times(k: Float): Point =
-    Point((x * k).toInt, (y * k).toInt)
+  def times(k: Int): Point =
+    Point(x * k, y * k)
+
+  def divideBy(k: Int): Point =
+    Point(x / k, y / k)
 
   def opposite: Point =
     times(-1)
@@ -236,7 +247,7 @@ object Sprites {
     * '*' means a bit is set
     */
   def bitmap(spec: String): Set[Point] = {
-    val matrix = spec.split('\n').map(_.toVector)
+    val matrix = spec.trim.split('\n').map(_.toVector)
 
     assert(matrix.length == BitMapSize)
     assert(matrix.forall(_.length == matrix.length))
@@ -249,17 +260,32 @@ object Sprites {
     }.flatten.toSet
   }
 
-  val apple  = ""
-
-
-  val shape = bitmap {
+  val apple =
     """
-  |-----
-    |--*--
-    |-***-
-    |--*--
-    |-----
-    """.stripMargin.trim
-  }
+-----
+--*--
+-*-*-
+--*--
+-----
+""".pipe(bitmap)
+
+  val head =
+    """
+-----
+--*--
+-*-**
+*****
+-----
+""".pipe(bitmap)
+
+  val body =
+  """
+-----
+--*--
+-***-
+--*--
+-----
+""".pipe(bitmap)
+
 
 }
