@@ -23,13 +23,13 @@ object Main {
 object Shared {
   val FrameRate = 1000 / 60
   val SlowDown = 4 // TODO is 3 better?
-  // TOOD express size in terms of scale
+  val Scale = 3
+  val BitMapSize = 5
+  val FullScale = Scale * BitMapSize
+   // TODO express size in terms of scale
   val Size = 70
-  // real snake has of 5 x 5 logical bitmaps
-  // TODO separate the *5 factor from the parameter you can tweak
-  val Scale = 15 // 5 * 3
   val Dimensions = Point(Size, Size / 4 * 3)
-  val DisplaySize = Dimensions.times(Scale)
+  val DisplaySize = Dimensions.times(FullScale)
 
   val Origin = Dimensions.times(0.5)
   val SnakeSize = 20
@@ -120,8 +120,8 @@ case class State(
           Point(2,2),
           Point(2,3),
           Point(3,2)
-        ).map(p.times(5).move(_))
-      }.flatMap(_.times(3).square(3))
+        ).map(p.times(BitMapSize).move(_))
+      }.flatMap(_.times(Scale).square(Scale))
 }
 object State {
   def debug: State = {
