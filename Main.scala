@@ -10,7 +10,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.initial
+    var state = State.debug
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -117,6 +117,12 @@ case class State(
 //      .flatMap(_.times(Scale).square(Scale))
 }
 object State {
+  def debug: State = {
+    val snake =
+      Vector.range(0, SnakeSize).map(x => Point(30, 26).move(Point.left.times(x)))
+    State(snake, Point.right, Point(50, 25))
+  }
+
   def initial: State = {
     val snake =
       Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x)))
