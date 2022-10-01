@@ -25,7 +25,9 @@ object Shared {
   val SlowDown = 4 // TODO is 3 better?
   // TOOD express size in terms of scale
   val Size = 70
-  val Scale = 15 // 5 * 3
+  // real snake has of 5 x 5 logical bitmaps
+  //  val Scale = 15 // 5 * 3
+  val Scale = 5
 
   val Dimensions = Point(Size, Size / 4 * 3)
   val DisplaySize = Dimensions.times(Scale)
@@ -107,13 +109,28 @@ case class State(
   def render: Set[Point] =
     (if (drawSnake) snake.toSet else Set())
       .+(apple)
-      .flatMap{
-        _
-          .times(5)
-          .square(5)
-          .collect { case p @ Point(x, y) if x % 2 == 0 &&  y % 2 == 0  => p }
+      .flatMap { p =>
+        //  0 1 2 3 4
+        // 0
+        // 1    *
+        // 2  * * *
+        // 3    *
+        // 4
+        Set(
+          Point(1,2),
+          Point(2,1),
+          Point(2,2),
+          Point(2,3),
+          Point(3,2)
+        ).map(p.times(5).move(_))
       }
-      .flatMap(_.times(3).square(3))
+      // .flatMap{
+      //   _
+      //     .times(5)
+      //     .square(5)
+      //     .collect { case p @ Point(x, y) if x % 2 == 0 &&  y % 2 == 0  => p }
+      // }
+      // .flatMap(_.times(3).square(3))
 //      .flatMap(_.times(Scale).square(Scale))
 }
 object State {
