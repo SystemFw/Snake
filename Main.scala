@@ -2,6 +2,7 @@ import javax.swing._
 import java.awt.{List => _, _}
 import java.awt.event._
 import scala.util.Random
+import scala.util.chaining._
 import Shared._
 
 /** Recreate the basic version of the classic Nokia 3310 Snake, no extras
@@ -108,16 +109,7 @@ case class State(
     (if (drawSnake) snake.toSet else Set())
       .+(apple)
       .flatMap { p =>
-        val shape = Point.bitmap {
-          """
-          |-----
-          |--*--
-          |-***-
-          |--*--
-          |-----
-          """.stripMargin.trim
-        }
-        shape.map(p.times(BitMapSize).move(_))
+        Sprites.shape.map(p.times(BitMapSize).move(_))
       }.flatMap(_.times(Scale).square(Scale))
 }
 object State {
@@ -175,23 +167,6 @@ object Point {
     "LEFT" -> left,
     "RIGHT" -> right
   )
-
-  /**
-    * Takes a square bitmap
-    * '*' means a bit is set
-    */
-  def bitmap(spec: String): Set[Point] = {
-    val matrix = spec.split('\n').map(_.toVector)
-    assert(matrix.forall(_.length == matrix.length))
-
-    matrix.zipWithIndex.flatMap { case (line, y) =>
-      line.zipWithIndex.map {
-        case ('*', x) => Some(Point(x, y))
-        case _ => None
-      }
-    }.flatten.toSet
-  }
-
 }
 
 class Gui extends JPanel {
@@ -252,6 +227,39 @@ object Gui {
       app.setVisible(true)
     }
     gui
+  }
+}
+
+object Sprites {
+  /**
+    * Takes a square bitmap of BitMapSize, with '*' meaning bit set
+    * '*' means a bit is set
+    */
+  def bitmap(spec: String): Set[Point] = {
+    val matrix = spec.split('\n').map(_.toVector)
+
+    assert(matrix.length == BitMapSize)
+    assert(matrix.forall(_.length == matrix.length))
+
+    matrix.zipWithIndex.flatMap { case (line, y) =>
+      line.zipWithIndex.map {
+        case ('*', x) => Some(Point(x, y))
+        case _ => None
+      }
+    }.flatten.toSet
+  }
+
+  val apple  = ""
+
+
+  val shape = bitmap {
+    """
+  |-----
+    |--*--
+    |-***-
+    |--*--
+    |-----
+    """.stripMargin.trim
   }
 
 }
