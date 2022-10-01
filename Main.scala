@@ -28,9 +28,7 @@ object Shared {
   lazy val scaledY = Y * scale
 
   lazy val scale = 5
-  lazy val slowdown = 2
-  // lazy val scale = 10 // TODO for debug purposes
-  // lazy val slowdown = 10 // TODO for debug purposes
+  lazy val slowdown = 2 // TODO is 3 better?
   lazy val snakeSize = 20
   lazy val origin = Point(X / 2, Y / 2)
   lazy val pauseOnLoss = 120
