@@ -62,7 +62,7 @@ case class State(
       val advance = copy(
         snake = snake.head.move(directionNow) +: snake.init,
         direction = directionNow
-      ).tick.rendered
+      )
 
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
@@ -87,9 +87,11 @@ case class State(
         else eat
 
       val wrapped =
-        copy(snake = snake.map(_.wrap(Point(X, Y))))
+        checkLoss.copy(snake = checkLoss.snake.map(_.wrap(Point(X, Y))))
 
-      if (time % slowdown == 0) checkLoss
+      val ready = wrapped.tick.rendered
+
+      if (time % slowdown == 0) ready
       else tick
     }
 
@@ -146,8 +148,8 @@ case class Point(x: Int, y: Int) {
 
   def wrap(dimension: Point) =
     Point(
-      x.sign.min(0).abs * dimension.x + (x % dimension.x),
-      y.sign.min(0).abs * dimension.y + (y % dimension.y)
+      x.sign.min(0).abs * X + (x % X),
+      y.sign.min(0).abs * Y + (y % Y)
     )
 
 }
