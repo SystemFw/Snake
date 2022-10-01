@@ -49,7 +49,7 @@ case class State(
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
-    toRender: Set[Point] = Set.empty
+    drawSnake: Boolean = true
 ) {
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
@@ -78,7 +78,6 @@ case class State(
           )
         else grow
 
-
       val checkLoss =
         if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
         else eat
@@ -86,35 +85,35 @@ case class State(
       val wrap =
         checkLoss.copy(snake = checkLoss.snake.map(_.wrap(Dimensions)))
 
-      val ready = wrap.rendered
-
-      if (time % SlowDown != 0) tick
-      else ready.tick
+      if (time % SlowDown == 0) wrap
+      else this
     }
 
     def flickerOnLoss = {
       val flicker =
         (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
 
-      if (time - lostAt > PauseOnLoss) State.initial.tick
-      else if (!flicker) rendered.tick
-      else copy(toRender = Set(apple)).tick
+      if (time - lostAt > PauseOnLoss) State.initial
+      // TODO with sprites, just set some state that render uses, and delete rendered
+      else if (!flicker) copy(drawSnake = true)
+      else copy(drawSnake = false)
     }
 
     if (lostAt > 0) flickerOnLoss
     else move
-  }
+  }.copy(time = time + 1)
 
-  private def tick: State = copy(time = time + 1)
-  private def rendered: State = copy(toRender = (snake.toSet + apple))
   // TODO sprites?
-  def render = toRender.flatMap(_.times(Scale).square(Scale - 1))
+  def render: Set[Point] =
+    (if (drawSnake) snake.toSet else Set())
+      .+(apple)
+      .flatMap(_.times(Scale).square(Scale - 1))
 }
 object State {
   def initial: State = {
     val snake =
       Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x)))
-    State(snake, Point.right, newApple(snake)).rendered
+    State(snake, Point.right, newApple(snake))
   }
 
   def newApple(snake: Vector[Point]): Point = {
@@ -148,14 +147,6 @@ case class Point(x: Int, y: Int) {
     )
 }
 object Point {
-  // TODO in rare cases still possible to "split" the snake or the apple
-  // Wraps around dimensions
-  // def apply(x: Int, y: Int): Point =
-  //   new Point(
-  //     x.sign.min(0).abs * X + (x % X),
-  //     y.sign.min(0).abs * Y + (y % Y)
-  //   )
-
   def up: Point = Point(0, -1)
   def down: Point = Point(0, 1)
   def left: Point = Point(-1, 0)
