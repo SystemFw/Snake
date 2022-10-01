@@ -26,9 +26,8 @@ object Shared {
   // TOOD express size in terms of scale
   val Size = 70
   // real snake has of 5 x 5 logical bitmaps
-  //  val Scale = 15 // 5 * 3
-  val Scale = 5
-
+  // TODO separate the *5 factor from the parameter you can tweak
+  val Scale = 15 // 5 * 3
   val Dimensions = Point(Size, Size / 4 * 3)
   val DisplaySize = Dimensions.times(Scale)
 
@@ -96,7 +95,6 @@ case class State(
         (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
 
       if (time - lostAt > PauseOnLoss) State.initial
-      // TODO with sprites, just set some state that render uses, and delete rendered
       else if (!flicker) copy(drawSnake = true)
       else copy(drawSnake = false)
     }
@@ -123,15 +121,7 @@ case class State(
           Point(2,3),
           Point(3,2)
         ).map(p.times(5).move(_))
-      }
-      // .flatMap{
-      //   _
-      //     .times(5)
-      //     .square(5)
-      //     .collect { case p @ Point(x, y) if x % 2 == 0 &&  y % 2 == 0  => p }
-      // }
-      // .flatMap(_.times(3).square(3))
-//      .flatMap(_.times(Scale).square(Scale))
+      }.flatMap(_.times(3).square(3))
 }
 object State {
   def debug: State = {
