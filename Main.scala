@@ -32,7 +32,7 @@ object Shared {
   // lazy val scale = 10 // TODO for debug purposes
   // lazy val slowdown = 10 // TODO for debug purposes
   lazy val snakeSize = 20
-  lazy val origin = Point(X / 2 - snakeSize * 2, Y / 2 - scale)
+  lazy val origin = Point(X / 2, Y / 2)
   lazy val pauseOnLoss = 120
   lazy val flickerDown = 20
   lazy val flickerUp = 30
