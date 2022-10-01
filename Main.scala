@@ -39,7 +39,6 @@ object Shared {
   lazy val pauseOnLoss = 120
   lazy val flickerDown = 20
   lazy val flickerUp = 30
-  println(s"$X $Y, $scaledX , $scaledY")
 
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
@@ -103,7 +102,6 @@ case class State(
       else copy(render = apple.scaled).tick
     }
 
-    p(snake.head)
     if (lostAt > 0) flickerOnLoss
     else move
   }
@@ -203,7 +201,7 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"Score: ${state.score}")
+      score.setText(s"$scaledX x $scaledY Score: ${state.score} Pos: (${state.snake.head.x}, ${state.snake.head.y})")
       repaint()
     }
 
