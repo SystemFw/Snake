@@ -21,16 +21,18 @@ object Main {
 }
 
 object Shared {
+  // TODO maybe capitalise these
   lazy val frameRate = 1000 / 60
-  lazy val X = 50
-  lazy val Y = (X / 4 * 3)
-  lazy val scaledX = X * scale
-  lazy val scaledY = Y * scale
-
-  lazy val scale = 5
   lazy val slowdown = 2 // TODO is 3 better?
+  lazy val size = 50
+  lazy val scale = 5
+
+  lazy val dimensions = Point(size, size / 4 * 3)
+  lazy val displaySize = dimensions.times(scale)
+
+  lazy val origin = dimensions.times(0.5)
   lazy val snakeSize = 20
-  lazy val origin = Point(X / 2, Y / 2)
+
   lazy val pauseOnLoss = 120
   lazy val flickerDown = 20
   lazy val flickerUp = 30
@@ -81,10 +83,10 @@ case class State(
         if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
         else eat
 
-      val wrapped =
-        checkLoss.copy(snake = checkLoss.snake.map(_.wrap(Point(X, Y))))
+      val wrap =
+        checkLoss.copy(snake = checkLoss.snake.map(_.wrap(dimensions)))
 
-      val ready = wrapped.tick.rendered
+      val ready = wrap.rendered.tick
 
       if (time % slowdown == 0) ready
       else tick
@@ -114,7 +116,11 @@ object State {
   }
 
   def newApple(snake: Vector[Point]): Point = {
-    val apple = Point(Random.nextInt(X), Random.nextInt(Y))
+    val apple = Point(
+      Random.nextInt(dimensions.x),
+      Random.nextInt(dimensions.y)
+    )
+
     if (snake.contains(apple)) newApple(snake)
     else apple
   }
@@ -124,8 +130,8 @@ case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
 
-  def times(k: Int): Point =
-    Point(x * k, y * k)
+  def times(k: Float): Point =
+    Point((x * k).toInt, (y * k).toInt)
 
   def opposite: Point =
     times(-1)
@@ -141,10 +147,10 @@ case class Point(x: Int, y: Int) {
   def round(n: Int) =
     Point(x / n * n, y / n * n)
 
-  def wrap(dimension: Point) =
+  def wrap(limit: Point) =
     Point(
-      x.sign.min(0).abs * X + (x % X),
-      y.sign.min(0).abs * Y + (y % Y)
+      x.sign.min(0).abs * limit.x + (x % limit.x),
+      y.sign.min(0).abs * limit.y + (y % limit.y)
     )
 
 }
@@ -198,25 +204,19 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"$scaledX x $scaledY Score: ${state.score} Pos: (${state.snake.head.x}, ${state.snake.head.y})")
+      score.setText(s"${displaySize.x} x ${displaySize.y} Score: ${state.score} Pos: (${state.snake.head.x}, ${state.snake.head.y})")
       repaint()
     }
 
   class Canvas extends JComponent {
     // TODO build proper image instead
-    override def paintComponent(g: Graphics) = {
-      // List.range(0, X + scale, scale).foreach { x =>
-      //   g.drawLine(x, 0, x, Y)
-      // }
-      // List.range(0, Y + scale, scale).foreach { y =>
-      //   g.drawLine(0, y, X, y)
-      // }
+    override def paintComponent(g: Graphics) =
       image.foreach { point =>
         g.drawLine(point.x, point.y, point.x, point.y)
       }
-    }
 
-    override def getPreferredSize = Dimension(scaledX, scaledY)
+    override def getPreferredSize =
+      Dimension(displaySize.x, displaySize.y)
   }
 }
 object Gui {
