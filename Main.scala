@@ -86,17 +86,17 @@ case class State(
       val wrap =
         checkLoss.copy(snake = checkLoss.snake.map(_.wrap(Dimensions)))
 
-      val ready = wrap.rendered.tick
+      val ready = wrap.rendered
 
-      if (time % SlowDown == 0) ready
-      else tick
+      if (time % SlowDown != 0) tick
+      else ready.tick
     }
 
     def flickerOnLoss = {
       val flicker =
         (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
 
-      if (time - lostAt > PauseOnLoss) State.initial
+      if (time - lostAt > PauseOnLoss) State.initial.tick
       else if (!flicker) rendered.tick
       else copy(toRender = Set(apple)).tick
     }
