@@ -60,7 +60,7 @@ case class State(
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
 
       val advance = copy(
-        snake = (snake.head.move(directionNow) +: snake.init).map(_.wrap(Dimensions)),
+        snake = snake.head.move(directionNow).wrap(Dimensions) +: snake.init,
         direction = directionNow
       )
 
