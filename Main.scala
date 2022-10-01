@@ -110,7 +110,7 @@ case class State(
       spec.map(p.times(BitMapSize).move(_))
 
     val renderedSnake = if (drawSnake) {
-      shape(snake.head, Sprites.head) ++
+      shape(snake.head, Sprites.heads(direction)) ++
       snake.tail.flatMap(shape(_,Sprites.body)).toSet
     } else Set.empty
 
@@ -264,7 +264,7 @@ object Sprites {
 -----
 """.pipe(bitmap)
 
-  val head =
+  val headRight =
     """
 -----
 --*--
@@ -272,6 +272,36 @@ object Sprites {
 *****
 -----
 """.pipe(bitmap)
+
+  val headLeft =
+    """
+-----
+--*--
+**-*-
+*****
+-----
+""".pipe(bitmap)
+
+  val headUp =
+    """
+--**-
+--**-
+-*-*-
+--**-
+---*-
+""".pipe(bitmap)
+
+  val headDown =
+    """
+-*---
+-**--
+-*-*-
+-**--
+-**--
+""".pipe(bitmap)
+
+  val heads = Map(Point.up -> headUp, Point.down -> headDown, Point.right -> headRight, Point.left -> headLeft)
+
 
   val body =
   """
