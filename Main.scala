@@ -27,8 +27,8 @@ object Shared {
   lazy val frameRate = 1000 / 60
   lazy val X = 50
   lazy val Y = (X / 4 * 3)
-  lazy val scaledX = X * scale + (scale - 1)
-  lazy val scaledY = Y * scale + (scale - 1)
+  lazy val scaledX = X * scale
+  lazy val scaledY = Y * scale
 
   lazy val scale = 5
   lazy val slowdown = 2
