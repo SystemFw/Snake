@@ -11,7 +11,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.debug
+    var state = State.initial
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -22,18 +22,16 @@ object Main {
 }
 
 object Shared {
-  val FrameRate = 1000 / 60
-  val SlowDown = 4 // TODO is 3 better?
-  val Scale = 3
+  val FrameRate = 1000 / 120
+  val SlowDown = 12
+  val Scale = 2
   val BitMapSize = 5
   val FullScale = Scale * BitMapSize
-   // TODO express size in terms of scale
-  val Size = 70
-  val Dimensions = Point(Size, Size / 4 * 3)
+  val Dimensions = Point(24, 14)
   val DisplaySize = Dimensions.times(FullScale)
 
   val Origin = Dimensions.divideBy(2)
-  val SnakeSize = 20
+  val SnakeSize = 6
 
   val PauseOnLoss = 120
   val FlickerDown = 20
@@ -80,6 +78,7 @@ case class State(
           )
         else grow
 
+      // TODO real game doesn't show collision
       val checkLoss =
         if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
         else eat
@@ -104,29 +103,24 @@ case class State(
     else move
   }.copy(time = time + 1)
 
-  // TODO sprites?
   def render: Set[Point] = {
     def shape(p: Point, spec: Set[Point]) =
       spec.map(p.times(BitMapSize).move(_))
 
-    def renderedHead: Set[Point] = shape(snake.head, Sprites.head)
-    def renderedBody: Set[Point] = snake.tail.flatMap(shape(_,Sprites.body)).toSet
-    def renderedSnake: Set[Point] = renderedHead ++ renderedBody
-    val renderedApple: Set[Point] = shape(apple, Sprites.apple)
+    val renderedSnake = if (drawSnake) {
+      shape(snake.head, Sprites.head) ++
+      snake.tail.flatMap(shape(_,Sprites.body)).toSet
+    } else Set.empty
+
+    val renderedApple = shape(apple, Sprites.apple)
 
 
-    (if (drawSnake) renderedHead ++ renderedBody else Set[Point]())
-      .++(renderedApple)
+    (renderedSnake ++ renderedApple)
       .flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
-  def debug: State = {
-    val snake =
-      Vector.range(0, SnakeSize).map(x => Point(30, 26).move(Point.left.times(x)))
-    State(snake, Point.right, Point(50, 25))
-  }
-
+  // TODO there seems to be a bug with an apple in the lower left corner
   def initial: State = {
     val snake =
       Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x)))
@@ -208,7 +202,7 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"${DisplaySize.x} x ${DisplaySize.y} Score: ${state.score} Head: (${state.snake.head.x}, ${state.snake.head.y}) Apple: (${state.apple.x}, ${state.apple.y})")
+      score.setText(s"${DisplaySize.x} x ${DisplaySize.y} ${state.score} (${state.snake.head.x}, ${state.snake.head.y}) (${state.apple.x}, ${state.apple.y})")
       repaint()
     }
 
