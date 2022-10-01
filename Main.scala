@@ -106,7 +106,7 @@ case class State(
   def render: Set[Point] =
     (if (drawSnake) snake.toSet else Set())
       .+(apple)
-      .flatMap(_.times(Scale).square(Scale - 1))
+      .flatMap(_.times(Scale).square(Scale))
 }
 object State {
   def initial: State = {
