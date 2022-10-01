@@ -21,21 +21,20 @@ object Main {
 }
 
 object Shared {
-  // TODO maybe capitalise these
-  lazy val FrameRate = 1000 / 60
-  lazy val SlowDown = 2 // TODO is 3 better?
-  lazy val Size = 50
-  lazy val Scale = 5
+  val FrameRate = 1000 / 60
+  val SlowDown = 2 // TODO is 3 better?
+  val Size = 50
+  val Scale = 5
 
-  lazy val Dimensions = Point(Size, Size / 4 * 3)
-  lazy val DisplaySize = Dimensions.times(Scale)
+  val Dimensions = Point(Size, Size / 4 * 3)
+  val DisplaySize = Dimensions.times(Scale)
 
-  lazy val Origin = Dimensions.times(0.5)
-  lazy val SnakeSize = 20
+  val Origin = Dimensions.times(0.5)
+  val SnakeSize = 20
 
-  lazy val PauseOnLoss = 120
-  lazy val FlickerDown = 20
-  lazy val FlickerUp = 30
+  val PauseOnLoss = 120
+  val FlickerDown = 20
+  val FlickerUp = 30
 
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
