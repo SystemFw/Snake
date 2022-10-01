@@ -49,7 +49,7 @@ case class State(
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
-    render: Set[Point] = Set.empty
+    toRender: Set[Point] = Set.empty
 ) {
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
@@ -98,15 +98,17 @@ case class State(
 
       if (time - lostAt > PauseOnLoss) State.initial
       else if (!flicker) rendered.tick
-      else copy(render = apple.scaled).tick
+      else copy(toRender = Set(apple)).tick
     }
 
     if (lostAt > 0) flickerOnLoss
     else move
   }
 
-  def tick: State = copy(time = time + 1)
-  def rendered: State = copy(render = (snake.toSet + apple).flatMap(_.scaled)) // TODO sprites?
+  private def tick: State = copy(time = time + 1)
+  private def rendered: State = copy(toRender = (snake.toSet + apple))
+  // TODO sprites?
+  def render = toRender.flatMap(_.times(Scale).square(Scale - 1))
 }
 object State {
   def initial: State = {
@@ -139,21 +141,11 @@ case class Point(x: Int, y: Int) {
   def square(side: Int): Set[Point] =
     0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toSet
 
-  // TODO eventually move to logic
-  def scaled: Set[Point] =
-    times(Scale).square(Scale - 1)
-    //square(scale - 1)
-    //   .map { _.move(origin.times(-scale + 1)) }
-
-  def round(n: Int) =
-    Point(x / n * n, y / n * n)
-
   def wrap(limit: Point) =
     Point(
       x.sign.min(0).abs * limit.x + (x % limit.x),
       y.sign.min(0).abs * limit.y + (y % limit.y)
     )
-
 }
 object Point {
   // TODO in rare cases still possible to "split" the snake or the apple
