@@ -108,19 +108,16 @@ case class State(
     (if (drawSnake) snake.toSet else Set())
       .+(apple)
       .flatMap { p =>
-        //  0 1 2 3 4
-        // 0
-        // 1    *
-        // 2  * * *
-        // 3    *
-        // 4
-        Set(
-          Point(1,2),
-          Point(2,1),
-          Point(2,2),
-          Point(2,3),
-          Point(3,2)
-        ).map(p.times(BitMapSize).move(_))
+        val shape = Point.bitmap {
+          """
+          |-----
+          |--*--
+          |-***-
+          |--*--
+          |-----
+          """.stripMargin.trim
+        }
+        shape.map(p.times(BitMapSize).move(_))
       }.flatMap(_.times(Scale).square(Scale))
 }
 object State {
@@ -178,6 +175,23 @@ object Point {
     "LEFT" -> left,
     "RIGHT" -> right
   )
+
+  /**
+    * Takes a square bitmap
+    * '*' means a bit is set
+    */
+  def bitmap(spec: String): Set[Point] = {
+    val matrix = spec.split('\n').map(_.toVector)
+    assert(matrix.forall(_.length == matrix.length))
+
+    matrix.zipWithIndex.flatMap { case (line, y) =>
+      line.zipWithIndex.map {
+        case ('*', x) => Some(Point(x, y))
+        case _ => None
+      }
+    }.flatten.toSet
+  }
+
 }
 
 class Gui extends JPanel {
