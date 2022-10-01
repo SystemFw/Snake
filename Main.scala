@@ -21,9 +21,6 @@ object Main {
 }
 
 object Shared {
-  // TODO maybe we can go back to the scaling afterwards idea,
-  // but the dimensions have to be scaled as well
-
   lazy val frameRate = 1000 / 60
   lazy val X = 50
   lazy val Y = (X / 4 * 3)
