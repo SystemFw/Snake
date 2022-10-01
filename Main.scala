@@ -120,7 +120,14 @@ case class State(
   }
 }
 object State {
-  // TODO there seems to be a bug with an apple in the lower left corner
+  // TODO there seems to be a bug when an apple is on an edge,
+  // and the snake has to eat it by wrapping around
+  def bug1: State = {
+    val snake =
+      Vector.range(0, SnakeSize).map(x => Point(10, 12).move(Point.left.times(x)))
+    State(snake, Point.right, Point(0, 12))
+  }
+
   def initial: State = {
     val snake =
       Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x)))
