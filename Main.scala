@@ -130,8 +130,8 @@ case class Point(x: Int, y: Int) {
   def opposite: Point =
     times(-1)
 
-  def square(size: Int): Set[Point] =
-    0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
+  def square(side: Int): Set[Point] =
+    0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toSet
 
   def scaled: Set[Point] =
     times(scale).square(scale - 1)
