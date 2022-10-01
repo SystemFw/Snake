@@ -11,7 +11,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.initial
+    var state = State.bug1
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -22,12 +22,16 @@ object Main {
 }
 
 object Shared {
-  val FrameRate = 1000 / 120
-  val SlowDown = 12
-  val Scale = 2
-  val BitMapSize = 5
-  val FullScale = Scale * BitMapSize
   val Dimensions = Point(24, 14)
+  val BitMapSize = 5
+
+  val FrameRate = 1000 / 120
+//  val SlowDown = 12
+  val SlowDown = 50
+  val Scale = 2
+
+  val FullScale = Scale * BitMapSize
+
   val DisplaySize = Dimensions.times(FullScale)
 
   val Origin = Dimensions.divideBy(2)
@@ -69,8 +73,10 @@ case class State(
           )
         else advance
 
+      p(s"head ${grow.snake.head} apple $apple")
       val eat =
         if (grow.snake.head == apple)
+          p("WTF")
           grow.copy(
             apple = State.newApple(grow.snake),
             eaten = grow.apple +: grow.eaten,
@@ -122,6 +128,10 @@ case class State(
 object State {
   // TODO there seems to be a bug when an apple is on an edge,
   // and the snake has to eat it by wrapping around
+  // The reason is that wrapping around never gets to zero, it wraps
+  // around at one
+  // The wrap around logic works, the actual game logic skips a step
+  // since wrapping around introduces motion that isn't in the advance step
   def bug1: State = {
     val snake =
       Vector.range(0, SnakeSize).map(x => Point(10, 12).move(Point.left.times(x)))
