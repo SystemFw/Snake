@@ -13,7 +13,7 @@ object Main {
     var state = State.initial
 
     while (true) {
-      Thread.sleep(frameRate) // TODO this is pretty rudimentary
+      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
       state = state.evolve(gui.getInput)
       gui.update(state)
     }
@@ -22,20 +22,20 @@ object Main {
 
 object Shared {
   // TODO maybe capitalise these
-  lazy val frameRate = 1000 / 60
-  lazy val slowdown = 2 // TODO is 3 better?
-  lazy val size = 50
-  lazy val scale = 5
+  lazy val FrameRate = 1000 / 60
+  lazy val SlowDown = 2 // TODO is 3 better?
+  lazy val Size = 50
+  lazy val Scale = 5
 
-  lazy val dimensions = Point(size, size / 4 * 3)
-  lazy val displaySize = dimensions.times(scale)
+  lazy val Dimensions = Point(Size, Size / 4 * 3)
+  lazy val DisplaySize = Dimensions.times(Scale)
 
-  lazy val origin = dimensions.times(0.5)
-  lazy val snakeSize = 20
+  lazy val Origin = Dimensions.times(0.5)
+  lazy val SnakeSize = 20
 
-  lazy val pauseOnLoss = 120
-  lazy val flickerDown = 20
-  lazy val flickerUp = 30
+  lazy val PauseOnLoss = 120
+  lazy val FlickerDown = 20
+  lazy val FlickerUp = 30
 
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
@@ -84,19 +84,19 @@ case class State(
         else eat
 
       val wrap =
-        checkLoss.copy(snake = checkLoss.snake.map(_.wrap(dimensions)))
+        checkLoss.copy(snake = checkLoss.snake.map(_.wrap(Dimensions)))
 
       val ready = wrap.rendered.tick
 
-      if (time % slowdown == 0) ready
+      if (time % SlowDown == 0) ready
       else tick
     }
 
     def flickerOnLoss = {
       val flicker =
-        (time / flickerDown) % ((flickerDown + flickerUp) / flickerDown) == 0
+        (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
 
-      if (time - lostAt > pauseOnLoss) State.initial
+      if (time - lostAt > PauseOnLoss) State.initial
       else if (!flicker) rendered.tick
       else copy(render = apple.scaled).tick
     }
@@ -111,14 +111,14 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x)))
+      Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x)))
     State(snake, Point.right, newApple(snake)).rendered
   }
 
   def newApple(snake: Vector[Point]): Point = {
     val apple = Point(
-      Random.nextInt(dimensions.x),
-      Random.nextInt(dimensions.y)
+      Random.nextInt(Dimensions.x),
+      Random.nextInt(Dimensions.y)
     )
 
     if (snake.contains(apple)) newApple(snake)
@@ -139,8 +139,9 @@ case class Point(x: Int, y: Int) {
   def square(side: Int): Set[Point] =
     0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toSet
 
+  // TODO eventually move to logic
   def scaled: Set[Point] =
-    times(scale).square(scale - 1)
+    times(Scale).square(Scale - 1)
     //square(scale - 1)
     //   .map { _.move(origin.times(-scale + 1)) }
 
@@ -204,7 +205,7 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"${displaySize.x} x ${displaySize.y} Score: ${state.score} Pos: (${state.snake.head.x}, ${state.snake.head.y})")
+      score.setText(s"${DisplaySize.x} x ${DisplaySize.y} Score: ${state.score} Pos: (${state.snake.head.x}, ${state.snake.head.y})")
       repaint()
     }
 
@@ -216,7 +217,7 @@ class Gui extends JPanel {
       }
 
     override def getPreferredSize =
-      Dimension(displaySize.x, displaySize.y)
+      Dimension(DisplaySize.x, DisplaySize.y)
   }
 }
 object Gui {
