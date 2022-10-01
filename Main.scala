@@ -25,8 +25,10 @@ object Shared {
   // but the dimensions have to be scaled as well
 
   lazy val frameRate = 1000 / 60
-  lazy val X = 500 / scale * scale
-  lazy val Y = (X / 4 * 3) / scale * scale
+  lazy val X = 50
+  lazy val Y = (X / 4 * 3)
+  lazy val scaledX = X * scale + (scale - 1)
+  lazy val scaledY = Y * scale + (scale - 1)
 
   lazy val scale = 5
   lazy val slowdown = 2
@@ -37,7 +39,7 @@ object Shared {
   lazy val pauseOnLoss = 120
   lazy val flickerDown = 20
   lazy val flickerUp = 30
-  println(s"$X $Y")
+  println(s"$X $Y, $scaledX , $scaledY")
 
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
@@ -85,6 +87,9 @@ case class State(
         if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
         else eat
 
+      val wrapped =
+        copy(snake = snake.map(_.wrap(Point(X, Y))))
+
       if (time % slowdown == 0) checkLoss
       else tick
     }
@@ -109,12 +114,12 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, snakeSize).map(x => origin.round(scale).move(Point.left.times(x)))
+      Vector.range(0, snakeSize).map(x => origin.move(Point.left.times(x)))
     State(snake, Point.right, newApple(snake)).rendered
   }
 
   def newApple(snake: Vector[Point]): Point = {
-    val apple = Point(Random.nextInt(X), Random.nextInt(Y)).round(scale)
+    val apple = Point(Random.nextInt(X), Random.nextInt(Y))
     if (snake.contains(apple)) newApple(snake)
     else apple
   }
@@ -134,27 +139,33 @@ case class Point(x: Int, y: Int) {
     0.to(size).flatMap(x => 0.to(size).map(y => this.move(Point(x, y)))).toSet
 
   def scaled: Set[Point] =
-    square(scale - 1)
-    // times(scale).square(scale - 1)
+    times(scale).square(scale - 1)
+    //square(scale - 1)
     //   .map { _.move(origin.times(-scale + 1)) }
 
   def round(n: Int) =
     Point(x / n * n, y / n * n)
 
+  def wrap(dimension: Point) =
+    Point(
+      x.sign.min(0).abs * dimension.x + (x % dimension.x),
+      y.sign.min(0).abs * dimension.y + (y % dimension.y)
+    )
+
 }
 object Point {
   // TODO in rare cases still possible to "split" the snake or the apple
   // Wraps around dimensions
-  def apply(x: Int, y: Int): Point =
-    new Point(
-      x.sign.min(0).abs * X + (x % X),
-      y.sign.min(0).abs * Y + (y % Y)
-    )
+  // def apply(x: Int, y: Int): Point =
+  //   new Point(
+  //     x.sign.min(0).abs * X + (x % X),
+  //     y.sign.min(0).abs * Y + (y % Y)
+  //   )
 
-  def up: Point = Point(0, -1).times(scale)
-  def down: Point = Point(0, 1).times(scale)
-  def left: Point = Point(-1, 0).times(scale)
-  def right: Point = Point(1, 0).times(scale)
+  def up: Point = Point(0, -1)
+  def down: Point = Point(0, 1)
+  def left: Point = Point(-1, 0)
+  def right: Point = Point(1, 0)
 
   def directions: Map[String, Point] = Map(
     "UP" -> up,
@@ -210,7 +221,7 @@ class Gui extends JPanel {
       }
     }
 
-    override def getPreferredSize = Dimension(X, Y)
+    override def getPreferredSize = Dimension(scaledX, scaledY)
   }
 }
 object Gui {
