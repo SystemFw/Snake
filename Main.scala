@@ -230,8 +230,6 @@ object State {
   val bodies = rotations(body)
 }
 
-case class Particle(position: Point, rotation: Int)
-
 case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
@@ -369,19 +367,3 @@ object Gui {
     gui
   }
 }
-
-// snake:
-//      *
-//     **
-
-// (8, 10), (9, 10), (9, 9)H
-
-// reverse
-// (9, 9), (9, 10), (8, 10)
-
-// 9, 9 - 9, 10 = 0, -1 (i.e. up)
-// 9, 10 - 8, 10 = 1, 0 (i.e. right)
-
-
-// 1,2,3,4,5
-// 12, 23,34,45
