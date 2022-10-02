@@ -193,6 +193,9 @@ object State {
 """.pipe(Bitmap.parse)
 
   // TODO this is broken/rudimentary, rotation should be relative
+  // TODO the real snake cheats up tbh, try going down-right or up-left
+  // I think it uses the same approach I use, just with different sprites lol:
+  // eye is alwasy left when going down/up, and always up when going left/right
   val heads = Map(Point.up -> headRight.rotate(-1), Point.down -> headRight.rotate(1), Point.right -> headRight, Point.left -> headRight.rotate(-1).rotate(-1))
 }
 
