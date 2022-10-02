@@ -263,22 +263,62 @@ object Sprites {
       }.mkString
     }.mkString("\n")
 
-  def clockWise(bitmap: Set[Point]): Set[Point] =
-    bitmap.map { case Point(x, y) =>
-      val Y = BitMapSize - 1
-      Point(Y - y, x)
+  // def clockWise(bitmap: Set[Point]): Set[Point] =
+  //   bitmap.map { case Point(x, y) =>
+  //     val Y = BitMapSize - 1
+  //     Point(Y - y, x)
+  //   }
+
+  // def antiClockWise(bitmap: Set[Point]): Set[Point] =
+  //   bitmap.map { case Point(x, y) =>
+  //     val X = BitMapSize - 1
+  //     Point(y, X - x)
+  //   }
+
+
+  def rotate(bitmap: Set[Point], direction: Int): Set[Point] =
+    if (direction == 0) bitmap
+    else bitmap.map { case Point(x, y) =>
+      def formula(coord: Int, direction: Int) = {
+        val size = BitMapSize - 1
+        val sign = direction.sign
+        sign.max(0) * size + (-sign) * coord
+      }
+
+      Point(formula(y, direction), formula(x, -direction))
     }
 
-  def antiClockWise(bitmap: Set[Point]): Set[Point] =
-    bitmap.map { case Point(x, y) =>
-      val X = BitMapSize - 1
-      Point(y, X - x)
-    }
 
-  def rot(b: Set[Point], direction: Boolean = true): Unit = {
-    val f = if (direction)  clockWise _ else antiClockWise _
-    println(printBitMap(f(b)))
-  }
+  //   // clockWise
+  //   bitmap.map { case Point(x, y) =>
+  //     -y, x
+  //     y, -x
+
+  //     Point(size - y, x)
+  //   }
+  //   // antiClockWise
+  //   bitmap.map { case Point(x, y) =>
+  //     Point(y, size - x)
+  //   }
+
+  //   if (dir == 0) bitmap
+  //   else bitmap.map { case Point(x, y) =>
+  //     dir.max(0) * size + ((-dir) * y), (-dir).max(0) * size + ((dir)  *  x)
+  //     dir = 1
+  //     1.max(0) * size + ((-1) * y), (-1).max(0) * size + (1 * x) -->
+  //     1 * size + (-y) , 0 * size + x ->
+  //     size - y, x --> dir = 1, clockwise
+  //     dir = 1
+
+  //   }
+  // }
+
+
+  // def antiClockWise(bitmap: Set[Point]): Set[Point] =
+
+  def rot(b: Set[Point], direction: Int): Unit =
+    println(printBitMap(rotate(b, direction)))
+
 
   val apple =
     """
@@ -339,4 +379,3 @@ object Sprites {
 
 
 }
-
