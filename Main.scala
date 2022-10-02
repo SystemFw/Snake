@@ -67,7 +67,7 @@ case class State(
       // TODO there is a flicker if you change direction just as the body is growing
       // TODO in which frame should this happen? Question is whether you can die by stumbling
       // onto the tail you've just grown, and how to show this. Perhaps it should assert on snake
-      // rather than advance.
+      // rather than advance. Or perhaps growing should happen before moving
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
           advance.copy(
@@ -90,7 +90,8 @@ case class State(
         else eat
 
       // TODO check that this logic doesn't affect the responsiveness
-      // of the game
+      // of the game, the slowdown should perhaps only happen when there
+      // is no change of direction
       if (time % SlowDown == 0) checkLoss
       else this
     }
