@@ -109,7 +109,7 @@ case class State(
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
           advance.copy(
-            snake = advance.snake :+ advance.snake.last.move(directionNow.opposite),
+            snake = advance.snake :+ advance.snake.last.move(direction.opposite),
             eaten = advance.eaten.init
           )
         else advance
