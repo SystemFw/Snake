@@ -44,14 +44,12 @@ object Main {
     turn(Some(Point.up))
     turn(Some(Point.left))
     turn(None)
+    state = state.copy(eaten = Vector(state.snake.init.last))
     turn(Some(Point.down))
     turn(None)
     turn(None)
     turn(None)
     turn(None)
-    // turn(None)
-    // turn(Some(Point.up))
-    // turn(None)
     Thread.sleep(60000)
   }
 }
@@ -98,23 +96,11 @@ case class State(
         snake = snake.head.move(directionNow).wrap(Dimensions) +: snake.init,
         direction = directionNow
       )
-
-      // TODO (1) there is a flicker if you change direction just as
-      // the body is growing The snake shouldn't expand, it should
-      // drag the eaten apple with it once it has digested it. That
-      // _should_ also solve the problem below
-      //
-      // TODO (2) in which frame should this happen? Question is
-      // whether you can die by stumbling onto the tail you've just
-      // grown, and how to show this.
-      //
-      // Plan: in `grow`, instead of growing directly, add to state so
-      // you eat on the next frame in the next frame, grow before any
-      // further movement, so that check loss is correct
-      //
-      // As an intermediate step, could fix (1) by growing in
-      // direction.opposite rather than directionNow.opposite, and
-      // then setup a harness for (2)
+      // TODO:
+      // Note from observing real snake: the snake grow one frame
+      // after eating, between the head and the tail, i.e. the tail
+      // stays fixed, the head moves and the apple gets in between.
+      // This logic is therefore wrong
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
           advance.copy(
