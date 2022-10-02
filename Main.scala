@@ -133,7 +133,7 @@ case class State(
         else grow
 
       val checkLoss =
-        if (snake.contains(eat.snake.head)) this.copy(lostAt = time)
+        if (eat.snake.tail.contains(eat.snake.head)) this.copy(lostAt = time)
         else eat
 
       // TODO check that this logic doesn't affect the responsiveness
