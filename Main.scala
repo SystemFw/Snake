@@ -255,6 +255,31 @@ object Sprites {
     }.flatten.toSet
   }
 
+  def printBitMap(b: Set[Point]): String =
+    0.to(BitMapSize - 1).map { y =>
+      0.to(BitMapSize - 1).map { x =>
+        if (b.contains(Point(x, y))) '*'
+        else '-'
+      }.mkString
+    }.mkString("\n")
+
+  def clockWise(bitmap: Set[Point]): Set[Point] =
+    bitmap.map { case Point(x, y) =>
+      val Y = BitMapSize - 1
+      Point(Y - y, x)
+    }
+
+  def antiClockWise(bitmap: Set[Point]): Set[Point] =
+    bitmap.map { case Point(x, y) =>
+      val X = BitMapSize - 1
+      Point(y, X - x)
+    }
+
+  def rot(b: Set[Point], direction: Boolean = true): Unit = {
+    val f = if (direction)  clockWise _ else antiClockWise _
+    println(printBitMap(f(b)))
+  }
+
   val apple =
     """
 -----
@@ -314,3 +339,4 @@ object Sprites {
 
 
 }
+
