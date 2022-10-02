@@ -37,6 +37,12 @@ object Main {
     turn(None)
     turn(None)
     turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(Some(Point.up))
+    turn(None)
     Thread.sleep(60000)
   }
 }
