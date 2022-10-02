@@ -141,7 +141,7 @@ case class State(
   def render: Set[Point] = {
     val renderedSnake = if (drawSnake) {
       State.heads(direction).at(snake.head) ++
-      snake.tail.toSet.diff(eaten.toSet).flatMap(State.body.at) ++
+      snake.tail.toSet.diff(eaten.toSet).flatMap(State.bodies(direction).at) ++
       (eaten.toSet - snake.head).flatMap(State.eatenApple.at)
     } else Set.empty
 
@@ -189,11 +189,11 @@ object State {
 
   val body =
   """
------
---*--
--***-
---*--
------
+----
+----
+-***
+***-
+----
 """.pipe(Bitmap.parse)
 
   val eatenApple =
@@ -207,12 +207,16 @@ object State {
 
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
-  val heads = Map(
-    Point.right -> head,
-    Point.left -> head.mirror,
-    Point.up -> head.rotate(-1),
-    Point.down -> head.rotate(1).mirror
-  )
+  def rotations(bitmap: Bitmap): Map[Point, Bitmap] =
+    Map(
+      Point.right -> bitmap,
+      Point.left -> bitmap.mirror,
+      Point.up -> bitmap.rotate(-1),
+      Point.down -> bitmap.rotate(1).mirror
+    )
+
+  val heads = rotations(head)
+  val bodies = rotations(body)
 }
 
 case class Point(x: Int, y: Int) {
@@ -279,8 +283,8 @@ object Bitmap {
   def parse(spec: String): Bitmap = Bitmap {
     val matrix = spec.trim.split('\n').map(_.toVector)
 
-    assert(matrix.length == BitMapSize)
-    assert(matrix.forall(_.length == matrix.length))
+    // assert(matrix.length == BitMapSize)
+    // assert(matrix.forall(_.length == matrix.length))
 
     matrix.zipWithIndex.flatMap { case (line, y) =>
       line.zipWithIndex.map {
