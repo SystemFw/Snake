@@ -352,7 +352,3 @@ object Gui {
     gui
   }
 }
-// eaten Vector(Point(17,5))
-// head Point(14,9)
-// headNow Point(15,9)
-// tailNow Vector(Point(14,9), Point(14,8), Point(14,7), Point(14,6), Point(14,5), Point(15,5), Point(16,5), Point(15,9), Point(17,5), Point(18,5), Point(19,5))
