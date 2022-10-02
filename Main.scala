@@ -24,7 +24,7 @@ object Main {
       State(
         Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
         Point.right,
-        Origin.move(Point.right.times(3))
+        Point(0, 0)
       )
 
     def turn(input: Option[Point]) = {
@@ -33,16 +33,25 @@ object Main {
       gui.update(state)
     }
 
+    // state = state.evolve(Some(Point.up))
+    // state = state.evolve(Some(Point.left))
+    // state = state.evolve(None)
+  //  state = state.evolve(Some(Point.down))
+    // state = state.evolve(None)
+
+
     gui.update(state)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
     turn(Some(Point.up))
+    turn(Some(Point.left))
     turn(None)
+    turn(Some(Point.down))
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+    // turn(None)
+    // turn(Some(Point.up))
+    // turn(None)
     Thread.sleep(60000)
   }
 }
