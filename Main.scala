@@ -139,9 +139,15 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Set[Point] = {
+    val directions =
+      snake.sliding(2).toVector.map {
+        case Vector(Point(x, y), Point(xx, yy)) =>
+          Point(x - xx, y - yy)
+      }
+
     val renderedSnake = if (drawSnake) {
       State.heads(direction).at(snake.head) ++
-      snake.tail.flatMap { p =>
+      snake.tail.zip(directions).flatMap { case (p, direction) =>
         if (eaten.contains(p)) State.eatenApple.at(p)
         else State.bodies(direction).at(p)
       }.toSet
@@ -220,6 +226,8 @@ object State {
   val heads = rotations(head)
   val bodies = rotations(body)
 }
+
+case class Particle(position: Point, rotation: Int)
 
 case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
@@ -358,3 +366,19 @@ object Gui {
     gui
   }
 }
+
+// snake:
+//      *
+//     **
+
+// (8, 10), (9, 10), (9, 9)H
+
+// reverse
+// (9, 9), (9, 10), (8, 10)
+
+// 9, 9 - 9, 10 = 0, -1 (i.e. up)
+// 9, 10 - 8, 10 = 1, 0 (i.e. right)
+
+
+// 1,2,3,4,5
+// 12, 23,34,45
