@@ -138,7 +138,8 @@ case class State(
   def render: Set[Point] = {
     val renderedSnake = if (drawSnake) {
       State.heads(direction).at(snake.head) ++
-      snake.tail.flatMap(State.body.at).toSet
+      snake.tail.toSet.diff(eaten.toSet).flatMap(State.body.at) ++
+      (eaten.toSet - snake.head).flatMap(State.eatenApple.at)
     } else Set.empty
 
     val renderedApple = State.apple.at(apple)
@@ -192,6 +193,15 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
+  val eatenApple =
+    """
+-----
+-***-
+*---*
+-***-
+-----
+""".pipe(Bitmap.parse)
+
   // TODO this is broken/rudimentary, rotation should be relative
   // TODO the real snake cheats up tbh, try going down-right or up-left
   // I think it uses the same approach I use, just with different sprites lol:
@@ -235,6 +245,7 @@ object Point {
   )
 }
 
+/* TODO fixed size bitmaps are too restrictive */
 /** 5x5 bitmaps */
 case class Bitmap(points: Set[Point]) {
   def at(p: Point): Set[Point] =
