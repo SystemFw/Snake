@@ -110,11 +110,11 @@ case class State(
       spec.map(p.times(BitMapSize).move(_))
 
     val renderedSnake = if (drawSnake) {
-      shape(snake.head, Sprites.heads(direction)) ++
-      snake.tail.flatMap(shape(_,Sprites.body)).toSet
+      shape(snake.head, State.heads(direction).points) ++
+      snake.tail.flatMap(shape(_,State.body.points)).toSet
     } else Set.empty
 
-    val renderedApple = shape(apple, Sprites.apple)
+    val renderedApple = shape(apple, State.apple.points)
 
 
     (renderedSnake ++ renderedApple)
@@ -137,6 +137,35 @@ object State {
     if (snake.contains(apple)) newApple(snake)
     else apple
   }
+
+    val apple =
+    """
+-----
+--*--
+-*-*-
+--*--
+-----
+""".pipe(Bitmap.parse)
+
+  val headRight =
+    """
+-----
+--*--
+-*-**
+*****
+-----
+""".pipe(Bitmap.parse)
+
+  val body =
+  """
+-----
+--*--
+-***-
+--*--
+-----
+""".pipe(Bitmap.parse)
+
+  val heads = Map(Point.up -> headRight.rotate(-1), Point.down -> headRight.rotate(1), Point.right -> headRight, Point.left -> headRight.rotate(-1).rotate(-1))
 }
 
 case class Point(x: Int, y: Int) {
@@ -174,6 +203,42 @@ object Point {
     "RIGHT" -> right
   )
 }
+
+/** 5x5 bitmaps */
+case class Bitmap(points: Set[Point]) {
+  def rotate(direction: Int): Bitmap =
+    if (direction == 0) this
+    else Bitmap {
+      points.map { case Point(x, y) =>
+        def formula(coord: Int, direction: Int) = {
+          val size = BitMapSize - 1
+          val sign = direction.sign
+          sign.max(0) * size + (-sign) * coord
+        }
+
+        Point(formula(y, direction), formula(x, -direction))
+      }
+    }
+}
+object Bitmap {
+  /**
+    * Takes a bitmap string, with '*' meaning bit set
+    */
+  def parse(spec: String): Bitmap = Bitmap {
+    val matrix = spec.trim.split('\n').map(_.toVector)
+
+    assert(matrix.length == BitMapSize)
+    assert(matrix.forall(_.length == matrix.length))
+
+    matrix.zipWithIndex.flatMap { case (line, y) =>
+      line.zipWithIndex.map {
+        case ('*', x) => Some(Point(x, y))
+        case _ => None
+      }
+    }.flatten.toSet
+  }
+}
+
 
 class Gui extends JPanel {
 
@@ -234,148 +299,4 @@ object Gui {
     }
     gui
   }
-}
-
-object Sprites {
-  /**
-    * Takes a square bitmap of BitMapSize, with '*' meaning bit set
-    * '*' means a bit is set
-    */
-  def bitmap(spec: String): Set[Point] = {
-    val matrix = spec.trim.split('\n').map(_.toVector)
-
-    assert(matrix.length == BitMapSize)
-    assert(matrix.forall(_.length == matrix.length))
-
-    matrix.zipWithIndex.flatMap { case (line, y) =>
-      line.zipWithIndex.map {
-        case ('*', x) => Some(Point(x, y))
-        case _ => None
-      }
-    }.flatten.toSet
-  }
-
-  def printBitMap(b: Set[Point]): String =
-    0.to(BitMapSize - 1).map { y =>
-      0.to(BitMapSize - 1).map { x =>
-        if (b.contains(Point(x, y))) '*'
-        else '-'
-      }.mkString
-    }.mkString("\n")
-
-  // def clockWise(bitmap: Set[Point]): Set[Point] =
-  //   bitmap.map { case Point(x, y) =>
-  //     val Y = BitMapSize - 1
-  //     Point(Y - y, x)
-  //   }
-
-  // def antiClockWise(bitmap: Set[Point]): Set[Point] =
-  //   bitmap.map { case Point(x, y) =>
-  //     val X = BitMapSize - 1
-  //     Point(y, X - x)
-  //   }
-
-
-  def rotate(bitmap: Set[Point], direction: Int): Set[Point] =
-    if (direction == 0) bitmap
-    else bitmap.map { case Point(x, y) =>
-      def formula(coord: Int, direction: Int) = {
-        val size = BitMapSize - 1
-        val sign = direction.sign
-        sign.max(0) * size + (-sign) * coord
-      }
-
-      Point(formula(y, direction), formula(x, -direction))
-    }
-
-
-  //   // clockWise
-  //   bitmap.map { case Point(x, y) =>
-  //     -y, x
-  //     y, -x
-
-  //     Point(size - y, x)
-  //   }
-  //   // antiClockWise
-  //   bitmap.map { case Point(x, y) =>
-  //     Point(y, size - x)
-  //   }
-
-  //   if (dir == 0) bitmap
-  //   else bitmap.map { case Point(x, y) =>
-  //     dir.max(0) * size + ((-dir) * y), (-dir).max(0) * size + ((dir)  *  x)
-  //     dir = 1
-  //     1.max(0) * size + ((-1) * y), (-1).max(0) * size + (1 * x) -->
-  //     1 * size + (-y) , 0 * size + x ->
-  //     size - y, x --> dir = 1, clockwise
-  //     dir = 1
-
-  //   }
-  // }
-
-
-  // def antiClockWise(bitmap: Set[Point]): Set[Point] =
-
-  def rot(b: Set[Point], direction: Int): Unit =
-    println(printBitMap(rotate(b, direction)))
-
-
-  val apple =
-    """
------
---*--
--*-*-
---*--
------
-""".pipe(bitmap)
-
-  val headRight =
-    """
------
---*--
--*-**
-*****
------
-""".pipe(bitmap)
-
-  val headLeft =
-    """
------
---*--
-**-*-
-*****
------
-""".pipe(bitmap)
-
-  val headUp =
-    """
---**-
---**-
--*-*-
---**-
----*-
-""".pipe(bitmap)
-
-  val headDown =
-    """
--*---
--**--
--*-*-
--**--
--**--
-""".pipe(bitmap)
-
-  val heads = Map(Point.up -> headUp, Point.down -> headDown, Point.right -> headRight, Point.left -> headLeft)
-
-
-  val body =
-  """
------
---*--
--***-
---*--
------
-""".pipe(bitmap)
-
-
 }
