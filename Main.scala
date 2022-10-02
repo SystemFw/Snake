@@ -65,6 +65,9 @@ case class State(
       )
 
       // TODO there is a flicker if you change direction just as the body is growing
+      // TODO in which frame should this happen? Question is whether you can die by stumbling
+      // onto the tail you've just grown, and how to show this. Perhaps it should assert on snake
+      // rather than advance.
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
           advance.copy(
@@ -82,9 +85,8 @@ case class State(
           )
         else grow
 
-      // TODO real game doesn't show collision
       val checkLoss =
-        if (snake.contains(eat.snake.head)) eat.copy(lostAt = time)
+        if (snake.contains(eat.snake.head)) this.copy(lostAt = time)
         else eat
 
       // TODO check that this logic doesn't affect the responsiveness
