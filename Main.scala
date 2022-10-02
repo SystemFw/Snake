@@ -12,37 +12,36 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    // var state = State.initial
+    var state = State.initial
 
-
-    // while (true) {
-    //   Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-    //   state = state.evolve(gui.getInput)
-    //   gui.update(state)
-    // }
-
-    SlowDown = 1
-    var state: State =
-      State(
-        Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
-        Point.right,
-        Origin.move(Point.right.times(2))
-      )
-
-    def turn(input: Option[Point]) = {
-      Thread.sleep(1200)
-      state = state.evolve(input)
+    while (true) {
+      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+      state = state.evolve(gui.getInput)
       gui.update(state)
     }
 
-    gui.update(state)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    Thread.sleep(60000)
+    // SlowDown = 1
+    // var state: State =
+    //   State(
+    //     Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
+    //     Point.right,
+    //     Origin.move(Point.right.times(2))
+    //   )
+
+    // def turn(input: Option[Point]) = {
+    //   Thread.sleep(1200)
+    //   state = state.evolve(input)
+    //   gui.update(state)
+    // }
+
+    // gui.update(state)
+    // turn(None)
+    // turn(None)
+    // turn(None)
+    // turn(None)
+    // turn(None)
+    // turn(None)
+    // Thread.sleep(60000)
   }
 }
 
@@ -105,7 +104,7 @@ case class State(
       val eat =
         if (discardEaten.snake.head == apple)
           discardEaten.copy(
-            apple = apple.move(Point.right.times(2)), //State.newApple(discardEaten.snake),
+            apple = State.newApple(discardEaten.snake),
             eaten = discardEaten.apple +: discardEaten.eaten,
             score = discardEaten.score + 9 // TODO score is score + speed value (1-9), should I keep it to 9?
           )
@@ -113,10 +112,7 @@ case class State(
 
 
       val checkLoss =
-        if (eat.snake.tail.contains(eat.snake.head)) {
-          p(s"eaten ${eaten} head ${snake.head} headNow ${eat.snake.head} tailNow ${eat.snake.tail}")
-          this.copy(lostAt = time)
-        }
+        if (eat.snake.tail.contains(eat.snake.head)) this.copy(lostAt = time)
         else eat
 
       // TODO check that this logic doesn't affect the responsiveness
