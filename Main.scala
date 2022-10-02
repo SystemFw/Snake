@@ -142,7 +142,7 @@ case class State(
     val directions =
       snake.sliding(2).toVector.map {
         case Vector(Point(x, y), Point(xx, yy)) =>
-          Point(x - xx, y - yy)
+          Point((x - xx).sign, (y - yy).sign)
       }
 
     val renderedSnake = if (drawSnake) {
