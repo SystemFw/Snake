@@ -6,6 +6,7 @@ import scala.util.chaining._
 import Shared._
 
 /** Recreate the basic version of the classic Nokia 3310 Snake, no extras
+  * Behaviour taken from observing https://helpfulsheep.com/snake/
   */
 object Main {
   def main(args: Array[String]): Unit = {
@@ -92,6 +93,10 @@ case class State(
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
 
+      // TODO
+      // move head, then either move tail or grow
+      // remove things from eaten vector if going past them (or if reached tail),
+      // that's for rendering reasons
       val advance = copy(
         snake = snake.head.move(directionNow).wrap(Dimensions) +: snake.init,
         direction = directionNow
@@ -114,7 +119,7 @@ case class State(
           grow.copy(
             apple = State.newApple(grow.snake),
             eaten = grow.apple +: grow.eaten,
-            score = grow.score + 9
+            score = grow.score + 9 // TODO score is score + speed value (1-9), should I keep it to 9?
           )
         else grow
 
