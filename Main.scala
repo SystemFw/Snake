@@ -141,8 +141,10 @@ case class State(
   def render: Set[Point] = {
     val renderedSnake = if (drawSnake) {
       State.heads(direction).at(snake.head) ++
-      snake.tail.toSet.diff(eaten.toSet).flatMap(State.bodies(direction).at) ++
-      (eaten.toSet - snake.head).flatMap(State.eatenApple.at)
+      snake.tail.flatMap { p =>
+        if (eaten.contains(p)) State.eatenApple.at(p)
+        else State.bodies(direction).at(p)
+      }.toSet
     } else Set.empty
 
     val renderedApple = State.apple.at(apple)
