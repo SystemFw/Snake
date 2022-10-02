@@ -205,15 +205,13 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-  // This is rudimentary, since rotation isn't relative, but it's like
-  // in the original game
-  // I think it uses the same approach I use, just with different sprites lol:
-  // eye is alwasy left when going down/up, and always up when going left/right
+  // This is rudimentary, since rotation isn't relative, but that's
+  // how the original game does it
   val heads = Map(
-    Point.up -> head.rotate(-1),
-    Point.down -> head.rotate(1).mirrorHorizontally,
     Point.right -> head,
-    Point.left -> head.rotate(-1).rotate(-1).mirrorVertically
+    Point.left -> head.mirror,
+    Point.up -> head.rotate(-1),
+    Point.down -> head.rotate(1).mirror
   )
 }
 
@@ -234,10 +232,7 @@ case class Point(x: Int, y: Int) {
     0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toSet
 
   def wrap(limit: Point) =
-    Point(
-      x.sign.min(0).abs * limit.x + (x % limit.x),
-      y.sign.min(0).abs * limit.y + (y % limit.y)
-    )
+    Point(Point.wrap(x, limit.x), Point.wrap(y, limit.y))
 }
 object Point {
   def up: Point = Point(0, -1)
@@ -251,6 +246,9 @@ object Point {
     "LEFT" -> left,
     "RIGHT" -> right
   )
+
+  def wrap(n: Int, limit: Int): Int =
+    n.sign.min(0).abs * limit + (n % limit)
 }
 
 /* TODO fixed size bitmaps are too restrictive */
@@ -261,35 +259,18 @@ case class Bitmap(points: Set[Point]) {
   def at(p: Point): Set[Point] =
     points.map(p.times(BitMapSize).move(_))
 
-  //TODO use copy in the methods below?
+  /** rotate by 90 degrees, n times, +/- = clockwise/anticlockwise */
+  def rotate(n: Int): Bitmap = Bitmap {
+    def go(points: Set[Point], times: Int): Set[Point] =
+      if (times == 0) points
+      else go(points.map(p => Point(size - p.y, p.x)), times - 1)
 
-  // TODO rotate by multiples of direction,
-  // (and only clockwise (or anti, whichever is easiest), can use wrapping to deal with negative numbers?
-  def rotate(direction: Int): Bitmap =
-    if (direction == 0) this
-    else Bitmap {
-      points.map { case Point(x, y) =>
-        def formula(coord: Int, direction: Int) = {
-          val sign = direction.sign
-          sign.max(0) * size + (-sign) * coord
-        }
-
-        Point(formula(y, direction), formula(x, -direction))
-      }
-    }
-
-
-  // TODO This can be a rotation plus vertical mirror
-  def mirrorHorizontally: Bitmap = Bitmap {
-    points.map { case Point(x, y) =>
-      Point(size - x, y)
-    }
+    go(points, Point.wrap(n, 4))
   }
 
-  def mirrorVertically: Bitmap = Bitmap {
-    points.map { case Point(x, y) => Point(x, size - y)}
-  }
-
+  /** Mirrors, direction akin to turning a page */
+  def mirror: Bitmap =
+    Bitmap(points.map(p => Point(size - p.x, p.y)))
 }
 object Bitmap {
   /**
