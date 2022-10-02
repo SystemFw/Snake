@@ -163,6 +163,7 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
+  // TODO this is broken/rudimentary, rotation should be relative
   val heads = Map(Point.up -> headRight.rotate(-1), Point.down -> headRight.rotate(1), Point.right -> headRight, Point.left -> headRight.rotate(-1).rotate(-1))
 }
 
@@ -207,6 +208,7 @@ case class Bitmap(points: Set[Point]) {
   def at(p: Point): Set[Point] =
     points.map(p.times(BitMapSize).move(_))
 
+  // TODO rotate by multiples of direction
   def rotate(direction: Int): Bitmap =
     if (direction == 0) this
     else Bitmap {
