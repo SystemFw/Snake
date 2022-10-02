@@ -140,7 +140,7 @@ case class State(
 
   def render: Set[Point] = {
     val directions =
-      snake.sliding(2).toVector.map {
+      snake.distinct.sliding(2).toVector.map {
         case Vector(Point(x, y), Point(xx, yy)) =>
           Point((x - xx).sign, (y - yy).sign)
       }
@@ -149,7 +149,11 @@ case class State(
       State.heads(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
         if (eaten.contains(p)) State.eatenApple.at(p)
-        else State.bodies(direction).at(p)
+        else {
+
+          try (State.bodies(direction).at(p))
+          catch { e =>            Shared.p(s"Point $p eaten $eaten snake $snake directions $directions") ; throw e }
+        }
       }.toSet
     } else Set.empty
 
