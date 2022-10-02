@@ -106,15 +106,12 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Set[Point] = {
-    def shape(p: Point, spec: Set[Point]) =
-      spec.map(p.times(BitMapSize).move(_))
-
     val renderedSnake = if (drawSnake) {
-      shape(snake.head, State.heads(direction).points) ++
-      snake.tail.flatMap(shape(_,State.body.points)).toSet
+      State.heads(direction).at(snake.head) ++
+      snake.tail.flatMap(State.body.at).toSet
     } else Set.empty
 
-    val renderedApple = shape(apple, State.apple.points)
+    val renderedApple = State.apple.at(apple)
 
 
     (renderedSnake ++ renderedApple)
@@ -206,6 +203,9 @@ object Point {
 
 /** 5x5 bitmaps */
 case class Bitmap(points: Set[Point]) {
+  def at(p: Point): Set[Point] =
+    points.map(p.times(BitMapSize).move(_))
+
   def rotate(direction: Int): Bitmap =
     if (direction == 0) this
     else Bitmap {
