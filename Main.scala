@@ -25,7 +25,7 @@ object Main {
       State(
         Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
         Point.right,
-        Point(0, 0)
+        Origin.move(Point.right.times(2))
       )
 
     def turn(input: Option[Point]) = {
@@ -34,19 +34,7 @@ object Main {
       gui.update(state)
     }
 
-    // state = state.evolve(Some(Point.up))
-    // state = state.evolve(Some(Point.left))
-    // state = state.evolve(None)
-  //  state = state.evolve(Some(Point.down))
-    // state = state.evolve(None)
-
-
     gui.update(state)
-    turn(Some(Point.up))
-    turn(Some(Point.left))
-    turn(None)
-    state = state.copy(eaten = Vector(state.snake.init.last))
-    turn(Some(Point.down))
     turn(None)
     turn(None)
     turn(None)
@@ -93,35 +81,30 @@ case class State(
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
 
-      // TODO
-      // move head, then either move tail or grow
-      // remove things from eaten vector if going past them (or if reached tail),
-      // that's for rendering reasons
-      val advance = copy(
-        snake = snake.head.move(directionNow).wrap(Dimensions) +: snake.init,
-        direction = directionNow
-      )
-      // TODO:
-      // Note from observing real snake: the snake grow one frame
-      // after eating, between the head and the tail, i.e. the tail
-      // stays fixed, the head moves and the apple gets in between.
-      // This logic is therefore wrong
-      val grow =
-        if (eaten.nonEmpty && advance.snake.last == eaten.last)
-          advance.copy(
-            snake = advance.snake :+ advance.snake.last.move(direction.opposite),
-            eaten = advance.eaten.init
-          )
-        else advance
+      val advanceOrGrow =
+        copy(
+          snake = snake.head.move(directionNow).wrap(Dimensions) +: {
+            if (eaten.nonEmpty && snake.head == eaten.head) apple +: snake
+            else snake.init
+          },
+          direction = directionNow
+        )
+
+      val discardEaten =
+        if (eaten.nonEmpty && advanceOrGrow.snake.last == eaten.last)
+          advanceOrGrow.copy(eaten = eaten.init)
+        else advanceOrGrow
+
 
       val eat =
-        if (grow.snake.head == apple)
-          grow.copy(
-            apple = State.newApple(grow.snake),
-            eaten = grow.apple +: grow.eaten,
-            score = grow.score + 9 // TODO score is score + speed value (1-9), should I keep it to 9?
+        if (discardEaten.snake.head == apple)
+          discardEaten.copy(
+            apple = State.newApple(discardEaten.snake),
+            eaten = discardEaten.apple +: discardEaten.eaten,
+            score = discardEaten.score + 9 // TODO score is score + speed value (1-9), should I keep it to 9?
           )
-        else grow
+        else discardEaten
+
 
       val checkLoss =
         if (eat.snake.tail.contains(eat.snake.head)) this.copy(lostAt = time)
