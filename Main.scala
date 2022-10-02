@@ -82,13 +82,12 @@ case class State(
     time: Long = 0,
     drawSnake: Boolean = true
 ) {
-  // TODO there is some sort of bug when eating, with spurious deaths
-  // hypothesis: related to eating an apple with a non empty eaten
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
 
+      // TODO duplicate points when about to fully digest an apple
       val advanceOrGrow =
         copy(
           snake = snake.head.move(directionNow).wrap(Dimensions) +: {
