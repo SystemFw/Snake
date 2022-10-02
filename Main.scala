@@ -46,6 +46,9 @@ object Main {
 }
 
 object Shared {
+  // TODO snake too big/dimensions too small compared to real game
+  // horizontal touching happens at score 144
+  // probably to do with bigger/uniform sprites
   val Dimensions = Point(24, 14)
   val BitMapSize = 5
 
@@ -175,7 +178,7 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-  val headRight =
+  val head =
     """
 -----
 --*--
@@ -202,11 +205,16 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-  // TODO this is broken/rudimentary, rotation should be relative
-  // TODO the real snake cheats up tbh, try going down-right or up-left
+  // This is rudimentary, since rotation isn't relative, but it's like
+  // in the original game
   // I think it uses the same approach I use, just with different sprites lol:
   // eye is alwasy left when going down/up, and always up when going left/right
-  val heads = Map(Point.up -> headRight.rotate(-1), Point.down -> headRight.rotate(1), Point.right -> headRight, Point.left -> headRight.rotate(-1).rotate(-1))
+  val heads = Map(
+    Point.up -> head.rotate(-1),
+    Point.down -> head.rotate(1).mirrorHorizontally,
+    Point.right -> head,
+    Point.left -> head.rotate(-1).rotate(-1).mirrorVertically
+  )
 }
 
 case class Point(x: Int, y: Int) {
@@ -248,16 +256,20 @@ object Point {
 /* TODO fixed size bitmaps are too restrictive */
 /** 5x5 bitmaps */
 case class Bitmap(points: Set[Point]) {
+  val size = BitMapSize - 1
+
   def at(p: Point): Set[Point] =
     points.map(p.times(BitMapSize).move(_))
 
-  // TODO rotate by multiples of direction
+  //TODO use copy in the methods below?
+
+  // TODO rotate by multiples of direction,
+  // (and only clockwise (or anti, whichever is easiest), can use wrapping to deal with negative numbers?
   def rotate(direction: Int): Bitmap =
     if (direction == 0) this
     else Bitmap {
       points.map { case Point(x, y) =>
         def formula(coord: Int, direction: Int) = {
-          val size = BitMapSize - 1
           val sign = direction.sign
           sign.max(0) * size + (-sign) * coord
         }
@@ -265,6 +277,19 @@ case class Bitmap(points: Set[Point]) {
         Point(formula(y, direction), formula(x, -direction))
       }
     }
+
+
+  // TODO This can be a rotation plus vertical mirror
+  def mirrorHorizontally: Bitmap = Bitmap {
+    points.map { case Point(x, y) =>
+      Point(size - x, y)
+    }
+  }
+
+  def mirrorVertically: Bitmap = Bitmap {
+    points.map { case Point(x, y) => Point(x, size - y)}
+  }
+
 }
 object Bitmap {
   /**
