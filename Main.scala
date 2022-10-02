@@ -64,6 +64,7 @@ case class State(
         direction = directionNow
       )
 
+      // TODO there is a flicker if you change direction just as the body is growing
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
           advance.copy(
