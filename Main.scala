@@ -90,7 +90,7 @@ case class State(
       val advanceOrGrow =
         copy(
           snake = snake.head.move(directionNow).wrap(Dimensions) +: {
-            if (eaten.nonEmpty && snake.head == eaten.head) apple +: snake
+            if (eaten.nonEmpty && snake.head == eaten.head) eaten.head +: snake
             else snake.init
           },
           direction = directionNow
