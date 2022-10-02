@@ -90,10 +90,22 @@ case class State(
         direction = directionNow
       )
 
-      // TODO there is a flicker if you change direction just as the body is growing
-      // TODO in which frame should this happen? Question is whether you can die by stumbling
-      // onto the tail you've just grown, and how to show this. Perhaps it should assert on snake
-      // rather than advance. Or perhaps growing should happen before moving
+      // TODO (1) there is a flicker if you change direction just as
+      // the body is growing The snake shouldn't expand, it should
+      // drag the eaten apple with it once it has digested it. That
+      // _should_ also solve the problem below
+      //
+      // TODO (2) in which frame should this happen? Question is
+      // whether you can die by stumbling onto the tail you've just
+      // grown, and how to show this.
+      //
+      // Plan: in `grow`, instead of growing directly, add to state so
+      // you eat on the next frame in the next frame, grow before any
+      // further movement, so that check loss is correct
+      //
+      // As an intermediate step, could fix (1) by growing in
+      // direction.opposite rather than directionNow.opposite, and
+      // then setup a harness for (2)
       val grow =
         if (eaten.nonEmpty && advance.snake.last == eaten.last)
           advance.copy(
