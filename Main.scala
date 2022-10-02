@@ -11,13 +11,33 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.initial
+    // var state = State.initial
 
-    while (true) {
-      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput)
+    // while (true) {
+    //   Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+    //   state = state.evolve(gui.getInput)
+    //   gui.update(state)
+    // }
+
+    SlowDown = 1
+    var state: State =
+      State(
+        Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
+        Point.right,
+        Origin.move(Point.right.times(3))
+      )
+
+    def turn(input: Option[Point]) = {
+      Thread.sleep(1200)
+      state = state.evolve(input)
       gui.update(state)
     }
+
+    gui.update(state)
+    turn(None)
+    turn(None)
+    turn(None)
+    Thread.sleep(60000)
   }
 }
 
@@ -26,7 +46,7 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 12
+  var SlowDown = 12
   val Scale = 2
 
   val FullScale = Scale * BitMapSize
