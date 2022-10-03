@@ -30,9 +30,20 @@ object Main {
         Origin.move(Point.right.times(2))
       )
 
-    state = state.evolve(Some(Point.up))
-    state = state.evolve(None)
+    def turn(input: Option[Point]) = {
+      Thread.sleep(200)
+      state = state.evolve(input)
+      gui.update(state)
+    }
+
     gui.update(state)
+    turn(Some(Point.up))
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+
     Thread.sleep(60000)
 
 
@@ -86,7 +97,7 @@ object Shared {
   val FrameRate = 1000 / 120
   // TODO back to a val once finished debugging
   var SlowDown = 12
-  val Scale = 2
+  val Scale = 10 //2
 
   val FullScale = Scale * BitMapSize
 
@@ -184,7 +195,31 @@ case class State(
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
-        if (p == snake.head.move(Point.down.times(2))) State.foo.at(p)
+
+//        val path = Point(0, 0)
+        val path = Origin//move(Point.down.times(2))// .move(Point.left)
+        val img =
+          """
+--*--
+--**-
+--**-
+****-
+-----
+""".pipe(Bitmap.parse)
+
+        val nextPath = path.move(Point.left)
+        val nextImg =
+          """
+-----
+-----
+-****
+****-
+-----
+""".pipe(Bitmap.parse)
+
+        if (p == path && p != snake.last) img.at(p)
+        // else if (p == nextPath) nextImg.at(p)
+        // else
         else if (eaten.contains(p)) State.eatenApple(direction).at(p)
         else State.body(direction).at(p)
       }.toSet
@@ -249,17 +284,6 @@ object State {
 -***-
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
-
-  val foo =
-    """
------
--*-*-
------
--*-*-
------
-""".pipe(Bitmap.parse)
-
-
 
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
