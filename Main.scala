@@ -227,25 +227,7 @@ object State {
     )
 
   val heads = rotations(head)
-  // TODO reinstate proper sprites once I have variable size bitmaps
-  val bodies = {
-    //rotations(body)
-    val body =
-      """
------
---*--
--***-
---*--
------
-""".pipe(Bitmap.parse)
-
-    Map(
-      Point.right -> body,
-      Point.left -> body,
-      Point.up -> body,
-      Point.down -> body
-    )
-  }
+  val bodies = rotations(body)
 }
 
 case class Point(x: Int, y: Int) {
@@ -284,9 +266,7 @@ object Point {
     n.sign.min(0).abs * limit + (n % limit)
 }
 
-// TODO fixed size bitmaps are too restrictive
-// I'm at the point where this is a blocker to better visuals
-
+/* TODO fixed size bitmaps are too restrictive */
 /** 5x5 bitmaps */
 case class Bitmap(points: Set[Point]) {
   val size = BitMapSize - 1
