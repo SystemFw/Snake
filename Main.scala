@@ -146,10 +146,10 @@ case class State(
       }
 
     val renderedSnake = if (drawSnake) {
-      State.heads(direction).at(snake.head) ++
+      State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
-        if (eaten.contains(p)) State.eatenApples(direction).at(p)
-        else State.bodies(direction).at(p)
+        if (eaten.contains(p)) State.eatenApple(direction).at(p)
+        else State.body(direction).at(p)
       }.toSet
     } else Set.empty
 
@@ -193,7 +193,7 @@ object State {
 -*-**
 *****
 -----
-""".pipe(Bitmap.parse)
+""".pipe(Bitmap.parse).pipe(rotations)
 
   val body =
   """
@@ -202,7 +202,7 @@ object State {
 -****
 ****-
 ----
-""".pipe(Bitmap.parse)
+""".pipe(Bitmap.parse).pipe(rotations)
 
   val eatenApple =
     """
@@ -211,7 +211,7 @@ object State {
 *---*
 -***-
 -----
-""".pipe(Bitmap.parse)
+""".pipe(Bitmap.parse).pipe(rotations)
 
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
@@ -222,10 +222,6 @@ object State {
       Point.up -> bitmap.rotate(-1),
       Point.down -> bitmap.rotate(1).mirror
     )
-
-  val heads = rotations(head)
-  val bodies = rotations(body)
-  val eatenApples = rotations(eatenApple)
 }
 
 case class Point(x: Int, y: Int) {
@@ -264,7 +260,10 @@ object Point {
     n.sign.min(0).abs * limit + (n % limit)
 }
 
-/* TODO fixed size bitmaps are too restrictive */
+// TODO
+// Fixed size bitmaps are too restrictive and the real game doesn't use
+// them. The alternative appears very complex though
+
 /** 5x5 bitmaps */
 case class Bitmap(points: Set[Point]) {
   val size = BitMapSize - 1
