@@ -12,16 +12,17 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    // var state = State.initial
 
-    // while (true) {
-    //   Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-    //   state = state.evolve(gui.getInput)
-    //   gui.update(state)
-    // }
+    var state = State.initial
 
+    while (true) {
+      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+      state = state.evolve(gui.getInput)
+      gui.update(state)
+    }
+    // */
 
-
+    /*
     SlowDown = 1
     var state: State =
       State(
@@ -48,6 +49,7 @@ object Main {
 
 
     Thread.sleep(60000)
+    // */
   }
 }
 
