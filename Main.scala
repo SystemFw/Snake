@@ -12,39 +12,42 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.initial
+    // var state = State.initial
 
-    while (true) {
-      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput)
-      gui.update(state)
-    }
-
-
-
-    // SlowDown = 1
-    // var state: State =
-    //   State(
-    //     Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
-    //     Point.right,
-    //     Origin.move(Point.right.times(2))
-    //   )
-
-    // def turn(input: Option[Point]) = {
-    //   Thread.sleep(200)
-    //   state = state.evolve(input)
+    // while (true) {
+    //   Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+    //   state = state.evolve(gui.getInput)
     //   gui.update(state)
     // }
 
-    // gui.update(state)
-    // turn(Some(Point.up))
-    // turn(None)
-    // turn(None)
-    // turn(None)
-    // turn(None)
-    // turn(None)
 
-    // Thread.sleep(60000)
+
+    SlowDown = 1
+    var state: State =
+      State(
+        Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
+        Point.right,
+        Origin.move(Point.right)
+      )
+
+    println(s"apple: ${state.apple}")
+    def turn(input: Option[Point]) = {
+      Thread.sleep(1000)
+      state = state.evolve(input)
+      gui.update(state)
+    }
+
+    gui.update(state)
+    turn(None)
+    turn(Some(Point.up))
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+    //turn(None)
+
+
+    Thread.sleep(60000)
   }
 }
 
@@ -141,7 +144,6 @@ case class State(
     else move
   }.copy(time = time + 1)
 
-  // TODO apple should start right after head
   def render: Set[Point] = {
     val directions =
       snake.distinct.sliding(2).toVector.map {
@@ -152,8 +154,17 @@ case class State(
 
     // TODO render corners nicely
     // TODO orientation changes in weird ways when eating an apple
+    //
     // TODO when you turn just as you're eating an apple, there's a different sprite,
     // but it's kind of a cool one lol
+    //
+    // The snake has duplicate points, the apple you just eaten stays in there
+    // Both points have an eatenApple sprite, but in different orientations, and
+    // the overlap causes the cool sprite
+    //
+    // I suspect the same thing causes the changes in orientation when eating
+    //
+    p(snake)
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
@@ -229,6 +240,16 @@ object State {
 -***-
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
+
+  val altApple =
+    """
+--*--
+-***-
+**-**
+-***-
+--*--
+"""
+
 
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
