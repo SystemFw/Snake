@@ -12,76 +12,38 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    // var state = State.initial
+    var state = State.initial
 
-    // while (true) {
-    //   Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-    //   state = state.evolve(gui.getInput)
-    //   gui.update(state)
-    // }
-
-
-
-    SlowDown = 1
-    var state: State =
-      State(
-        Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
-        Point.right,
-        Origin.move(Point.right.times(2))
-      )
-
-    def turn(input: Option[Point]) = {
-      Thread.sleep(200)
-      state = state.evolve(input)
+    while (true) {
+      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+      state = state.evolve(gui.getInput)
       gui.update(state)
     }
 
-    gui.update(state)
-    turn(Some(Point.up))
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-
-    Thread.sleep(60000)
 
 
     // SlowDown = 1
     // var state: State =
     //   State(
-    //     Vector.range(0, 20).map(x => Origin.move(Point.left.times(x))),
+    //     Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
     //     Point.right,
     //     Origin.move(Point.right.times(2))
     //   )
 
-    // state = state.evolve(Some(Point.up))
-    // state = state.evolve(None)
-    // state = state.evolve(None)
-    // state = state.evolve(None)
-    // state = state.evolve(None)
-    // state = state.evolve(Some(Point.left))
-    // state = state.evolve(None)
-    // state = state.evolve(None)
-    // state = state.evolve(None)
-    // state = state.evolve(Some(Point.up))
-    // state = state.evolve(None)
-    // state = state.evolve(None)
-    // gui.update(state)
-    // Thread.sleep(60000)
     // def turn(input: Option[Point]) = {
-    //   Thread.sleep(1200)
+    //   Thread.sleep(200)
     //   state = state.evolve(input)
     //   gui.update(state)
     // }
 
     // gui.update(state)
+    // turn(Some(Point.up))
     // turn(None)
     // turn(None)
     // turn(None)
     // turn(None)
     // turn(None)
-    // turn(None)
+
     // Thread.sleep(60000)
   }
 }
@@ -96,8 +58,8 @@ object Shared {
 
   val FrameRate = 1000 / 120
   // TODO back to a val once finished debugging
-  var SlowDown = 12
-  val Scale = 10 //2
+  var SlowDown = 24 // 12
+  val Scale = 5 // 2
 
   val FullScale = Scale * BitMapSize
 
@@ -195,38 +157,11 @@ case class State(
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
-
-//        val path = Point(0, 0)
-        val path = Origin//move(Point.down.times(2))// .move(Point.left)
-        val img =
-          """
---*--
---**-
---**-
-****-
------
-""".pipe(Bitmap.parse)
-
-        val nextPath = path.move(Point.left)
-        val nextImg =
-          """
------
------
--****
-****-
------
-""".pipe(Bitmap.parse)
-
-        if (p == path && p != snake.last) img.at(p)
-        // else if (p == nextPath) nextImg.at(p)
-        // else
-        else if (eaten.contains(p)) State.eatenApple(direction).at(p)
+        if (eaten.contains(p)) State.eatenApple(direction).at(p)
         else State.body(direction).at(p)
       }.toSet
     } else Set.empty
-
     val renderedApple = State.apple.at(apple)
-
 
     (renderedSnake ++ renderedApple)
       .flatMap(_.times(Scale).square(Scale))
@@ -275,6 +210,16 @@ object State {
 ****-
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
+
+  val corner =
+          """
+--*--
+--**-
+--**-
+****-
+-----
+""".pipe(Bitmap.parse)
+
 
   val eatenApple =
     """
