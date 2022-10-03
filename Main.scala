@@ -148,7 +148,7 @@ case class State(
       }
 
     // TODO render corners nicely
-    // TODO orientation around corners changes for whatever reason
+    // TODO orientation changes in weird ways when eating an apple
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
