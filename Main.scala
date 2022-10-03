@@ -12,8 +12,10 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    /*
+//    /*
     var state = State.initial
+
+    // slowdown = 24
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -22,8 +24,9 @@ object Main {
     }
     // */
 
-//    /*
+    /*
     SlowDown = 1
+    Scale = 5
     var state: State =
       State(
         Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
@@ -63,8 +66,8 @@ object Shared {
 
   val FrameRate = 1000 / 120
   // TODO back to a val once finished debugging
-  var SlowDown = 24 // 12
-  val Scale = 5 // 2
+  var SlowDown = 12
+  var Scale = 2
 
   val FullScale = Scale * BitMapSize
 
@@ -200,6 +203,7 @@ object State {
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
+  // TODO add separate sprite for tail, maybe just shave from top band
   val body =
   """
 -----
