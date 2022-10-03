@@ -142,17 +142,14 @@ case class State(
       snake.distinct.sliding(2).toVector.map {
         case Vector(Point(x, y), Point(xx, yy)) =>
           Point((x - xx).sign, (y - yy).sign)
+        case _ => sys.error("impossible")
       }
 
     val renderedSnake = if (drawSnake) {
       State.heads(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
-        if (eaten.contains(p)) State.eatenApple.at(p)
-        else {
-
-          try (State.bodies(direction).at(p))
-          catch { e =>            Shared.p(s"Point $p eaten $eaten snake $snake directions $directions") ; throw e }
-        }
+        if (eaten.contains(p)) State.eatenApples(direction).at(p)
+        else State.bodies(direction).at(p)
       }.toSet
     } else Set.empty
 
@@ -228,6 +225,7 @@ object State {
 
   val heads = rotations(head)
   val bodies = rotations(body)
+  val eatenApples = rotations(eatenApple)
 }
 
 case class Point(x: Int, y: Int) {
