@@ -12,7 +12,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-
+    /*
     var state = State.initial
 
     while (true) {
@@ -22,7 +22,7 @@ object Main {
     }
     // */
 
-    /*
+//    /*
     SlowDown = 1
     var state: State =
       State(
@@ -31,7 +31,6 @@ object Main {
         Origin.move(Point.right)
       )
 
-    println(s"apple: ${state.apple}")
     def turn(input: Option[Point]) = {
       Thread.sleep(1000)
       state = state.evolve(input)
@@ -41,6 +40,7 @@ object Main {
     gui.update(state)
     turn(None)
     turn(Some(Point.up))
+    turn(None)
     turn(None)
     turn(None)
     turn(None)
@@ -100,7 +100,7 @@ case class State(
       val advanceOrGrow =
         copy(
           snake = snake.head.move(directionNow).wrap(Dimensions) +: {
-            if (eaten.nonEmpty && snake.head == eaten.head) eaten.head +: snake // TODO buggy duplication here, should be snake or eaten.head +: snake.init
+            if (eaten.nonEmpty && snake.head == eaten.head) snake
             else snake.init
           },
           direction = directionNow
@@ -155,20 +155,6 @@ case class State(
       }
 
     // TODO render corners nicely
-    // TODO shouldn't show eaten apple sprite on tail
-    //
-    // TODO orientation changes in weird ways when eating an apple
-    //
-    // TODO when you turn just as you're eating an apple, there's a different sprite,
-    // but it's kind of a cool one lol
-    //
-    // The snake has duplicate points, the apple you just eaten stays in there
-    // Both points have an eatenApple sprite, but in different orientations, and
-    // the overlap causes the cool sprite
-    //
-    // I suspect the same thing causes the changes in orientation when eating
-    //
-    p(snake)
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
