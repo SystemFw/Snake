@@ -44,7 +44,7 @@ object Main {
     turn(None)
     turn(None)
     turn(None)
-    //turn(None)
+    turn(None)
 
 
     Thread.sleep(60000)
@@ -98,7 +98,7 @@ case class State(
       val advanceOrGrow =
         copy(
           snake = snake.head.move(directionNow).wrap(Dimensions) +: {
-            if (eaten.nonEmpty && snake.head == eaten.head) eaten.head +: snake
+            if (eaten.nonEmpty && snake.head == eaten.head) eaten.head +: snake // TODO buggy duplication here, should be snake or eaten.head +: snake.init
             else snake.init
           },
           direction = directionNow
@@ -153,6 +153,8 @@ case class State(
       }
 
     // TODO render corners nicely
+    // TODO shouldn't show eaten apple sprite on tail
+    //
     // TODO orientation changes in weird ways when eating an apple
     //
     // TODO when you turn just as you're eating an apple, there's a different sprite,
