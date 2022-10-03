@@ -12,22 +12,52 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    var state = State.initial
+    // var state = State.initial
 
-    while (true) {
-      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput)
-      gui.update(state)
-    }
+    // while (true) {
+    //   Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+    //   state = state.evolve(gui.getInput)
+    //   gui.update(state)
+    // }
+
+
+
+    SlowDown = 1
+    var state: State =
+      State(
+        Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
+        Point.right,
+        Origin.move(Point.right.times(2))
+      )
+
+    state = state.evolve(Some(Point.up))
+    state = state.evolve(None)
+    gui.update(state)
+    Thread.sleep(60000)
+
 
     // SlowDown = 1
     // var state: State =
     //   State(
-    //     Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
+    //     Vector.range(0, 20).map(x => Origin.move(Point.left.times(x))),
     //     Point.right,
     //     Origin.move(Point.right.times(2))
     //   )
 
+    // state = state.evolve(Some(Point.up))
+    // state = state.evolve(None)
+    // state = state.evolve(None)
+    // state = state.evolve(None)
+    // state = state.evolve(None)
+    // state = state.evolve(Some(Point.left))
+    // state = state.evolve(None)
+    // state = state.evolve(None)
+    // state = state.evolve(None)
+    // state = state.evolve(Some(Point.up))
+    // state = state.evolve(None)
+    // state = state.evolve(None)
+    // gui.update(state)
+    // Thread.sleep(60000)
     // def turn(input: Option[Point]) = {
     //   Thread.sleep(1200)
     //   state = state.evolve(input)
@@ -154,7 +184,8 @@ case class State(
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
-        if (eaten.contains(p)) State.eatenApple(direction).at(p)
+        if (p == snake.head.move(Point.down.times(2))) State.foo.at(p)
+        else if (eaten.contains(p)) State.eatenApple(direction).at(p)
         else State.body(direction).at(p)
       }.toSet
     } else Set.empty
@@ -218,6 +249,17 @@ object State {
 -***-
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
+
+  val foo =
+    """
+-----
+-*-*-
+-----
+-*-*-
+-----
+""".pipe(Bitmap.parse)
+
+
 
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
