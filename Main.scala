@@ -46,10 +46,11 @@ object Main {
 }
 
 object Shared {
-  // TODO snake too big/dimensions too small compared to real game
-  // horizontal touching happens at score 144
-  // probably to do with bigger/uniform sprites
-  val Dimensions = Point(24, 14)
+  // The snake doesn't the same relative dimensions of the original game,
+  // because it uses fixed size sprites, whereas the game uses variable
+  // ones, the dimensions of the game area are calculated so that the
+  // snake eats itself at the same score as the original
+  val Dimensions = Point(36, 17)
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
