@@ -138,6 +138,7 @@ case class State(
     else move
   }.copy(time = time + 1)
 
+  // TODO apple should start right after head
   def render: Set[Point] = {
     val directions =
       snake.distinct.sliding(2).toVector.map {
@@ -146,6 +147,8 @@ case class State(
         case _ => sys.error("impossible")
       }
 
+    // TODO render corners nicely
+    // TODO orientation around corners changes for whatever reason
     val renderedSnake = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.tail.zip(directions).flatMap { case (p, direction) =>
@@ -202,7 +205,7 @@ object State {
 -----
 -****
 ****-
-----
+-----
 """.pipe(Bitmap.parse).pipe(rotations)
 
   val eatenApple =
@@ -292,8 +295,8 @@ object Bitmap {
   def parse(spec: String): Bitmap = Bitmap {
     val matrix = spec.trim.split('\n').map(_.toVector)
 
-    // assert(matrix.length == BitMapSize)
-    // assert(matrix.forall(_.length == matrix.length))
+    assert(matrix.length == BitMapSize)
+    assert(matrix.forall(_.length == matrix.length))
 
     matrix.zipWithIndex.flatMap { case (line, y) =>
       line.zipWithIndex.map {
