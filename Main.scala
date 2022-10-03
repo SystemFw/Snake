@@ -126,9 +126,6 @@ case class State(
         if (eat.snake.tail.contains(eat.snake.head)) this.copy(lostAt = time)
         else eat
 
-      // TODO check that this logic doesn't affect the responsiveness
-      // of the game, the slowdown should perhaps only happen when there
-      // is no change of direction
       if (time % SlowDown == 0) checkLoss
       else this
     }
