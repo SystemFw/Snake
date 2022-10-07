@@ -259,11 +259,11 @@ object State {
 """.pipe(Bitmap.parse).pipe(rotations)
 
   val eatenApple = """
------
+--*--
 -***-
-*---*
+**-**
 -***-
------
+--*--
 """.pipe(Bitmap.parse).pipe(rotations)
 
   // directions relative to going towards the head from the tail
