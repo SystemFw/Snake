@@ -16,10 +16,9 @@ object Main {
 
 
 
-   /*
+//   /*
     var state = State.initial
 
-    SlowDown = 45
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -28,7 +27,7 @@ object Main {
     }
     // */
 
-//    /*
+    /*
     var state: State =
       State(
         Vector.range(0, 20).map(x => Origin.move(Point.left.times(x))),
@@ -47,6 +46,7 @@ object Main {
     turn(None)
     turn(None)
     turn(Some(Point.right))
+    turn(None)
     turn(None)
     turn(Some(Point.down))
     turn(None)
@@ -71,7 +71,7 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 1
+  val SlowDown = 12
   val Scale = 5
 
   val FullScale = Scale * BitMapSize
@@ -289,26 +289,35 @@ object State {
 
   // going towards the head
   val rightUp = """
------
----*-
+--*--
 --**-
--***-
+--**-
+---*-
 -----
 """.pipe(Bitmap.parse)
 
-  val rightDown = """
+
+  val upRight = """
 -----
-****-
+-----
+---*-
+--***
+---*-
+""".pipe(Bitmap.parse)
+
+    val rightDown = """
+-----
+-----
+-***-
+***--
+-----
+""".pipe(Bitmap.parse)
+
+  val downRight = """
+---*-
 --**-
 --**-
 --*--
-""".pipe(Bitmap.parse)
-
-    val downRight = """
--*---
--*---
--****
--***-
 -----
 """.pipe(Bitmap.parse)
 
@@ -337,14 +346,6 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-
-  val upRight = """
------
--***-
--****
--*---
--*---
-""".pipe(Bitmap.parse)
 
   val upLeft = """
 -----
