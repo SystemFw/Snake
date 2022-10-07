@@ -155,15 +155,15 @@ case class State(
     else move
   }.copy(time = time + 1)
 
-  def render: Set[Point] = {
-    val renderedSnake: Set[Point] = if (drawSnake) {
+  def render: Vector[Point] = {
+    val renderedSnake: Vector[Point] = if (drawSnake) {
       val head =
         (if (!openMouth) State.head else State.eatingHead)
           .apply(direction)
           .at(snake.head)
 
       val body =
-        snake.sliding(3).toVector.flatMap {
+        snake.sliding(3).flatMap {
           case Vector(p0, p1, p2) =>
             def direction(head: Point, tail: Point) = {
               val p = Point((head.x - tail.x), (head.y - tail.y))
@@ -185,14 +185,14 @@ case class State(
                 State.corners(dir2 -> dir1).at(p1)
 
             val tail =
-              if (p2 == snake.last) State.body(dir2).at(p2) else Set.empty
+              if (p2 == snake.last) State.body(dir2).at(p2) else Vector.empty
 
             body ++ tail
           case _ => sys.error("impossible")
-        }.toSet
+        }
 
       head ++ body
-    } else Set.empty
+    } else Vector.empty
 
     (renderedSnake ++ State.apple.at(apple))
       .flatMap(_.times(Scale).square(Scale))
@@ -340,8 +340,8 @@ case class Point(x: Int, y: Int) {
   def opposite: Point =
     times(-1)
 
-  def square(side: Int): Set[Point] =
-    0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toSet
+  def square(side: Int): Vector[Point] =
+    0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toVector
 
   def wrap(limit: Point) =
     Point(Point.wrap(x, limit.x), Point.wrap(y, limit.y))
@@ -369,15 +369,15 @@ object Point {
 // shapes, bounding boxes, etc
 
 /** 5x5 bitmaps */
-case class Bitmap(points: Set[Point]) {
+case class Bitmap(points: Vector[Point]) {
   val size = BitMapSize - 1
 
-  def at(p: Point): Set[Point] =
+  def at(p: Point): Vector[Point] =
     points.map(p.times(BitMapSize).move(_))
 
   /** rotate by 90 degrees, n times, +/- = clockwise/anticlockwise */
   def rotate(n: Int): Bitmap = Bitmap {
-    def go(points: Set[Point], times: Int): Set[Point] =
+    def go(points: Vector[Point], times: Int): Vector[Point] =
       if (times == 0) points
       else go(points.map(p => Point(size - p.y, p.x)), times - 1)
 
@@ -403,7 +403,7 @@ object Bitmap {
         case ('*', x) => Some(Point(x, y))
         case _ => None
       }
-    }.flatten.toSet
+    }.flatten.toVector
   }
 }
 
@@ -414,7 +414,7 @@ class Gui extends JPanel {
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
-  private var image: Set[Point] = Set()
+  private var image: Vector[Point] = Vector()
   private val score = new JLabel("Score")
 
   Point.directions.keys.foreach { direction =>
