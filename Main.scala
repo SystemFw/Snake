@@ -12,10 +12,14 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
+    //TODO should I just use Vector[Point] instead of Set
+
+
+
 //    /*
     var state = State.initial
 
-    // slowdown = 24
+    SlowDown = 45
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -82,6 +86,28 @@ object Shared {
 
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
+
+
+  val d = Point.right
+  /*
+   *    ++
+   *   ++
+   *   +  +
+   *   ++++
+   */
+  val p = Vector(
+    Point(10, 10),
+    Point(9, 10),
+    Point(9, 11),
+    Point(8, 11),
+    Point(8, 12),
+    Point(8, 13),
+    Point(9, 13),
+    Point(10, 13),
+    Point(10, 14),
+    Point(9, 14)
+  )
+
 }
 
 case class State(
@@ -148,19 +174,31 @@ case class State(
 
   def render: Set[Point] = {
     val directions =
-      snake.distinct.sliding(2).toVector.map {
+      snake.sliding(2).toVector.map {
         case Vector(Point(x, y), Point(xx, yy)) =>
           Point((x - xx).sign, (y - yy).sign)
         case _ => sys.error("impossible")
       }
 
-    // TODO render corners nicely
-    val renderedSnake = if (drawSnake) {
+    // TODO corners code fails to wrap around
+    // TODO corners sprites not perfect
+    // GOOD: right-up, down-right, down-left, right-down
+    val renderedSnake: Set[Point] = if (drawSnake) {
       State.head(direction).at(snake.head) ++
-      snake.tail.zip(directions).flatMap { case (p, direction) =>
-        if (eaten.contains(p)) State.eatenApple(direction).at(p)
-        else State.body(direction).at(p)
+      State.tail.at(snake.last) ++
+      snake.sliding(3).toVector.flatMap {
+        case Vector(p0, p1, p2) =>
+          val dir1 = Point((p1.x - p0.x).sign, (p1.y - p0.y).sign)
+          val dir2 = Point((p2.x - p1.x).sign, (p2.y - p1.y).sign)
+          if (eaten.contains(p1)) State.eatenApple(dir1).at(p1) // TODO angular apples?
+          else if (dir1 == dir2) State.body(dir1).at(p1)
+          else State.corners(dir2.opposite -> dir1.opposite).at(p1)
       }.toSet
+
+      // snake.tail.init..zip(directions).flatMap { case (p, direction) =>
+      //   if (eaten.contains(p)) State.eatenApple(direction).at(p)
+      //   else State.body(direction).at(p)
+      // }.toSet
     } else Set.empty
     val renderedApple = State.apple.at(apple)
 
@@ -185,8 +223,7 @@ object State {
     else apple
   }
 
-    val apple =
-    """
+    val apple = """
 -----
 --*--
 -*-*-
@@ -194,8 +231,7 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-  val head =
-    """
+  val head = """
 -----
 --*--
 -*-**
@@ -203,9 +239,8 @@ object State {
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
-  // TODO add separate sprite for tail, maybe just shave from top band
-  val body =
-  """
+
+  val body = """
 -----
 -----
 -****
@@ -213,8 +248,17 @@ object State {
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
-  val corner =
-          """
+  // TODO add better sprite for tail, maybe just shave from top band
+  val tail = """
+-----
+--*--
+-***-
+--*--
+-----
+""".pipe(Bitmap.parse)
+
+
+  val corner = """
 --*--
 --**-
 --**-
@@ -222,9 +266,7 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-
-  val eatenApple =
-    """
+  val eatenApple = """
 -----
 -***-
 *---*
@@ -232,14 +274,94 @@ object State {
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
-  val altApple =
-    """
+  val altApple = """
 --*--
 -***-
 **-**
 -***-
 --*--
 """
+
+  // GOOD: right-up, down-right, down-left, right-down
+
+  // going towards the head
+  val rightUp = """
+--*--
+--**-
+--**-
+****-
+-----
+""".pipe(Bitmap.parse)
+
+  val rightDown = """
+-----
+****-
+--**-
+--**-
+--*--
+""".pipe(Bitmap.parse)
+
+    val downRight = """
+-*---
+-*---
+-****
+-***-
+-----
+""".pipe(Bitmap.parse)
+
+  val downLeft = """
+---*-
+---*-
+****-
+-***-
+-----
+""".pipe(Bitmap.parse)
+
+  //
+  val leftDown = """
+-----
+-****
+-**--
+-**--
+--*--
+""".pipe(Bitmap.parse)
+
+  val leftUp = """
+--*--
+-**--
+-**--
+-****
+-----
+""".pipe(Bitmap.parse)
+
+
+  val upRight = """
+-----
+-***-
+-****
+-*---
+-*---
+""".pipe(Bitmap.parse)
+
+  val upLeft = """
+-----
+-***-
+****-
+---*-
+---*-
+""".pipe(Bitmap.parse)
+
+
+  val corners: Map[(Point, Point), Bitmap] = Map(
+    (Point.right, Point.up) -> rightUp,
+    (Point.right, Point.down) -> rightDown,
+    (Point.left, Point.down) -> leftDown,
+    (Point.left, Point.up) -> leftUp,
+    (Point.down, Point.right) -> downRight,
+    (Point.down, Point.left) -> downLeft,
+    (Point.up, Point.right) -> upRight,
+    (Point.up, Point.left) -> upLeft
+  )
 
 
   // This is rudimentary, since rotation isn't relative, but that's
