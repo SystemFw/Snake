@@ -26,7 +26,7 @@ object Main {
     } else {
       var state: State =
         State(
-          Vector.range(0, 30).map(x => Origin.move(Point.left.times(x))),
+          Vector.range(0, 33).map(x => Origin.move(Point.left.times(x))),
           Point.right,
           Point(0, 0)
       )
@@ -59,10 +59,15 @@ object Main {
       turn(None)
       turn(Some(Point.down))
       turn(None)
-      // turn(None)
-      // turn(Some(Point.right))
-      // turn(None)
-      // turn(None)
+      turn(Some(Point.left))
+      turn(None)
+      turn(None)
+      turn(Some(Point.up))
+      turn(None)
+      turn(None)
+      turn(Some(Point.left))
+      turn(None)
+      turn(None)
       Thread.sleep(60000)
     }
   }
@@ -77,7 +82,7 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 12
+  val SlowDown = 1
   val Scale = 5
 
   val FullScale = Scale * BitMapSize
@@ -329,7 +334,7 @@ object State {
 -----
 -----
 --**-
---*--
+--***
 --*--
 """.pipe(Bitmap.parse)
 
@@ -341,23 +346,20 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-
-  //
-
   val leftUp = """
 --*--
--**--
--**--
--****
+--**-
+--**-
+--***
 -----
 """.pipe(Bitmap.parse)
 
 
   val upLeft = """
 -----
--***-
+-----
 ****-
----*-
+-***-
 ---*-
 """.pipe(Bitmap.parse)
 
