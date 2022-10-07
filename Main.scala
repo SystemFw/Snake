@@ -98,28 +98,6 @@ object Shared {
 
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
-
-
-  val d = Point.right
-  /*
-   *    ++
-   *   ++
-   *   +  +
-   *   ++++
-   */
-  val p = Vector(
-    Point(10, 10),
-    Point(9, 10),
-    Point(9, 11),
-    Point(8, 11),
-    Point(8, 12),
-    Point(8, 13),
-    Point(9, 13),
-    Point(10, 13),
-    Point(10, 14),
-    Point(9, 14)
-  )
-
 }
 
 case class State(
@@ -137,7 +115,6 @@ case class State(
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
 
-      // TODO duplicate points when about to fully digest an apple
       val advanceOrGrow =
         copy(
           snake = snake.head.move(directionNow).wrap(Dimensions) +: {
@@ -158,7 +135,7 @@ case class State(
           discardEaten.copy(
             apple = State.newApple(discardEaten.snake),
             eaten = discardEaten.apple +: discardEaten.eaten,
-            score = discardEaten.score + 9 // TODO score is score + speed value (1-9), should I keep it to 9?
+            score = discardEaten.score + 9
           )
         else discardEaten
 
@@ -198,7 +175,7 @@ case class State(
         case Vector(p0, p1, p2) =>
           val dir1 = Point((p1.x - p0.x).sign, (p1.y - p0.y).sign)
           val dir2 = Point((p2.x - p1.x).sign, (p2.y - p1.y).sign)
-
+          // TODO corner logic broken when wrapping around
           val body =
             if (eaten.contains(p1))
               State.eatenApple(dir1).at(p1)
@@ -245,6 +222,16 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
+  // This is rudimentary, since rotation isn't relative, but that's
+  // how the original game does it
+  def rotations(bitmap: Bitmap): Map[Point, Bitmap] =
+    Map(
+      Point.right -> bitmap,
+      Point.left -> bitmap.mirror,
+      Point.up -> bitmap.rotate(-1),
+      Point.down -> bitmap.rotate(1).mirror
+    )
+
   val head = """
 -----
 --*--
@@ -262,24 +249,6 @@ object State {
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
-  // TODO add better sprite for tail, maybe just shave from top band
-  val tail = """
------
------
-****-
-****-
------
-""".pipe(Bitmap.parse).pipe(rotations)
-
-
-  val corner = """
---*--
---**-
---**-
-****-
------
-""".pipe(Bitmap.parse)
-
   val eatenApple = """
 -----
 -***-
@@ -288,105 +257,65 @@ object State {
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
-  val altApple = """
---*--
--***-
-**-**
--***-
---*--
-"""
-
-  // GOOD with original sprites: right-up, down-right, down-left, right-down
-
-  // going towards the head
-  val rightUp = """
+  // directions relative to going towards the head from the tail
+  val corners: Map[(Point, Point), Bitmap] = Map(
+    (Point.right, Point.up) ->  """
 --*--
 --**-
 --**-
 ****-
 -----
-""".pipe(Bitmap.parse)
-
-
-  val upRight = """
+""",
+    (Point.up, Point.right) ->  """
 -----
 -----
 --***
 --**-
 ---*-
-""".pipe(Bitmap.parse)
-
-    val rightDown = """
+""",
+    (Point.right, Point.down) ->  """
 -----
 -----
 -***-
 ***--
 -----
-""".pipe(Bitmap.parse)
-
-  val downLeft = """
+""",
+    (Point.down, Point.left) -> """
 ---*-
 ---*-
 ****-
 -***-
 -----
-""".pipe(Bitmap.parse)
-
-  val leftDown = """
+""",
+    (Point.left, Point.down) ->  """
 -----
 -----
 --**-
 --***
 --*--
-""".pipe(Bitmap.parse)
-
-  val downRight = """
+""",
+    (Point.down, Point.right) ->  """
 ---*-
 --**-
 --**-
 --*--
 -----
-""".pipe(Bitmap.parse)
-
-  val leftUp = """
+""",
+    (Point.left, Point.up) ->  """
 --*--
 --**-
 --**-
 --***
 -----
-""".pipe(Bitmap.parse)
-
-
-  val upLeft = """
+""",
+    (Point.up, Point.left) -> """
 -----
 -----
 ****-
 -***-
 ---*-
-""".pipe(Bitmap.parse)
-
-
-  val corners: Map[(Point, Point), Bitmap] = Map(
-    (Point.right, Point.up) -> rightUp,
-    (Point.right, Point.down) -> rightDown,
-    (Point.left, Point.down) -> leftDown,
-    (Point.left, Point.up) -> leftUp,
-    (Point.down, Point.right) -> downRight,
-    (Point.down, Point.left) -> downLeft,
-    (Point.up, Point.right) -> upRight,
-    (Point.up, Point.left) -> upLeft
-  )
-
-
-  // This is rudimentary, since rotation isn't relative, but that's
-  // how the original game does it
-  def rotations(bitmap: Bitmap): Map[Point, Bitmap] =
-    Map(
-      Point.right -> bitmap,
-      Point.left -> bitmap.mirror,
-      Point.up -> bitmap.rotate(-1),
-      Point.down -> bitmap.rotate(1).mirror
-    )
+"""
+  ).mapValues(Bitmap.parse).toMap
 }
 
 case class Point(x: Int, y: Int) {
