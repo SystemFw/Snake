@@ -83,7 +83,7 @@ object Shared {
 
   val FrameRate = 1000 / 120
   val SlowDown = 12
-  val Scale = 5
+  val Scale = 2
 
   val FullScale = Scale * BitMapSize
 
@@ -262,7 +262,7 @@ object State {
     (Point.right, Point.up) ->  """
 --*--
 --**-
---**-
+-***-
 ****-
 -----
 """,
@@ -277,12 +277,12 @@ object State {
 -----
 -----
 -***-
-***--
------
+****-
+--*--
 """,
     (Point.down, Point.left) -> """
 ---*-
----*-
+--**-
 ****-
 -***-
 -----
@@ -297,8 +297,8 @@ object State {
     (Point.down, Point.right) ->  """
 ---*-
 --**-
+--***
 --**-
---*--
 -----
 """,
     (Point.left, Point.up) ->  """
