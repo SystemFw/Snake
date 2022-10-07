@@ -15,61 +15,56 @@ object Main {
     //TODO should I just use Vector[Point] instead of Set
 
 
- // /*
-    var state = State.initial
+    if (SlowDown != 1) {
+      var state = State.initial
 
-
-    while (true) {
-      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput)
-      gui.update(state)
-    }
-    // */
-
-   /*
-    var state: State =
-      State(
-        Vector.range(0, 30).map(x => Origin.move(Point.left.times(x))),
-        Point.right,
-        Point(0, 0)
+      while (true) {
+        Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+        state = state.evolve(gui.getInput)
+        gui.update(state)
+      }
+    } else {
+      var state: State =
+        State(
+          Vector.range(0, 30).map(x => Origin.move(Point.left.times(x))),
+          Point.right,
+          Point(0, 0)
       )
 
-    def turn(input: Option[Point]) = {
-      Thread.sleep(200)
-      state = state.evolve(input)
+      def turn(input: Option[Point]) = {
+        Thread.sleep(200)
+        state = state.evolve(input)
+        gui.update(state)
+      }
+
       gui.update(state)
+      turn(Some(Point.up))
+      turn(None)
+      turn(None)
+      turn(Some(Point.right))
+      turn(None)
+      turn(None)
+      turn(Some(Point.down))
+      turn(None)
+      turn(Some(Point.right))
+      turn(None)
+      turn(None)
+      turn(None)
+      turn(None)
+      turn(Some(Point.down))
+      turn(None)
+      turn(None)
+      turn(Some(Point.left))
+      turn(None)
+      turn(None)
+      turn(Some(Point.down))
+      turn(None)
+      // turn(None)
+      // turn(Some(Point.right))
+      // turn(None)
+      // turn(None)
+      Thread.sleep(60000)
     }
-
-    gui.update(state)
-    turn(Some(Point.up))
-    turn(None)
-    turn(None)
-    turn(Some(Point.right))
-    turn(None)
-    turn(None)
-    turn(Some(Point.down))
-    turn(None)
-    turn(Some(Point.right))
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(None)
-    turn(Some(Point.down))
-    turn(None)
-    turn(None)
-    turn(Some(Point.left))
-    turn(None)
-    turn(None)
-    turn(Some(Point.down))
-    turn(None)
-    // turn(None)
-    // turn(Some(Point.right))
-    // turn(None)
-    // turn(None)
-
-
-    Thread.sleep(60000)
-    // */
   }
 }
 
@@ -82,7 +77,7 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 12
+  val SlowDown = 1
   val Scale = 5
 
   val FullScale = Scale * BitMapSize
