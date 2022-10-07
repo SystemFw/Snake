@@ -15,8 +15,7 @@ object Main {
     //TODO should I just use Vector[Point] instead of Set
 
 
-
-//   /*
+ // /*
     var state = State.initial
 
 
@@ -27,10 +26,10 @@ object Main {
     }
     // */
 
-    /*
+   /*
     var state: State =
       State(
-        Vector.range(0, 20).map(x => Origin.move(Point.left.times(x))),
+        Vector.range(0, 30).map(x => Origin.move(Point.left.times(x))),
         Point.right,
         Point(0, 0)
       )
@@ -55,6 +54,18 @@ object Main {
     turn(None)
     turn(None)
     turn(None)
+    turn(Some(Point.down))
+    turn(None)
+    turn(None)
+    turn(Some(Point.left))
+    turn(None)
+    turn(None)
+    turn(Some(Point.down))
+    turn(None)
+    // turn(None)
+    // turn(Some(Point.right))
+    // turn(None)
+    // turn(None)
 
 
     Thread.sleep(60000)
@@ -292,7 +303,7 @@ object State {
 --*--
 --**-
 --**-
----*-
+****-
 -----
 """.pipe(Bitmap.parse)
 
@@ -300,9 +311,9 @@ object State {
   val upRight = """
 -----
 -----
----*-
 --***
----*-
+--*--
+-----
 """.pipe(Bitmap.parse)
 
     val rightDown = """
@@ -310,14 +321,6 @@ object State {
 -----
 -***-
 ***--
------
-""".pipe(Bitmap.parse)
-
-  val downRight = """
----*-
---**-
---**-
---*--
 -----
 """.pipe(Bitmap.parse)
 
@@ -329,14 +332,24 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
-  //
   val leftDown = """
 -----
--****
--**--
--**--
+-----
+--**-
+--*--
 --*--
 """.pipe(Bitmap.parse)
+
+  val downRight = """
+---*-
+--**-
+--**-
+--*--
+-----
+""".pipe(Bitmap.parse)
+
+
+  //
 
   val leftUp = """
 --*--
