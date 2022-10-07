@@ -16,7 +16,7 @@ object Main {
 
 
 
-//    /*
+   /*
     var state = State.initial
 
     SlowDown = 45
@@ -28,31 +28,33 @@ object Main {
     }
     // */
 
-    /*
-    SlowDown = 1
-    Scale = 5
+//    /*
     var state: State =
       State(
-        Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x))),
+        Vector.range(0, 20).map(x => Origin.move(Point.left.times(x))),
         Point.right,
-        Origin.move(Point.right)
+        Point(0, 0)
       )
 
     def turn(input: Option[Point]) = {
-      Thread.sleep(1000)
+//      Thread.sleep(1000)
       state = state.evolve(input)
       gui.update(state)
     }
 
     gui.update(state)
-    turn(None)
     turn(Some(Point.up))
     turn(None)
     turn(None)
+    turn(Some(Point.right))
     turn(None)
+    turn(Some(Point.down))
     turn(None)
-    turn(None)
-    turn(None)
+    turn(Some(Point.right))
+    // turn(None)
+    // turn(None)
+    // turn(None)
+    // turn(None)
 
 
     Thread.sleep(60000)
@@ -69,9 +71,8 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  // TODO back to a val once finished debugging
-  var SlowDown = 12
-  var Scale = 2
+  val SlowDown = 1
+  val Scale = 5
 
   val FullScale = Scale * BitMapSize
 
@@ -193,6 +194,7 @@ case class State(
           if (eaten.contains(p1)) State.eatenApple(dir1).at(p1) // TODO angular apples?
           else if (dir1 == dir2) State.body(dir1).at(p1)
           else State.corners(dir2.opposite -> dir1.opposite).at(p1)
+        case _ => sys.error("impossible")
       }.toSet
 
       // snake.tail.init..zip(directions).flatMap { case (p, direction) =>
