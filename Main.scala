@@ -246,8 +246,8 @@ object State {
   val body = """
 -----
 -----
--****
 ****-
+-****
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
