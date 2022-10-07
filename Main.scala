@@ -38,7 +38,7 @@ object Main {
       }
 
       gui.update(state)
-      turn(Some(Point.up))
+      turn(Some(Point.down))
       turn(None)
       turn(None)
       turn(Some(Point.right))
@@ -46,26 +46,15 @@ object Main {
       turn(None)
       turn(Some(Point.down))
       turn(None)
+      turn(None)
+      turn(None)
+      turn(None)
+      turn(None)
       turn(Some(Point.right))
       turn(None)
       turn(None)
       turn(None)
       turn(None)
-      turn(Some(Point.down))
-      turn(None)
-      turn(None)
-      turn(Some(Point.left))
-      turn(None)
-      turn(None)
-      turn(Some(Point.down))
-      turn(None)
-      turn(Some(Point.left))
-      turn(None)
-      turn(None)
-      turn(Some(Point.up))
-      turn(None)
-      turn(None)
-      turn(Some(Point.left))
       turn(None)
       turn(None)
       Thread.sleep(60000)
@@ -82,8 +71,8 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 12
-  val Scale = 2
+  val SlowDown = 1
+  val Scale = 5
 
   val FullScale = Scale * BitMapSize
 
