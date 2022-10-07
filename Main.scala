@@ -37,7 +37,7 @@ object Main {
       )
 
     def turn(input: Option[Point]) = {
-//      Thread.sleep(1000)
+      Thread.sleep(200)
       state = state.evolve(input)
       gui.update(state)
     }
@@ -51,10 +51,10 @@ object Main {
     turn(Some(Point.down))
     turn(None)
     turn(Some(Point.right))
-    // turn(None)
-    // turn(None)
-    // turn(None)
-    // turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
+    turn(None)
 
 
     Thread.sleep(60000)
@@ -284,14 +284,14 @@ object State {
 --*--
 """
 
-  // GOOD: right-up, down-right, down-left, right-down
+  // GOOD with original sprites: right-up, down-right, down-left, right-down
 
   // going towards the head
   val rightUp = """
---*--
+-----
+---*-
 --**-
---**-
-****-
+-***-
 -----
 """.pipe(Bitmap.parse)
 
