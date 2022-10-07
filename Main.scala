@@ -77,7 +77,7 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 1
+  val SlowDown = 12
   val Scale = 5
 
   val FullScale = Scale * BitMapSize
@@ -187,9 +187,7 @@ case class State(
         case _ => sys.error("impossible")
       }
 
-    // TODO corners code fails to wrap around
     // TODO corners sprites not perfect
-    // GOOD: right-up, down-right, down-left, right-down
     val renderedSnake: Set[Point] = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       State.tail.at(snake.last) ++
@@ -197,17 +195,17 @@ case class State(
         case Vector(p0, p1, p2) =>
           val dir1 = Point((p1.x - p0.x).sign, (p1.y - p0.y).sign)
           val dir2 = Point((p2.x - p1.x).sign, (p2.y - p1.y).sign)
-          if (eaten.contains(p1)) State.eatenApple(dir1).at(p1) // TODO angular apples?
-          else if (dir1 == dir2) State.body(dir1).at(p1)
-          else State.corners(dir2.opposite -> dir1.opposite).at(p1)
+
+          if (eaten.contains(p1))
+            State.eatenApple(dir1).at(p1) // TODO angular apples?
+          else if (dir1.x == dir2.x || dir1.y == dir2.y)
+            State.body(dir1).at(p1)
+          else
+            State.corners(dir2.opposite -> dir1.opposite).at(p1)
         case _ => sys.error("impossible")
       }.toSet
-
-      // snake.tail.init..zip(directions).flatMap { case (p, direction) =>
-      //   if (eaten.contains(p)) State.eatenApple(direction).at(p)
-      //   else State.body(direction).at(p)
-      // }.toSet
     } else Set.empty
+
     val renderedApple = State.apple.at(apple)
 
     (renderedSnake ++ renderedApple)
