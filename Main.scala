@@ -26,7 +26,7 @@ object Main {
     } else {
       var state: State =
         State(
-          Vector.range(0, 33).map(x => Origin.move(Point.left.times(x))),
+          Vector.range(0, 22).map(x => Origin.move(Point.left.times(x))),
           Point.right,
           Point(0, 0)
       )
@@ -162,9 +162,17 @@ case class State(
       State.head(direction).at(snake.head) ++
       snake.sliding(3).toVector.flatMap {
         case Vector(p0, p1, p2) =>
-          val dir1 = Point((p1.x - p0.x).sign, (p1.y - p0.y).sign)
-          val dir2 = Point((p2.x - p1.x).sign, (p2.y - p1.y).sign)
-          // TODO corner logic broken when wrapping around
+          // TODO make a decision on most legible order
+          def direction(head: Point, tail: Point) = {
+            val p = Point((tail.x - head.x), (tail.y - head.y))
+
+            if (p.x != p.x.sign || p.y != p.y.sign) Point(p.x.sign, p.y.sign).opposite
+            else p
+          }
+
+          val dir1 = direction(p0, p1)
+          val dir2 = direction(p1, p2)
+          // TODO logic broken when wrapping around, gets opposite direction
           val body =
             if (eaten.contains(p1))
               State.eatenApple(dir1).at(p1)
