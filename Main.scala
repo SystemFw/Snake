@@ -97,7 +97,8 @@ case class State(
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
-    drawSnake: Boolean = true
+    drawSnake: Boolean = true,
+    openMouth: Boolean = false,
 ) {
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
@@ -118,15 +119,19 @@ case class State(
           advanceOrGrow.copy(eaten = eaten.init)
         else advanceOrGrow
 
+      val aboutToEat =
+        if (discardEaten.snake.head.move(directionNow).wrap(Dimensions) == apple)
+          discardEaten.copy(openMouth = true)
+        else discardEaten.copy(openMouth = false)
 
       val eat =
-        if (discardEaten.snake.head == apple)
-          discardEaten.copy(
-            apple = State.newApple(discardEaten.snake),
-            eaten = discardEaten.apple +: discardEaten.eaten,
-            score = discardEaten.score + 9
+        if (aboutToEat.snake.head == apple)
+          aboutToEat.copy(
+            apple = State.newApple(aboutToEat.snake),
+            eaten = aboutToEat.apple +: aboutToEat.eaten,
+            score = aboutToEat.score + 9
           )
-        else discardEaten
+        else aboutToEat
 
 
       val checkLoss =
@@ -152,33 +157,41 @@ case class State(
 
   def render: Set[Point] = {
     val renderedSnake: Set[Point] = if (drawSnake) {
-      State.head(direction).at(snake.head) ++
-      snake.sliding(3).toVector.flatMap {
-        case Vector(p0, p1, p2) =>
-          def direction(head: Point, tail: Point) = {
-            val p = Point((head.x - tail.x), (head.y - tail.y))
-            val wrapped = Point(p.x.sign, p.y.sign)
+      val head =
+        (if (!openMouth) State.head else State.eatingHead)
+          .apply(direction)
+          .at(snake.head)
 
-            if (p.x != wrapped.x || p.y != wrapped.y) wrapped.opposite
-            else p
-          }
+      val body =
+        snake.sliding(3).toVector.flatMap {
+          case Vector(p0, p1, p2) =>
+            def direction(head: Point, tail: Point) = {
+              val p = Point((head.x - tail.x), (head.y - tail.y))
+              val wrapped = Point(p.x.sign, p.y.sign)
 
-          val dir1 = direction(p0, p1)
-          val dir2 = direction(p1, p2)
+              if (p.x != wrapped.x || p.y != wrapped.y) wrapped.opposite
+              else p
+            }
 
-          val body =
-            if (eaten.contains(p1))
-              State.eatenApple(dir1).at(p1)
-            else if (dir1.x == dir2.x || dir1.y == dir2.y)
-              State.body(dir1).at(p1)
-            else
-              State.corners(dir2 -> dir1).at(p1)
+            val dir1 = direction(p0, p1)
+            val dir2 = direction(p1, p2)
 
-          val tail = if (p2 == snake.last) State.body(dir2).at(p2) else Set.empty
+            val body =
+              if (eaten.contains(p1))
+                State.eatenApple(dir1).at(p1)
+              else if (dir1.x == dir2.x || dir1.y == dir2.y)
+                State.body(dir1).at(p1)
+              else
+                State.corners(dir2 -> dir1).at(p1)
 
-          body ++ tail
-        case _ => sys.error("impossible")
-      }.toSet
+            val tail =
+              if (p2 == snake.last) State.body(dir2).at(p2) else Set.empty
+
+            body ++ tail
+          case _ => sys.error("impossible")
+        }.toSet
+
+      head ++ body
     } else Set.empty
 
     (renderedSnake ++ State.apple.at(apple))
@@ -226,6 +239,14 @@ object State {
 -*-**
 *****
 -----
+""".pipe(Bitmap.parse).pipe(rotations)
+
+  val eatingHead = """
+-----
+--*-*
+-*-*-
+****-
+----*
 """.pipe(Bitmap.parse).pipe(rotations)
 
 
@@ -344,7 +365,8 @@ object Point {
 
 // TODO
 // Fixed size bitmaps are too restrictive and the real game doesn't use
-// them. The alternative appears very complex though
+// them. The alternative appears very complex though: i.e. full-on vectors,
+// shapes, bounding boxes, etc
 
 /** 5x5 bitmaps */
 case class Bitmap(points: Set[Point]) {
