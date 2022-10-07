@@ -82,7 +82,7 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 1
+  val SlowDown = 12
   val Scale = 5
 
   val FullScale = Scale * BitMapSize
@@ -192,21 +192,24 @@ case class State(
         case _ => sys.error("impossible")
       }
 
-    // TODO corners sprites not perfect
     val renderedSnake: Set[Point] = if (drawSnake) {
       State.head(direction).at(snake.head) ++
-      State.tail.at(snake.last) ++
       snake.sliding(3).toVector.flatMap {
         case Vector(p0, p1, p2) =>
           val dir1 = Point((p1.x - p0.x).sign, (p1.y - p0.y).sign)
           val dir2 = Point((p2.x - p1.x).sign, (p2.y - p1.y).sign)
 
-          if (eaten.contains(p1))
-            State.eatenApple(dir1).at(p1) // TODO angular apples?
-          else if (dir1.x == dir2.x || dir1.y == dir2.y)
-            State.body(dir1).at(p1)
-          else
-            State.corners(dir2.opposite -> dir1.opposite).at(p1)
+          val body =
+            if (eaten.contains(p1))
+              State.eatenApple(dir1).at(p1)
+            else if (dir1.x == dir2.x || dir1.y == dir2.y)
+              State.body(dir1).at(p1)
+            else
+              State.corners(dir2.opposite -> dir1.opposite).at(p1)
+
+          val tail = if (p2 == snake.last) State.body(dir2).at(p2) else Set.empty
+
+          body ++ tail
         case _ => sys.error("impossible")
       }.toSet
     } else Set.empty
@@ -262,11 +265,11 @@ object State {
   // TODO add better sprite for tail, maybe just shave from top band
   val tail = """
 -----
---*--
--***-
---*--
 -----
-""".pipe(Bitmap.parse)
+****-
+****-
+-----
+""".pipe(Bitmap.parse).pipe(rotations)
 
 
   val corner = """
