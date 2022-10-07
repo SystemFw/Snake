@@ -242,6 +242,7 @@ object State {
 """.pipe(Bitmap.parse).pipe(rotations)
 
 
+  // TODO should i transpose the two rows instead
   val body = """
 -----
 -----
