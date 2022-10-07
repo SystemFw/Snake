@@ -12,52 +12,12 @@ object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
 
-    //TODO should I just use Vector[Point] instead of Set
+    var state = State.initial
 
-
-    if (SlowDown != 1) {
-      var state = State.initial
-
-      while (true) {
-        Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-        state = state.evolve(gui.getInput)
-        gui.update(state)
-      }
-    } else {
-      var state: State =
-        State(
-          Vector.range(0, 22).map(x => Origin.move(Point.left.times(x))),
-          Point.right,
-          Point(0, 0)
-      )
-
-      def turn(input: Option[Point]) = {
-        Thread.sleep(200)
-        state = state.evolve(input)
-        gui.update(state)
-      }
-
+    while (true) {
+      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+      state = state.evolve(gui.getInput)
       gui.update(state)
-      turn(Some(Point.down))
-      turn(None)
-      turn(None)
-      turn(Some(Point.right))
-      turn(None)
-      turn(None)
-      turn(Some(Point.down))
-      turn(None)
-      turn(None)
-      turn(None)
-      turn(None)
-      turn(None)
-      turn(Some(Point.right))
-      turn(None)
-      turn(None)
-      turn(None)
-      turn(None)
-      turn(None)
-      turn(None)
-      Thread.sleep(60000)
     }
   }
 }
@@ -197,6 +157,9 @@ case class State(
     (renderedSnake ++ State.apple.at(apple))
       .flatMap(_.times(Scale).square(Scale))
   }
+
+  def renderScore: String =
+    String.format("%04d", score)
 }
 object State {
   def initial: State = {
@@ -436,7 +399,7 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(s"${DisplaySize.x} x ${DisplaySize.y} ${state.score} (${state.snake.head.x}, ${state.snake.head.y}) (${state.apple.x}, ${state.apple.y})")
+      score.setText(state.renderScore)
       repaint()
     }
 
