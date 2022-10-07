@@ -74,7 +74,7 @@ object Main {
 }
 
 object Shared {
-  // The snake doesn't the same relative dimensions of the original game,
+  // The snake doesn't have the same relative dimensions of the original game,
   // because it uses fixed size sprites, whereas the game uses variable
   // ones, the dimensions of the game area are calculated so that the
   // snake eats itself at the same score as the original
@@ -309,8 +309,8 @@ object State {
 -----
 -----
 --***
---*--
------
+--**-
+---*-
 """.pipe(Bitmap.parse)
 
     val rightDown = """
