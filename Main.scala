@@ -71,8 +71,8 @@ object Shared {
   val BitMapSize = 5
 
   val FrameRate = 1000 / 120
-  val SlowDown = 1
-  val Scale = 5
+  val SlowDown = 12
+  val Scale = 2
 
   val FullScale = Scale * BitMapSize
 
@@ -151,35 +151,28 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Set[Point] = {
-    val directions =
-      snake.sliding(2).toVector.map {
-        case Vector(Point(x, y), Point(xx, yy)) =>
-          Point((x - xx).sign, (y - yy).sign)
-        case _ => sys.error("impossible")
-      }
-
     val renderedSnake: Set[Point] = if (drawSnake) {
       State.head(direction).at(snake.head) ++
       snake.sliding(3).toVector.flatMap {
         case Vector(p0, p1, p2) =>
-          // TODO make a decision on most legible order
           def direction(head: Point, tail: Point) = {
-            val p = Point((tail.x - head.x), (tail.y - head.y))
+            val p = Point((head.x - tail.x), (head.y - tail.y))
+            val wrapped = Point(p.x.sign, p.y.sign)
 
-            if (p.x != p.x.sign || p.y != p.y.sign) Point(p.x.sign, p.y.sign).opposite
+            if (p.x != wrapped.x || p.y != wrapped.y) wrapped.opposite
             else p
           }
 
           val dir1 = direction(p0, p1)
           val dir2 = direction(p1, p2)
-          // TODO logic broken when wrapping around, gets opposite direction
+
           val body =
             if (eaten.contains(p1))
               State.eatenApple(dir1).at(p1)
             else if (dir1.x == dir2.x || dir1.y == dir2.y)
               State.body(dir1).at(p1)
             else
-              State.corners(dir2.opposite -> dir1.opposite).at(p1)
+              State.corners(dir2 -> dir1).at(p1)
 
           val tail = if (p2 == snake.last) State.body(dir2).at(p2) else Set.empty
 
@@ -188,9 +181,7 @@ case class State(
       }.toSet
     } else Set.empty
 
-    val renderedApple = State.apple.at(apple)
-
-    (renderedSnake ++ renderedApple)
+    (renderedSnake ++ State.apple.at(apple))
       .flatMap(_.times(Scale).square(Scale))
   }
 }
@@ -241,8 +232,8 @@ object State {
   val body = """
 -----
 -----
-****-
 -****
+****-
 -----
 """.pipe(Bitmap.parse).pipe(rotations)
 
@@ -312,7 +303,7 @@ object State {
 -***-
 ---*-
 """
-  ).mapValues(Bitmap.parse).toMap
+  ).view.mapValues(Bitmap.parse).toMap
 }
 
 case class Point(x: Int, y: Int) {
