@@ -41,7 +41,7 @@ object Shared {
   val Origin = Dimensions.divideBy(2)
   val SnakeSize = 6
 
-  val PauseOnLoss = 120
+  val PauseOnLoss = 150
   val FlickerDown = 20
   val FlickerUp = 30
 
