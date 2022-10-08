@@ -138,7 +138,7 @@ case class State(
 
             val body =
               if (eaten.contains(p1))
-                State.eatenApple(dir1).at(p1)
+                State.eatenApple.at(p1)
               else if (dir1.x == dir2.x || dir1.y == dir2.y)
                 State.body(dir1).at(p1)
               else
@@ -186,6 +186,15 @@ object State {
 -----
 """.pipe(Bitmap.parse)
 
+  val eatenApple = """
+--*--
+-***-
+**-**
+-***-
+--*--
+""".pipe(Bitmap.parse)
+
+
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
   def rotations(bitmap: Bitmap): Map[Point, Bitmap] =
@@ -219,14 +228,6 @@ object State {
 -****
 ****-
 -----
-""".pipe(Bitmap.parse).pipe(rotations)
-
-  val eatenApple = """
---*--
--***-
-**-**
--***-
---*--
 """.pipe(Bitmap.parse).pipe(rotations)
 
   // directions relative to going towards the head from the tail
