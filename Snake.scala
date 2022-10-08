@@ -430,7 +430,12 @@ class Gui extends JPanel {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
       image.foreach { point =>
-        g.drawLine(point.x + CanvasBorderSize, point.y + CanvasBorderSize, point.x + CanvasBorderSize, point.y + CanvasBorderSize)
+        g.drawLine(
+          point.x + CanvasBorderSize,
+          point.y + CanvasBorderSize,
+          point.x + CanvasBorderSize,
+          point.y + CanvasBorderSize
+        )
       }
 
     override def getPreferredSize =
