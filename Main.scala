@@ -51,9 +51,6 @@ object Shared {
   val BorderSize = 10
   val ScoreBorderSize = 6
   val CanvasBorderSize = 2
-
-  def p[A](v: A): Unit =
-    scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
 }
 
 case class State(
