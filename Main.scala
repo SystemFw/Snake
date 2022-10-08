@@ -45,6 +45,13 @@ object Shared {
   val FlickerDown = 20
   val FlickerUp = 30
 
+  val BackgroundColor =
+    Color(170, 220, 0)
+
+  val BorderSize = 10
+  val ScoreBorderSize = 6
+  val CanvasBorderSize = 2
+
   def p[A](v: A): Unit =
     scala.concurrent.Future(println(v))(scala.concurrent.ExecutionContext.global)
 }
@@ -391,8 +398,13 @@ class Gui extends JPanel {
     add(s"released $direction") { _ => input = None }
   }
 
+  setBorder(BorderFactory.createEmptyBorder(BorderSize, BorderSize, BorderSize, BorderSize))
+  setBackground(BackgroundColor)
   setLayout(new BorderLayout)
   add(new Canvas, BorderLayout.CENTER)
+  score.setBorder(BorderFactory.createCompoundBorder(
+    BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
+    BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)))
   add(score, BorderLayout.NORTH)
 
   def getInput: Option[Point] = input
@@ -405,14 +417,17 @@ class Gui extends JPanel {
     }
 
   class Canvas extends JComponent {
+    setBorder(BorderFactory.createLineBorder(Color.black, CanvasBorderSize))
+
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
       image.foreach { point =>
         g.drawLine(point.x, point.y, point.x, point.y)
       }
 
+    // TODO top and left sides: border interferes
     override def getPreferredSize =
-      Dimension(DisplaySize.x, DisplaySize.y)
+      Dimension(DisplaySize.x + CanvasBorderSize, DisplaySize.y + CanvasBorderSize)
   }
 }
 object Gui {
