@@ -62,7 +62,7 @@ case class State(
     lostAt: Long = 0,
     time: Long = 0,
     drawSnake: Boolean = true,
-    openMouth: Boolean = false,
+    openMouth: Boolean = false
 ) {
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
@@ -84,7 +84,9 @@ case class State(
         else advanceOrGrow
 
       val aboutToEat =
-        if (discardEaten.snake.head.move(directionNow).wrap(Dimensions) == apple)
+        if (
+          discardEaten.snake.head.move(directionNow).wrap(Dimensions) == apple
+        )
           discardEaten.copy(openMouth = true)
         else discardEaten.copy(openMouth = false)
 
@@ -96,7 +98,6 @@ case class State(
             score = aboutToEat.score + 9
           )
         else aboutToEat
-
 
       val checkLoss =
         if (eat.snake.tail.contains(eat.snake.head)) this.copy(lostAt = time)
@@ -182,7 +183,7 @@ object State {
     else apple
   }
 
-    val apple = """
+  val apple = """
 -----
 --*--
 -*-*-
@@ -197,7 +198,6 @@ object State {
 -***-
 --*--
 """.pipe(Bitmap.parse)
-
 
   // This is rudimentary, since rotation isn't relative, but that's
   // how the original game does it
@@ -225,7 +225,6 @@ object State {
 ----*
 """.pipe(Bitmap.parse).pipe(rotations)
 
-
   val body = """
 -----
 -----
@@ -236,21 +235,21 @@ object State {
 
   // directions relative to going towards the head from the tail
   val corners: Map[(Point, Point), Bitmap] = Map(
-    (Point.right, Point.up) ->  """
+    (Point.right, Point.up) -> """
 --*--
 --**-
 -***-
 ****-
 -----
 """,
-    (Point.up, Point.right) ->  """
+    (Point.up, Point.right) -> """
 -----
 -----
 --***
 --**-
 ---*-
 """,
-    (Point.right, Point.down) ->  """
+    (Point.right, Point.down) -> """
 -----
 -----
 -***-
@@ -264,21 +263,21 @@ object State {
 -***-
 -----
 """,
-    (Point.left, Point.down) ->  """
+    (Point.left, Point.down) -> """
 -----
 -----
 --**-
 --***
 --*--
 """,
-    (Point.down, Point.right) ->  """
+    (Point.down, Point.right) -> """
 ---*-
 --**-
 --***
 --**-
 -----
 """,
-    (Point.left, Point.up) ->  """
+    (Point.left, Point.up) -> """
 --*--
 --**-
 --**-
@@ -357,8 +356,8 @@ case class Bitmap(points: Vector[Point]) {
     Bitmap(points.map(p => Point(size - p.x, p.y)))
 }
 object Bitmap {
-  /**
-    * Takes a bitmap string, with '*' meaning bit set
+
+  /** Takes a bitmap string, with '*' meaning bit set
     */
   def parse(spec: String): Bitmap = Bitmap {
     val matrix = spec.trim.split('\n').map(_.toVector)
@@ -366,15 +365,17 @@ object Bitmap {
     assert(matrix.length == BitMapSize)
     assert(matrix.forall(_.length == matrix.length))
 
-    matrix.zipWithIndex.flatMap { case (line, y) =>
-      line.zipWithIndex.map {
-        case ('*', x) => Some(Point(x, y))
-        case _ => None
+    matrix.zipWithIndex
+      .flatMap { case (line, y) =>
+        line.zipWithIndex.map {
+          case ('*', x) => Some(Point(x, y))
+          case _        => None
+        }
       }
-    }.flatten.toVector
+      .flatten
+      .toVector
   }
 }
-
 
 class Gui extends JPanel {
 
@@ -395,13 +396,23 @@ class Gui extends JPanel {
     add(s"released $direction") { _ => input = None }
   }
 
-  setBorder(BorderFactory.createEmptyBorder(BorderSize, BorderSize, BorderSize, BorderSize))
+  setBorder(
+    BorderFactory.createEmptyBorder(
+      BorderSize,
+      BorderSize,
+      BorderSize,
+      BorderSize
+    )
+  )
   setBackground(BackgroundColor)
   setLayout(new BorderLayout)
   add(new Canvas, BorderLayout.CENTER)
-  score.setBorder(BorderFactory.createCompoundBorder(
-    BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
-    BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)))
+  score.setBorder(
+    BorderFactory.createCompoundBorder(
+      BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
+      BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)
+    )
+  )
   add(score, BorderLayout.NORTH)
 
   def getInput: Option[Point] = input
@@ -424,7 +435,10 @@ class Gui extends JPanel {
 
     // TODO top and left sides: border interferes
     override def getPreferredSize =
-      Dimension(DisplaySize.x + CanvasBorderSize, DisplaySize.y + CanvasBorderSize)
+      Dimension(
+        DisplaySize.x + CanvasBorderSize,
+        DisplaySize.y + CanvasBorderSize
+      )
   }
 }
 object Gui {
