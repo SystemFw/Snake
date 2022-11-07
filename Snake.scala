@@ -115,7 +115,7 @@ case class State(
   def render: Vector[Point] = {
     val renderedSnake: Vector[Point] = if (drawSnake) {
       val head =
-        (if (!openMouth) State.head else State.head)//State.eatingHead)
+        (if (!openMouth) State.head else State.eatingHead)
           .apply(direction)
           .at(snake.head)
 
@@ -194,37 +194,26 @@ object State {
 --*--
 """.pipe(Bitmap.parse)
 
-  // This is rudimentary, since rotation isn't relative, but that's
-  // how the original game does it
-  def rotations(bitmap: Bitmap): Map[Point, Bitmap] =
-    Map(
-      Point.right -> bitmap,
-      Point.left -> bitmap.mirror,
-      Point.up -> bitmap.rotate(-1),
-      Point.down -> bitmap.rotate(1).mirror
-    )
-
   val head = """
 *---
 -**-
 ***-
 ----
-""".pipe(Bitmap.parse).pipe(rotations)
+""".pipe(Bitmap.parse(_).rotations)
 
   val eatingHead = """
------
---*-*
--*-*-
-****-
-----*
-""".pipe(Bitmap.parse).pipe(rotations)
+*-*-
+-*--
+**--
+--*-
+""".pipe(Bitmap.parse(_).rotations)
 
   val body = """
 ----
 **-*
 *-**
 ----
-""".pipe(Bitmap.parse).pipe(rotations)
+""".pipe(Bitmap.parse(_).rotations)
 
   // directions relative to going towards the head from the tail
   val corners: Map[(Point, Point), Bitmap] = Map(
@@ -360,6 +349,15 @@ case class Bitmap(points: Vector[Point]) {
   /** Mirrors, direction akin to turning a page */
   def mirror: Bitmap =
     Bitmap(points.map(p => Point(size - p.x, p.y)))
+
+  /** Game uses absolute rotation */
+  def rotations: Map[Point, Bitmap] =
+    Map(
+      Point.right -> this,
+      Point.left -> mirror,
+      Point.up -> rotate(-1),
+      Point.down -> rotate(1).mirror
+    )
 }
 object Bitmap {
 
