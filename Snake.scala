@@ -25,28 +25,21 @@ object Main {
 }
 
 object Shared {
-  // 84, 48, divided by 4
-  val Dimensions = Point(21, 12)
+  val Resolution = Point(84, 48)
   val BitMapSize = 4
-
   val FrameRate = 1000 / 120
-  val SlowDown = 12 * 6
   val Scale = 2
 
-  val FullScale = Scale * BitMapSize
-
-  val DisplaySize = Dimensions.times(FullScale)
-
+  val Dimensions = Resolution.divideBy(BitMapSize)
   val Origin = Dimensions.divideBy(2)
   val SnakeSize = 6
-
+  val SlowDown = 12
   val PauseOnLoss = 150
   val FlickerDown = 20
   val FlickerUp = 30
 
-  val BackgroundColor =
-    Color(170, 220, 0)
-
+  val DisplaySize = Resolution.times(Scale)
+  val BackgroundColor = Color(170, 220, 0)
   val BorderSize = 10
   val ScoreBorderSize = 6
   val CanvasBorderSize = 2
