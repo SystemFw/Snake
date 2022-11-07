@@ -25,15 +25,12 @@ object Main {
 }
 
 object Shared {
-  // The snake doesn't have the same relative dimensions of the original game,
-  // because it uses fixed size sprites, whereas the game uses variable
-  // ones, the dimensions of the game area are calculated so that the
-  // snake eats itself at the same score as the original
-  val Dimensions = Point(36, 17)
-  val BitMapSize = 5
+  // 84, 48, divided by 4
+  val Dimensions = Point(21, 12)
+  val BitMapSize = 4
 
   val FrameRate = 1000 / 120
-  val SlowDown = 12
+  val SlowDown = 12 * 6
   val Scale = 2
 
   val FullScale = Scale * BitMapSize
@@ -125,7 +122,7 @@ case class State(
   def render: Vector[Point] = {
     val renderedSnake: Vector[Point] = if (drawSnake) {
       val head =
-        (if (!openMouth) State.head else State.eatingHead)
+        (if (!openMouth) State.head else State.head)//State.eatingHead)
           .apply(direction)
           .at(snake.head)
 
@@ -143,13 +140,17 @@ case class State(
             val dir1 = direction(p0, p1)
             val dir2 = direction(p1, p2)
 
+            // val body =
+            //   if (eaten.contains(p1))
+            //     State.eatenApple.at(p1)
+            //   else if (dir1.x == dir2.x || dir1.y == dir2.y)
+            //     State.body(dir1).at(p1)
+            //   else
+            //     State.corners(dir2 -> dir1).at(p1)
+
             val body =
-              if (eaten.contains(p1))
-                State.eatenApple.at(p1)
-              else if (dir1.x == dir2.x || dir1.y == dir2.y)
                 State.body(dir1).at(p1)
-              else
-                State.corners(dir2 -> dir1).at(p1)
+
 
             val tail =
               if (p2 == snake.last) State.body(dir2).at(p2) else Vector.empty
@@ -186,11 +187,10 @@ object State {
   }
 
   val apple = """
------
---*--
--*-*-
---*--
------
+-*--
+*-*-
+-*--
+----
 """.pipe(Bitmap.parse)
 
   val eatenApple = """
@@ -212,11 +212,10 @@ object State {
     )
 
   val head = """
------
---*--
--*-**
-*****
------
+*---
+-**-
+***-
+----
 """.pipe(Bitmap.parse).pipe(rotations)
 
   val eatingHead = """
@@ -228,11 +227,10 @@ object State {
 """.pipe(Bitmap.parse).pipe(rotations)
 
   val body = """
------
------
--****
-****-
------
+----
+**-*
+*-**
+----
 """.pipe(Bitmap.parse).pipe(rotations)
 
   // directions relative to going towards the head from the tail
@@ -364,8 +362,8 @@ object Bitmap {
   def parse(spec: String): Bitmap = Bitmap {
     val matrix = spec.trim.split('\n').map(_.toVector)
 
-    assert(matrix.length == BitMapSize)
-    assert(matrix.forall(_.length == matrix.length))
+    // assert(matrix.length == BitMapSize)
+    // assert(matrix.forall(_.length == matrix.length))
 
     matrix.zipWithIndex
       .flatMap { case (line, y) =>
