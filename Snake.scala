@@ -308,7 +308,7 @@ case class Point(x: Int, y: Int) {
     times(-1)
 
   def square(side: Int): Vector[Point] =
-    0.to(side).flatMap(x => 0.to(side).map(y => move(Point(x, y)))).toVector
+    0.until(side).flatMap(x => 0.until(side).map(y => move(Point(x, y)))).toVector
 
   def wrap(limit: Point) =
     Point(Point.wrap(x, limit.x), Point.wrap(y, limit.y))
