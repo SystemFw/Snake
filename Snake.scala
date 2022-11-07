@@ -330,11 +330,23 @@ object Point {
     n.sign.min(0).abs * limit + (n % limit)
 }
 
+
+// case class Bitmap(points: Vector[Point]) {
+//   def at(p: Point): Vector[Point] =
+//     points.map(p.times(BitMapSize).move(_))
+// }
+// object Bitmap {
+//   def apply(mask: String) =
+//     mask
+//       .filterNot(_.isWhitespace)
+//       .zipWithIndex
+//       .collect { case ('*', i) => Point(i % BitMapSize, i / BitMapSize) }
+//       .pipe(Bitmap(_))
+// }
 // TODO
 // Fixed size bitmaps are too restrictive and the real game doesn't use
 // them. The alternative appears very complex though: i.e. full-on vectors,
 // shapes, bounding boxes, etc
-
 /** 5x5 bitmaps */
 case class Bitmap(points: Vector[Point]) {
   val size = BitMapSize - 1
