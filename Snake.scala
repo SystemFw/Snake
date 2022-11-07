@@ -329,13 +329,14 @@ object Point {
 //     points.map(p.times(BitMapSize).move(_))
 // }
 // object Bitmap {
-//   def apply(mask: String) =
+//   def parse(mask: String) =
 //     mask
 //       .filterNot(_.isWhitespace)
 //       .zipWithIndex
 //       .collect { case ('*', i) => Point(i % BitMapSize, i / BitMapSize) }
 //       .pipe(Bitmap(_))
 // }
+
 // TODO
 // Fixed size bitmaps are too restrictive and the real game doesn't use
 // them. The alternative appears very complex though: i.e. full-on vectors,
@@ -467,3 +468,115 @@ object Gui {
     gui
   }
 }
+
+object Assets {
+    val apple = """
+-*--
+*-*-
+-*--
+----
+""".pipe(Bitmap.parse)
+
+  val eatenApple = """
+--*--
+-***-
+**-**
+-***-
+--*--
+""".pipe(Bitmap.parse)
+
+  // This is rudimentary, since rotation isn't relative, but that's
+  // how the original game does it
+  def rotations(bitmap: Bitmap): Map[Point, Bitmap] =
+    Map(
+      Point.right -> bitmap,
+      Point.left -> bitmap.mirror,
+      Point.up -> bitmap.rotate(-1),
+      Point.down -> bitmap.rotate(1).mirror
+    )
+
+  val head = """
+*---
+-**-
+***-
+----
+""".pipe(Bitmap.parse).pipe(rotations)
+
+  val eatingHead = """
+-----
+--*-*
+-*-*-
+****-
+----*
+""".pipe(Bitmap.parse).pipe(rotations)
+
+  val body = """
+----
+**-*
+*-**
+----
+""".pipe(Bitmap.parse).pipe(rotations)
+
+  // directions relative to going towards the head from the tail
+  val corners: Map[(Point, Point), Bitmap] = Map(
+    (Point.right, Point.up) -> """
+--*--
+--**-
+-***-
+****-
+-----
+""",
+    (Point.up, Point.right) -> """
+-----
+-----
+--***
+--**-
+---*-
+""",
+    (Point.right, Point.down) -> """
+-----
+-----
+-***-
+****-
+--*--
+""",
+    (Point.down, Point.left) -> """
+---*-
+--**-
+****-
+-***-
+-----
+""",
+    (Point.left, Point.down) -> """
+-----
+-----
+--**-
+--***
+--*--
+""",
+    (Point.down, Point.right) -> """
+---*-
+--**-
+--***
+--**-
+-----
+""",
+    (Point.left, Point.up) -> """
+--*--
+--**-
+--**-
+--***
+-----
+""",
+    (Point.up, Point.left) -> """
+-----
+-----
+****-
+-***-
+---*-
+"""
+  ).view.mapValues(Bitmap.parse).toMap
+}
+
+
+
