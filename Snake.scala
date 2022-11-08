@@ -271,8 +271,10 @@ case class Point(x: Int, y: Int) {
   def square(side: Int): Vector[Point] =
     0.until(side).flatMap(x => 0.until(side).map(y => move(Point(x, y)))).toVector
 
-  def wrap(limit: Point) =
-    Point(Point.wrap(x, limit.x), Point.wrap(y, limit.y))
+  def wrap(limit: Point) = {
+    def f(n: Int, limit: Int) = n.sign.min(0).abs * limit + (n % limit)
+    Point(f(x, limit.x), f(y, limit.y))
+  }
 }
 object Point {
   def up: Point = Point(0, -1)
@@ -286,9 +288,6 @@ object Point {
     "LEFT" -> left,
     "RIGHT" -> right
   )
-
-  def wrap(n: Int, limit: Int): Int =
-    n.sign.min(0).abs * limit + (n % limit)
 }
 
 // TODO maybe rename to sprite, depends on name of (position, direction) entity
