@@ -26,7 +26,7 @@ object Main {
 
 object Shared {
   val Resolution = Point(84, 48)
-  val BitMapSize = 4
+  val BitMapSize = 4 // TODO maybe rename to sprite size
   val FrameRate = 1000 / 120
   val Scale = 2
 
@@ -56,8 +56,10 @@ case class State(
     drawSnake: Boolean = true,
     openMouth: Boolean = false
 ) {
+  // TODO make input not Optional
   def evolve(nextDirection: Option[Point]): State = {
     def move = {
+      // TODO track direction with separate class
       val directionNow =
         nextDirection.filter(_ != direction.opposite).getOrElse(direction)
 
@@ -119,6 +121,9 @@ case class State(
           .apply(direction)
           .at(snake.head)
 
+      // TODO compute tail in advance
+
+      // TODO once direction is tracked, this should be a sliding(2), and simpler
       val body =
         snake.sliding(3).flatMap {
           case Vector(p0, p1, p2) =>
@@ -130,9 +135,11 @@ case class State(
               else p
             }
 
+            // TODO better names for these, e.g. "from", "to"
             val dir1 = direction(p0, p1)
             val dir2 = direction(p1, p2)
 
+            // TODO full corners
             val body =
               if (eaten.contains(p1))
                 State.bodyFull(dir1).at(p1)
@@ -174,6 +181,59 @@ object State {
     if (snake.contains(apple)) newApple(snake)
     else apple
   }
+
+  // TODO add transformed versions
+  // TODO the absolute ones can be done with (p1, p1)
+  val sprites = Map(
+    "apple" -> """
+-*--
+*-*-
+-*--
+----
+""",
+
+    "head" -> """
+*---
+-**-
+***-
+----
+""",
+
+    "headOpen" -> """
+*-*-
+-*--
+**--
+--*-
+""",
+
+    "body" -> """
+----
+**-*
+*-**
+----
+""",
+
+    "bodyFull" -> """
+-**-
+**-*
+*-**
+-**-
+""",
+
+  "tail" -> """
+----
+--**
+****
+----
+""",
+
+ "turn" -> """
+-**-
+*-*-
+**--
+----
+"""
+  )
 
   val apple = """
 -*--
@@ -273,12 +333,15 @@ object Point {
     n.sign.min(0).abs * limit + (n % limit)
 }
 
+// TODO maybe rename to sprite, depends on name of (position, direction) entity
 case class Bitmap(points: Vector[Point]) {
   val size = BitMapSize - 1
 
   def at(p: Point): Vector[Point] =
     points.map(p.times(BitMapSize).move(_))
 
+
+  // TODO change this to anti and clock methods
   /** rotate by 90 degrees, n times, +/- = clockwise/anticlockwise */
   def rotate(n: Int): Bitmap = Bitmap {
     def go(points: Vector[Point], times: Int): Vector[Point] =
@@ -288,6 +351,7 @@ case class Bitmap(points: Vector[Point]) {
     go(points, Point.wrap(n, 4))
   }
 
+  // TODO rename these to mirrorY and mirrorX
   /** Mirrors, direction akin to turning a page */
   def mirror: Bitmap =
     Bitmap(points.map(p => Point(size - p.x, p.y)))
@@ -295,6 +359,7 @@ case class Bitmap(points: Vector[Point]) {
   def mirror2: Bitmap =
     Bitmap(points.map(p => Point(p.x, size - p.y)))
 
+  // TODO inline these in sprite transform
   /** Game uses absolute rotation */
   def rotations: Map[Point, Bitmap] =
     Map(
