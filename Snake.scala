@@ -26,11 +26,11 @@ object Main {
 
 object Shared {
   val Resolution = Point(84, 48)
-  val BitMapSize = 4 // TODO maybe rename to sprite size
+  val SpriteSize = 4
   val FrameRate = 1000 / 120
   val Scale = 2
 
-  val Dimensions = Resolution.times(1 / BitMapSize.toDouble)
+  val Dimensions = Resolution.times(1 / SpriteSize.toDouble)
   val Origin = Dimensions.times(0.5)
   val SnakeSize = 6
   val SlowDown = 12
@@ -184,27 +184,27 @@ object State {
     else apple
   }
 
-  def bitmap(mask: String) = {
-    val img = Bitmap.parse(mask)
+  def sprite(mask: String) = {
+    val sprite = Sprite.parse(mask)
     Map(
-      Point.right -> img,
-      Point.left -> img.mirrorY,
-      Point.up -> img.anti,
-      Point.down -> img.clock.mirrorY
+      Point.right -> sprite,
+      Point.left -> sprite.mirrorY,
+      Point.up -> sprite.anti,
+      Point.down -> sprite.clock.mirrorY
     )
   }
 
-  def cornerBitmap(mask: String) = {
-    val img = Bitmap.parse(mask)
+  def cornerSprite(mask: String) = {
+    val sprite = Sprite.parse(mask)
     Map(
-      (Point.right, Point.up) -> img,
-      (Point.down, Point.left) -> img,
-      (Point.down, Point.right) -> img.mirrorY,
-      (Point.left, Point.up) -> img.mirrorY,
-      (Point.right, Point.down) -> img.anti,
-      (Point.up, Point.left) -> img.anti,
-      (Point.up, Point.right) -> img.clock.mirrorX,
-      (Point.left, Point.down) -> img.clock.mirrorX
+      (Point.right, Point.up) -> sprite,
+      (Point.down, Point.left) -> sprite,
+      (Point.down, Point.right) -> sprite.mirrorY,
+      (Point.left, Point.up) -> sprite.mirrorY,
+      (Point.right, Point.down) -> sprite.anti,
+      (Point.up, Point.left) -> sprite.anti,
+      (Point.up, Point.right) -> sprite.clock.mirrorX,
+      (Point.left, Point.down) -> sprite.clock.mirrorX
      )
   }
 
@@ -213,49 +213,77 @@ object State {
 *-*-
 -*--
 ----
-""".pipe(Bitmap.parse)
+""".pipe(Sprite.parse)
 
   val head = """
 *---
 -**-
 ***-
 ----
-""".pipe(bitmap)
+""".pipe(sprite)
 
   val headOpen = """
 *-*-
 -*--
 **--
 --*-
-""".pipe(bitmap)
+""".pipe(sprite)
 
   val body = """
 ----
 **-*
 *-**
 ----
-""".pipe(bitmap)
+""".pipe(sprite)
 
     val bodyFull = """
 -**-
 **-*
 *-**
 -**-
-""".pipe(bitmap)
+""".pipe(sprite)
 
   val tail = """
 ----
 --**
 ****
 ----
-""".pipe(bitmap)
+""".pipe(sprite)
 
   val turn = """
 -**-
 *-*-
 **--
 ----
-""".pipe(cornerBitmap)
+""".pipe(cornerSprite)
+}
+
+case class Sprite(points: Vector[Point]) {
+  val size = SpriteSize - 1
+
+  def at(p: Point): Vector[Point] =
+    points.map(p.times(SpriteSize).move(_))
+
+  def clock: Sprite =
+    Sprite(points.map(p => Point(size - p.y, p.x)))
+
+  def anti: Sprite =
+    Sprite(points.map(p => Point(p.y, size - p.x)))
+
+  def mirrorY: Sprite =
+    Sprite(points.map(p => Point(size - p.x, p.y)))
+
+  def mirrorX: Sprite =
+    Sprite(points.map(p => Point(p.x, size - p.y)))
+}
+object Sprite {
+  /** Takes a 4x4 sprite string, with '*' meaning bit set */
+  def parse(mask: String) =
+    mask
+      .filterNot(_.isWhitespace)
+      .zipWithIndex
+      .collect { case ('*', i) => Point(i % SpriteSize, i / SpriteSize) }
+      .pipe(points => Sprite(points.toVector))
 }
 
 case class Point(x: Int, y: Int) {
@@ -288,35 +316,6 @@ object Point {
     "LEFT" -> left,
     "RIGHT" -> right
   )
-}
-
-// TODO maybe rename to sprite, depends on name of (position, direction) entity
-case class Bitmap(points: Vector[Point]) {
-  val size = BitMapSize - 1
-
-  def at(p: Point): Vector[Point] =
-    points.map(p.times(BitMapSize).move(_))
-
-  def clock: Bitmap =
-    Bitmap(points.map(p => Point(size - p.y, p.x)))
-
-  def anti: Bitmap =
-    Bitmap(points.map(p => Point(p.y, size - p.x)))
-
-  def mirrorY: Bitmap =
-    Bitmap(points.map(p => Point(size - p.x, p.y)))
-
-  def mirrorX: Bitmap =
-    Bitmap(points.map(p => Point(p.x, size - p.y)))
-}
-object Bitmap {
-  /** Takes a bitmap string, with '*' meaning bit set */
-  def parse(mask: String) =
-    mask
-      .filterNot(_.isWhitespace)
-      .zipWithIndex
-      .collect { case ('*', i) => Point(i % BitMapSize, i / BitMapSize) }
-      .pipe(points => Bitmap(points.toVector))
 }
 
 class Gui extends JPanel {
