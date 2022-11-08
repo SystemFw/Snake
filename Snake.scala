@@ -226,26 +226,24 @@ object State {
 
   // directions relative to going towards the head from the tail
   val corners: Map[(Point, Point), Bitmap] = Map(
-    (Point.right, Point.up) -> turn(Point.right), // OK
+    (Point.right, Point.up) -> turn(Point.right),
+    (Point.down, Point.left) -> turn(Point.right),
+    (Point.down, Point.right) -> turn(Point.left),
+    (Point.left, Point.up) -> turn(Point.left),
+    (Point.right, Point.down) -> turn(Point.up),
+    (Point.up, Point.left) -> turn(Point.up),
     (Point.up, Point.right) -> Bitmap.parse("""
 ----
 --**
 -*-*
 -**-
-"""), // turn0
-      // turn(Point.right), // NO
-    (Point.right, Point.down) -> turn(Point.up), // OK
-    (Point.down, Point.left) -> turn(Point.right) , // OK
+"""),
     (Point.left, Point.down) ->Bitmap.parse("""
 ----
 --**
 -*-*
 -**-
-"""),
-      // turn(Point.down), // NO
-    (Point.down, Point.right) -> turn(Point.left), // OK
-    (Point.left, Point.up) -> turn(Point.left), // OK
-    (Point.up, Point.left) -> turn(Point.up) // OK
+""")
   )
 }
 
