@@ -117,7 +117,7 @@ case class State(
   def render: Vector[Point] = {
     val renderedSnake: Vector[Point] = if (drawSnake) {
       val head =
-        (if (!openMouth) State.head else State.eatingHead)
+        (if (!openMouth) State.head else State.headOpen)
           .apply(direction)
           .at(snake.head)
 
@@ -222,7 +222,7 @@ object State {
 ----
 """.pipe(bitmap)
 
-  val eatingHead = """
+  val headOpen = """
 *-*-
 -*--
 **--
