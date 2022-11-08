@@ -15,10 +15,12 @@ object Main {
     val gui = Gui.start
 
     var state = State.initial
+    var input = State.initial.direction
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-      state = state.evolve(gui.getInput)
+      input = gui.getInput.getOrElse(input)
+      state = state.evolve(input)
       gui.update(state)
     }
   }
@@ -57,11 +59,12 @@ case class State(
     openMouth: Boolean = false
 ) {
   // TODO make input not Optional
-  def evolve(nextDirection: Option[Point]): State = {
+  def evolve(nextDirection: Point): State = {
     def move = {
       // TODO track direction with separate class
       val directionNow =
-        nextDirection.filter(_ != direction.opposite).getOrElse(direction)
+        if (nextDirection != direction.opposite) nextDirection
+        else direction
 
       val advanceOrGrow =
         copy(
