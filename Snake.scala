@@ -222,7 +222,7 @@ object State {
 *-*-
 **--
 ----
-""".pipe(Bitmap.parse(_).rotations)
+""".pipe(Bitmap.parse(_).rotations2)
 
   // directions relative to going towards the head from the tail
   val corners: Map[(Point, Point), Bitmap] = Map(
@@ -232,18 +232,8 @@ object State {
     (Point.left, Point.up) -> turn(Point.left),
     (Point.right, Point.down) -> turn(Point.up),
     (Point.up, Point.left) -> turn(Point.up),
-    (Point.up, Point.right) -> Bitmap.parse("""
-----
---**
--*-*
--**-
-"""),
-    (Point.left, Point.down) ->Bitmap.parse("""
-----
---**
--*-*
--**-
-""")
+    (Point.up, Point.right) -> turn(Point.down),
+    (Point.left, Point.down) -> turn(Point.down)
   )
 }
 
@@ -302,6 +292,9 @@ case class Bitmap(points: Vector[Point]) {
   def mirror: Bitmap =
     Bitmap(points.map(p => Point(size - p.x, p.y)))
 
+  def mirror2: Bitmap =
+    Bitmap(points.map(p => Point(p.x, size - p.y)))
+
   /** Game uses absolute rotation */
   def rotations: Map[Point, Bitmap] =
     Map(
@@ -310,6 +303,15 @@ case class Bitmap(points: Vector[Point]) {
       Point.up -> rotate(-1),
       Point.down -> rotate(1).mirror
     )
+
+  def rotations2: Map[Point, Bitmap] =
+    Map(
+      Point.right -> this,
+      Point.left -> mirror,
+      Point.up -> rotate(-1),
+      Point.down -> rotate(1).mirror2
+    )
+
 }
 object Bitmap {
   /** Takes a bitmap string, with '*' meaning bit set */
