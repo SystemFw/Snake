@@ -186,27 +186,25 @@ object State {
 
   def bitmap(mask: String) = {
     val img = Bitmap.parse(mask)
-
     Map(
       Point.right -> img,
-      Point.left -> img.mirror,
-      Point.up -> img.rotate(-1),
-      Point.down -> img.rotate(1).mirror
+      Point.left -> img.mirrorY,
+      Point.up -> img.anti,
+      Point.down -> img.clock.mirrorY
     )
   }
 
   def cornerBitmap(mask: String) = {
     val img = Bitmap.parse(mask)
-
     Map(
       (Point.right, Point.up) -> img,
       (Point.down, Point.left) -> img,
-      (Point.down, Point.right) -> img.mirror,
-      (Point.left, Point.up) -> img.mirror,
-      (Point.right, Point.down) -> img.rotate(-1),
-      (Point.up, Point.left) -> img.rotate(-1),
-      (Point.up, Point.right) -> img.rotate(1).mirror2,
-      (Point.left, Point.down) -> img.rotate(1).mirror2
+      (Point.down, Point.right) -> img.mirrorY,
+      (Point.left, Point.up) -> img.mirrorY,
+      (Point.right, Point.down) -> img.anti,
+      (Point.up, Point.left) -> img.anti,
+      (Point.up, Point.right) -> img.clock.mirrorX,
+      (Point.left, Point.down) -> img.clock.mirrorX
      )
   }
 
@@ -303,23 +301,16 @@ case class Bitmap(points: Vector[Point]) {
   def at(p: Point): Vector[Point] =
     points.map(p.times(BitMapSize).move(_))
 
+  def clock: Bitmap =
+    Bitmap(points.map(p => Point(size - p.y, p.x)))
 
-  // TODO change this to anti and clock methods
-  /** rotate by 90 degrees, n times, +/- = clockwise/anticlockwise */
-  def rotate(n: Int): Bitmap = Bitmap {
-    def go(points: Vector[Point], times: Int): Vector[Point] =
-      if (times == 0) points
-      else go(points.map(p => Point(size - p.y, p.x)), times - 1)
+  def anti: Bitmap =
+    Bitmap(points.map(p => Point(p.y, size - p.x)))
 
-    go(points, Point.wrap(n, 4))
-  }
-
-  // TODO rename these to mirrorY and mirrorX
-  /** Mirrors, direction akin to turning a page */
-  def mirror: Bitmap =
+  def mirrorY: Bitmap =
     Bitmap(points.map(p => Point(size - p.x, p.y)))
 
-  def mirror2: Bitmap =
+  def mirrorX: Bitmap =
     Bitmap(points.map(p => Point(p.x, size - p.y)))
 }
 object Bitmap {
