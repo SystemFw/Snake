@@ -138,18 +138,20 @@ case class State(
             // TODO better names for these, e.g. "from", "to"
             val dir1 = direction(p0, p1)
             val dir2 = direction(p1, p2)
+            val from = direction(p1, p2)
+            val to = direction(p0, p1)
 
             // TODO full corners
             val body =
               if (eaten.contains(p1))
-                State.bodyFull(dir1).at(p1)
-              else if (dir1.x == dir2.x || dir1.y == dir2.y)
-                State.body(dir1).at(p1)
+                State.bodyFull(to).at(p1)
+              else if (to.x == from.x || to.y == from.y)
+                State.body(to).at(p1)
               else
-                State.corners(dir2 -> dir1).at(p1)
+                State.corners(from -> to).at(p1)
 
             val tail =
-              if (p2 == snake.last) State.tail(dir2).at(p2) else Vector.empty
+              if (p2 == snake.last) State.tail(from).at(p2) else Vector.empty
 
             body ++ tail
           case _ => sys.error("impossible")
@@ -493,5 +495,3 @@ object Gui {
     gui
   }
 }
-
-
