@@ -255,6 +255,18 @@ object State {
 """.pipe(cornerSprite)
 }
 
+case class Entity(position: Point, direction: Point) {
+  def move(nextDirection: Point) = {
+    val directionNow =
+      if (nextDirection != direction.opposite) nextDirection
+      else direction
+    Entity(
+      position.move(directionNow).wrap(Dimensions),
+      directionNow
+    )
+  }
+}
+
 case class Sprite(points: Vector[Point]) {
   val size = SpriteSize - 1
 
