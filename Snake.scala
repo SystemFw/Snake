@@ -259,14 +259,9 @@ object State {
 }
 
 case class Entity(position: Point, direction: Point) {
-  def move(nextDirection: Point) = {
-    val directionNow =
-      if (nextDirection != direction.opposite) nextDirection
-      else direction
-    Entity(
-      position.move(directionNow).wrap(Dimensions),
-      directionNow
-    )
+  def move(next: Point) = {
+    val whereNow = if (next.direction != direction.opposite) next else direction
+    Entity(position.move(whereNow).wrap(Dimensions), whereNow.direction)
   }
 }
 
@@ -299,14 +294,13 @@ object Sprite {
 }
 
 case class Point(x: Int, y: Int) {
-  def move(to: Point): Point =
-    Point(x + to.x, y + to.y)
+  def move(to: Point): Point = Point(x + to.x, y + to.y)
 
-  def times(k: Double): Point =
-    Point((x * k).toInt, (y * k).toInt)
+  def times(k: Double): Point = Point((x * k).toInt, (y * k).toInt)
 
-  def opposite: Point =
-    times(-1)
+  def opposite: Point = times(-1)
+
+  def direction: Point = Point(x.sign, y.sign)
 
   def square(side: Int): Vector[Point] =
     0.until(side).flatMap(x => 0.until(side).map(y => move(Point(x, y)))).toVector
