@@ -233,7 +233,27 @@ object State {
 **--
 ----
 """
-  )
+  ).map { case (name, mask) =>
+    val bitmap = Bitmap.parse(name)
+
+    if (name == "turn" || name == "turnFull")
+      Map(
+        (Point.right, Point.up) -> bitmap,
+        (Point.down, Point.left) -> bitmap,
+        (Point.down, Point.right) -> bitmap.mirror,
+        (Point.left, Point.up) -> bitmap.mirror,
+        (Point.right, Point.down) -> bitmap.rotate(-1),
+        (Point.up, Point.left) -> bitmap.rotate(-1),
+        (Point.up, Point.right) -> bitmap.rotate(1).mirror2,
+        (Point.left, Point.down) -> bitmap.rotate(1).mirror2
+      )
+    else Map(
+      Point.right -> bitmap,
+      Point.left -> bitmap.mirror,
+      Point.up -> bitmap.rotate(-1),
+      Point.down -> bitmap.rotate(1).mirror
+    ).map { case (k, v) => (k, k) -> v }
+  }
 
   val apple = """
 -*--
