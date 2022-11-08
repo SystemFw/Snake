@@ -30,8 +30,8 @@ object Shared {
   val FrameRate = 1000 / 120
   val Scale = 2
 
-  val Dimensions = Resolution.divideBy(BitMapSize)
-  val Origin = Dimensions.divideBy(2)
+  val Dimensions = Resolution.times(1 / BitMapSize.toDouble)
+  val Origin = Dimensions.times(0.5)
   val SnakeSize = 6
   val SlowDown = 12
   val PauseOnLoss = 150
@@ -262,11 +262,8 @@ case class Point(x: Int, y: Int) {
   def move(to: Point): Point =
     Point(x + to.x, y + to.y)
 
-  def times(k: Int): Point =
-    Point(x * k, y * k)
-
-  def divideBy(k: Int): Point =
-    Point(x / k, y / k)
+  def times(k: Double): Point =
+    Point((x * k).toInt, (y * k).toInt)
 
   def opposite: Point =
     times(-1)
