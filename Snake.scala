@@ -133,18 +133,13 @@ case class State(
             val dir1 = direction(p0, p1)
             val dir2 = direction(p1, p2)
 
-            // val body =
-            //   if (eaten.contains(p1))
-            // State.bodyFull(dir1).at(p1)
-            //   else if (dir1.x == dir2.x || dir1.y == dir2.y)
-            //     State.body(dir1).at(p1)
-            //   else
-            //     State.corners(dir2 -> dir1).at(p1)
-
             val body =
               if (eaten.contains(p1))
                 State.bodyFull(dir1).at(p1)
-              else State.body(dir1).at(p1)
+              else if (dir1.x == dir2.x || dir1.y == dir2.y)
+                State.body(dir1).at(p1)
+              else
+                State.corners(dir2 -> dir1).at(p1)
 
             val tail =
               if (p2 == snake.last) State.tail(dir2).at(p2) else Vector.empty
@@ -222,66 +217,24 @@ object State {
 ----
 """.pipe(Bitmap.parse(_).rotations)
 
+  val turn = """
+-**-
+*-*-
+**--
+----
+""".pipe(Bitmap.parse(_).rotations)
 
   // directions relative to going towards the head from the tail
   val corners: Map[(Point, Point), Bitmap] = Map(
-    (Point.right, Point.up) -> """
---*--
---**-
--***-
-****-
------
-""",
-    (Point.up, Point.right) -> """
------
------
---***
---**-
----*-
-""",
-    (Point.right, Point.down) -> """
------
------
--***-
-****-
---*--
-""",
-    (Point.down, Point.left) -> """
----*-
---**-
-****-
--***-
------
-""",
-    (Point.left, Point.down) -> """
------
------
---**-
---***
---*--
-""",
-    (Point.down, Point.right) -> """
----*-
---**-
---***
---**-
------
-""",
-    (Point.left, Point.up) -> """
---*--
---**-
---**-
---***
------
-""",
-    (Point.up, Point.left) -> """
------
------
-****-
--***-
----*-
-"""
-  ).view.mapValues(Bitmap.parse).toMap
+    (Point.right, Point.up) -> turn(Point.right), // OK
+    (Point.up, Point.right) -> turn(Point.right), // NO
+    (Point.right, Point.down) -> turn(Point.up), // OK
+    (Point.down, Point.left) -> turn(Point.right) , // OK
+    (Point.left, Point.down) -> turn(Point.down), // NO
+    (Point.down, Point.right) -> turn(Point.left), // OK
+    (Point.left, Point.up) -> turn(Point.left), // OK
+    (Point.up, Point.left) -> turn(Point.up) // OK
+  )
 }
 
 case class Point(x: Int, y: Int) {
