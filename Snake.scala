@@ -148,7 +148,7 @@ case class State(
               else if (to.x == from.x || to.y == from.y)
                 State.body(to).at(p1)
               else
-                State.corners(from -> to).at(p1)
+                State.turn(from -> to).at(p1)
 
             val tail =
               if (p2 == snake.last) State.tail(from).at(p2) else Vector.empty
@@ -184,77 +184,30 @@ object State {
     else apple
   }
 
-  // TODO add transformed versions
-  // TODO the absolute ones can be done with (p1, p1)
-  val sprites = Map(
-    "apple" -> """
--*--
-*-*-
--*--
-----
-""",
+  def bitmap(mask: String) = {
+    val img = Bitmap.parse(mask)
 
-    "head" -> """
-*---
--**-
-***-
-----
-""",
+    Map(
+      Point.right -> img,
+      Point.left -> img.mirror,
+      Point.up -> img.rotate(-1),
+      Point.down -> img.rotate(1).mirror
+    )
+  }
 
-    "headOpen" -> """
-*-*-
--*--
-**--
---*-
-""",
+  def cornerBitmap(mask: String) = {
+    val img = Bitmap.parse(mask)
 
-    "body" -> """
-----
-**-*
-*-**
-----
-""",
-
-    "bodyFull" -> """
--**-
-**-*
-*-**
--**-
-""",
-
-  "tail" -> """
-----
---**
-****
-----
-""",
-
- "turn" -> """
--**-
-*-*-
-**--
-----
-"""
-  ).map { case (name, mask) =>
-    val bitmap = Bitmap.parse(name)
-
-    if (name == "turn" || name == "turnFull")
-      Map(
-        (Point.right, Point.up) -> bitmap,
-        (Point.down, Point.left) -> bitmap,
-        (Point.down, Point.right) -> bitmap.mirror,
-        (Point.left, Point.up) -> bitmap.mirror,
-        (Point.right, Point.down) -> bitmap.rotate(-1),
-        (Point.up, Point.left) -> bitmap.rotate(-1),
-        (Point.up, Point.right) -> bitmap.rotate(1).mirror2,
-        (Point.left, Point.down) -> bitmap.rotate(1).mirror2
-      )
-    else Map(
-      Point.right -> bitmap,
-      Point.left -> bitmap.mirror,
-      Point.up -> bitmap.rotate(-1),
-      Point.down -> bitmap.rotate(1).mirror
-    ).map { case (k, v) => (k, k) -> v }
+    Map(
+      (Point.right, Point.up) -> img,
+      (Point.down, Point.left) -> img,
+      (Point.down, Point.right) -> img.mirror,
+      (Point.left, Point.up) -> img.mirror,
+      (Point.right, Point.down) -> img.rotate(-1),
+      (Point.up, Point.left) -> img.rotate(-1),
+      (Point.up, Point.right) -> img.rotate(1).mirror2,
+      (Point.left, Point.down) -> img.rotate(1).mirror2
+     )
   }
 
   val apple = """
@@ -269,54 +222,42 @@ object State {
 -**-
 ***-
 ----
-""".pipe(Bitmap.parse(_).rotations)
+""".pipe(bitmap)
 
   val eatingHead = """
 *-*-
 -*--
 **--
 --*-
-""".pipe(Bitmap.parse(_).rotations)
+""".pipe(bitmap)
 
   val body = """
 ----
 **-*
 *-**
 ----
-""".pipe(Bitmap.parse(_).rotations)
+""".pipe(bitmap)
 
     val bodyFull = """
 -**-
 **-*
 *-**
 -**-
-""".pipe(Bitmap.parse(_).rotations)
+""".pipe(bitmap)
 
   val tail = """
 ----
 --**
 ****
 ----
-""".pipe(Bitmap.parse(_).rotations)
+""".pipe(bitmap)
 
   val turn = """
 -**-
 *-*-
 **--
 ----
-""".pipe(Bitmap.parse(_).rotations2)
-
-  // directions relative to going towards the head from the tail
-  val corners: Map[(Point, Point), Bitmap] = Map(
-    (Point.right, Point.up) -> turn(Point.right),
-    (Point.down, Point.left) -> turn(Point.right),
-    (Point.down, Point.right) -> turn(Point.left),
-    (Point.left, Point.up) -> turn(Point.left),
-    (Point.right, Point.down) -> turn(Point.up),
-    (Point.up, Point.left) -> turn(Point.up),
-    (Point.up, Point.right) -> turn(Point.down),
-    (Point.left, Point.down) -> turn(Point.down)
-  )
+""".pipe(cornerBitmap)
 }
 
 case class Point(x: Int, y: Int) {
@@ -380,25 +321,6 @@ case class Bitmap(points: Vector[Point]) {
 
   def mirror2: Bitmap =
     Bitmap(points.map(p => Point(p.x, size - p.y)))
-
-  // TODO inline these in sprite transform
-  /** Game uses absolute rotation */
-  def rotations: Map[Point, Bitmap] =
-    Map(
-      Point.right -> this,
-      Point.left -> mirror,
-      Point.up -> rotate(-1),
-      Point.down -> rotate(1).mirror
-    )
-
-  def rotations2: Map[Point, Bitmap] =
-    Map(
-      Point.right -> this,
-      Point.left -> mirror,
-      Point.up -> rotate(-1),
-      Point.down -> rotate(1).mirror2
-    )
-
 }
 object Bitmap {
   /** Takes a bitmap string, with '*' meaning bit set */
