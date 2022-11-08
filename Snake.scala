@@ -135,9 +135,6 @@ case class State(
               else p
             }
 
-            // TODO better names for these, e.g. "from", "to"
-            val dir1 = direction(p0, p1)
-            val dir2 = direction(p1, p2)
             val from = direction(p1, p2)
             val to = direction(p0, p1)
 
