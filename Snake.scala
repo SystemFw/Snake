@@ -135,18 +135,19 @@ case class State(
 
             // val body =
             //   if (eaten.contains(p1))
-            //     State.eatenApple.at(p1)
+            // State.bodyFull(dir1).at(p1)
             //   else if (dir1.x == dir2.x || dir1.y == dir2.y)
             //     State.body(dir1).at(p1)
             //   else
             //     State.corners(dir2 -> dir1).at(p1)
 
             val body =
-                State.body(dir1).at(p1)
-
+              if (eaten.contains(p1))
+                State.bodyFull(dir1).at(p1)
+              else State.body(dir1).at(p1)
 
             val tail =
-              if (p2 == snake.last) State.body(dir2).at(p2) else Vector.empty
+              if (p2 == snake.last) State.tail(dir2).at(p2) else Vector.empty
 
             body ++ tail
           case _ => sys.error("impossible")
@@ -186,14 +187,6 @@ object State {
 ----
 """.pipe(Bitmap.parse)
 
-  val eatenApple = """
---*--
--***-
-**-**
--***-
---*--
-""".pipe(Bitmap.parse)
-
   val head = """
 *---
 -**-
@@ -214,6 +207,21 @@ object State {
 *-**
 ----
 """.pipe(Bitmap.parse(_).rotations)
+
+    val bodyFull = """
+-**-
+**-*
+*-**
+-**-
+""".pipe(Bitmap.parse(_).rotations)
+
+  val tail = """
+----
+--**
+****
+----
+""".pipe(Bitmap.parse(_).rotations)
+
 
   // directions relative to going towards the head from the tail
   val corners: Map[(Point, Point), Bitmap] = Map(
