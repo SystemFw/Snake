@@ -119,17 +119,36 @@ case class State(
       val tail =
         State.tail(snake.init.last.direction).at(snake.last.position)
 
+      // TODO full corners
       val body =
         snake.init.sliding(2).flatMap {
           case Vector(headward, tailward) =>
-            if (eaten.exists(tailward.hits))
-              State.bodyFull(tailward.direction).at(tailward.position)
-            else if (tailward.direction == headward.direction)
-              State.body(tailward.direction).at(tailward.position)
-            else
-              State
-                .turn(tailward.direction -> headward.direction)
-                .at(tailward.position)
+            if (eaten.exists(tailward.hits)) {
+              if (tailward.direction == headward.direction)
+                State.bodyFull(tailward.direction).at(tailward.position)
+              else
+                State
+                  .turnFull(tailward.direction -> headward.direction)
+                  .at(tailward.position)
+            } else {
+              if (tailward.direction == headward.direction)
+                State.body(tailward.direction).at(tailward.position)
+              else
+                State
+                  .turn(tailward.direction -> headward.direction)
+                  .at(tailward.position)
+
+            }
+
+
+            // if (eaten.exists(tailward.hits))
+            //   State.bodyFull(tailward.direction).at(tailward.position)
+            // else if (tailward.direction == headward.direction)
+            //   State.body(tailward.direction).at(tailward.position)
+            // else
+            //   State
+            //     .turn(tailward.direction -> headward.direction)
+            //     .at(tailward.position)
           case _ => sys.error("impossible")
         }
 
@@ -239,6 +258,14 @@ object State {
 **--
 ----
 """.pipe(cornerSprite)
+
+  val turnFull = """
+***-
+*-*-
+**--
+----
+""".pipe(cornerSprite)
+
 }
 
 case class Entity(position: Point, direction: Point) {
@@ -269,6 +296,7 @@ case class Sprite(points: Vector[Point]) {
     Sprite(points.map(p => Point(p.x, size - p.y)))
 }
 object Sprite {
+
   /** Takes a 4x4 sprite string, with '*' meaning bit set and any other
     * non-whitespace character meaning bit unset.
     */
