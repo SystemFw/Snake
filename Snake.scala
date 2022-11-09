@@ -47,6 +47,7 @@ object Shared {
   val CanvasBorderSize = 2
 }
 
+// TODO restarting after loss shouldn't remember the last direction
 case class State(
     snake: Vector[Entity],
     apple: Entity,
@@ -110,36 +111,38 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
-    val renderedSnake: Vector[Point] = if (drawSnake) {
-      val head =
-        (if (!openMouth) State.head else State.headOpen)
-          .apply(snake.head.direction)
-          .at(snake.head.position)
-
-      val tail =
-        State.tail(snake.init.last.direction).at(snake.last.position)
-
-      val body =
-        snake.init.sliding(2).flatMap {
-          case Vector(headward, tailward) =>
-            val (body, turn) =
-              if (eaten.exists(tailward.hits)) (State.bodyFull, State.turnFull)
-              else (State.body, State.turn)
-
-
-            if (tailward.direction == headward.direction)
-              body(tailward.direction).at(tailward.position)
-            else
-              turn(tailward.direction -> headward.direction)
-                .at(tailward.position)
-
-          case _ => sys.error("impossible")
-    }
-
-      head ++ body ++ tail
-    } else Vector.empty
-
     val renderedApple = State.apple.at(apple.position)
+    val renderedSnake =
+      if (!drawSnake) Vector.empty
+      else {
+        val head =
+          (if (!openMouth) State.head else State.headOpen)
+            .apply(snake.head.direction)
+            .at(snake.head.position)
+
+        val tail =
+          State.tail.apply(snake.init.last.direction).at(snake.last.position)
+
+        val body =
+          snake.init.sliding(2).flatMap {
+            case Vector(headward, tailward) =>
+              val (body, turn) =
+                if (eaten.exists(tailward.hits))
+                  (State.bodyFull, State.turnFull)
+                else (State.body, State.turn)
+
+              if (tailward.direction == headward.direction)
+                body.apply(tailward.direction).at(tailward.position)
+              else
+                turn
+                  .apply(tailward.direction -> headward.direction)
+                  .at(tailward.position)
+
+            case _ => sys.error("impossible")
+          }
+
+        head ++ body ++ tail
+      }
 
     (renderedSnake ++ renderedApple).flatMap(_.times(Scale).square(Scale))
   }
