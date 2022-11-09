@@ -198,7 +198,7 @@ object State {
 *-*-
 -*--
 ----
-""".pipe(Sprite.parse)
+""".pipe(Sprite.parse(_))
 
   val head = """
 *---
@@ -278,15 +278,26 @@ case class Sprite(points: Vector[Point]) {
 }
 object Sprite {
 
-  /** Takes a 4x4 sprite string, with '*' meaning bit set and any other
-    * non-whitespace character meaning bit unset.
+  /** Parses the input as a 4x4 sprite string, with '*' meaning bit
+    * set and any other non-whitespace character meaning bit unset.
     */
-  def parse(mask: String) =
-    mask
-      .filterNot(_.isWhitespace)
-      .zipWithIndex
-      .collect { case ('*', i) => Point(i % SpriteSize, i / SpriteSize) }
-      .pipe(points => Sprite(points.toVector))
+  // def parse(mask: String) =
+  //   mask
+  //     .filterNot(_.isWhitespace)
+  //     .zipWithIndex
+  //     .collect { case ('*', i) => Point(i % SpriteSize, i / SpriteSize) }
+  //     .pipe(points => Sprite(points.toVector))
+
+  def parse(mask: String, tileIndex: Int = 0, tiles: Int = 1) = Sprite {
+    val input = mask.filterNot(_.isWhitespace)
+    for {
+      i <- 0.until(SpriteSize * SpriteSize).toVector
+      x = (i % SpriteSize) + tileIndex
+      y = (i / SpriteSize) * tiles
+      if input(x + y * SpriteSize) == '*'
+    } yield Point(x, y)
+  }
+
 }
 
 case class Point(x: Int, y: Int) {
