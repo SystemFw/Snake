@@ -119,37 +119,20 @@ case class State(
       val tail =
         State.tail(snake.init.last.direction).at(snake.last.position)
 
-      // TODO once direction is tracked, this should be a sliding(2), and simpler
       val body =
-        snake.sliding(3).flatMap {
-          case Vector(p0, p1, p2) =>
-            def direction(head: Point, tail: Point) = {
-              val p = Point((head.x - tail.x), (head.y - tail.y))
-              val wrapped = Point(p.x.sign, p.y.sign)
-
-              if (p.x != wrapped.x || p.y != wrapped.y) wrapped.opposite
-              else p
-            }
-
-            val pos0 = p0.position
-            val pos1 = p1.position
-            val pos2 = p2.position
-
-            val from = direction(pos1, pos2)
-            val to = direction(pos0, pos1)
-
-            // TODO full corners
-            val body =
-              if (eaten.exists(p1.hits))
-                State.bodyFull(to).at(p1.position)
-              else if (to.x == from.x || to.y == from.y)
-                State.body(to).at(p1.position)
-              else
-                State.turn(from -> to).at(p1.position)
-
-            body
+        snake.init.sliding(2).flatMap {
+          case Vector(headward, tailward) =>
+            if (eaten.exists(tailward.hits))
+              State.bodyFull(tailward.direction).at(tailward.position)
+            else if (tailward.direction == headward.direction)
+              State.body(tailward.direction).at(tailward.position)
+            else
+              State
+                .turn(tailward.direction -> headward.direction)
+                .at(tailward.position)
           case _ => sys.error("impossible")
         }
+
       head ++ body ++ tail
     } else Vector.empty
 
@@ -286,8 +269,9 @@ case class Sprite(points: Vector[Point]) {
     Sprite(points.map(p => Point(p.x, size - p.y)))
 }
 object Sprite {
-
-  /** Takes a 4x4 sprite string, with '*' meaning bit set */
+  /** Takes a 4x4 sprite string, with '*' meaning bit set and any other
+    * non-whitespace character meaning bit unset.
+    */
   def parse(mask: String) =
     mask
       .filterNot(_.isWhitespace)
