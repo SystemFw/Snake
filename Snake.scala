@@ -139,16 +139,16 @@ case class State(
 
             // TODO full corners
             val body =
-              if (eaten.contains(pos1))
-                State.bodyFull(to).at(pos1)
+              if (eaten.exists(p1.hits))
+                State.bodyFull(to).at(p1.position)
               else if (to.x == from.x || to.y == from.y)
-                State.body(to).at(pos1)
+                State.body(to).at(p1.position)
               else
-                State.turn(from -> to).at(pos1)
+                State.turn(from -> to).at(p1.position)
 
             // messy, see note on computing tail
             val tail =
-              if (snake.last.hits(p2)) State.tail(from).at(pos2)
+              if (snake.last.hits(p2)) State.tail(from).at(p2.position)
               else Vector.empty
 
             body ++ tail
