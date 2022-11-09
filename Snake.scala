@@ -58,6 +58,41 @@ case class State(
 ) {
 
   def evolve(next: Option[Point]): State = {
+    def move2 =
+      if (time % SlowDown != 0) this
+      else {
+        val directionNow =
+          next
+            .filter(_ != snake.head.direction.opposite)
+            .getOrElse(snake.head.direction)
+
+        val headNow = snake.head.move(directionNow)
+
+        val hasEaten = eaten.nonEmpty && snake.head.hits(eaten.head)
+        val eating = headNow.hits(apple)
+        val aboutToEat = headNow.move(directionNow).hits(apple)
+        val swallowed = eaten.nonEmpty && snake.last.hits(eaten.last)
+        val dead = snake.tail.exists(headNow.hits)
+
+        val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
+
+        val eatenNow =
+          (if (eating) Vector(apple) else Vector()) ++
+          (if (swallowed) eaten.init else eaten)
+
+        val (appleNow,scoreNow) =
+          if (eating) (State.newApple(snakeNow), score + 9) else (apple, score)
+
+        if (dead) copy(lostAt = time)
+        else copy(
+          snake = snakeNow,
+          apple = appleNow,
+          eaten = eatenNow,
+          score = scoreNow,
+          openMouth = aboutToEat
+        )
+    }
+
     def move = {
       val directionNow =
         next
@@ -110,7 +145,7 @@ case class State(
     }
 
     if (lostAt > 0) flickerOnLoss
-    else move
+    else move2
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
