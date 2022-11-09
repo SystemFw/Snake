@@ -116,7 +116,8 @@ case class State(
           .apply(snake.head.direction)
           .at(snake.head.position)
 
-      // TODO compute tail in advance
+      val tail =
+        State.tail(snake.init.last.direction).at(snake.last.position)
 
       // TODO once direction is tracked, this should be a sliding(2), and simpler
       val body =
@@ -146,15 +147,10 @@ case class State(
               else
                 State.turn(from -> to).at(p1.position)
 
-            // messy, see note on computing tail
-            val tail =
-              if (snake.last.hits(p2)) State.tail(from).at(p2.position)
-              else Vector.empty
-
-            body ++ tail
+            body
           case _ => sys.error("impossible")
         }
-      head ++ body
+      head ++ body ++ tail
     } else Vector.empty
 
     val renderedApple = State.apple.at(apple.position)
