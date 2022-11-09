@@ -110,13 +110,7 @@ case class State(
     val renderedApple = State.apple.at(apple.position) ++ {
       val positions = Vector(Point(3, 4), Point(4, 4))
       val sprites: Vector[Sprite] =
-      """
-**------
-********
-********
-**------
-""".pipe(Sprite.parseRow(_))
-
+        Sprite.parseRow(State.monster)
       sprites.zip(positions).flatMap { case (sprite: Sprite, position: Point) => sprite.at(position) }
     }
 
@@ -159,6 +153,13 @@ case class State(
     String.format("%04d", score)
 }
 object State {
+  val monster = """
+**-----*
+**------
+********
+********
+"""
+
   def initial: State = {
     val snake =
       Vector
@@ -302,12 +303,12 @@ object Sprite {
 
   def parse(mask: String, tileIndex: Int = 0, tiles: Int = 1) = Sprite {
     val input = mask.filterNot(_.isWhitespace)
-    for {
-      i <- 0.until(SpriteSize * SpriteSize).toVector
-      x = (i % SpriteSize) + tileIndex
-      y = (i / SpriteSize) * tiles
-      if input(x + y * SpriteSize) == '*'
-    } yield Point(x, y)
+    Vector.range(0, SpriteSize * SpriteSize).flatMap { i =>
+      val x = tileIndex * SpriteSize + (i % SpriteSize)
+      val y = (i / SpriteSize)
+      val target = input(x + y * SpriteSize * tiles)
+      Option.when(target == '*')(Point(x, y))
+    }
   }
 
   def parseRow(mask: String): Vector[Sprite] = {
