@@ -49,8 +49,8 @@ object Shared {
 
 case class State(
     snake: Vector[Entity],
-    apple: Point,
-    eaten: Vector[Point] = Vector.empty,
+    apple: Entity,
+    eaten: Vector[Entity] = Vector.empty,
     score: Int = 0,
     lostAt: Long = 0,
     time: Long = 0,
@@ -88,7 +88,7 @@ case class State(
         else aboutToEat
 
       val checkLoss =
-        if (eat.snake.tail.exists(p => eat.snake.head.hits(p.position)))
+        if (eat.snake.tail.exists(eat.snake.head.hits))
           this.copy(lostAt = time)
         else eat
 
@@ -148,7 +148,7 @@ case class State(
 
             // messy, see note on computing tail
             val tail =
-              if (snake.last.hits(pos2)) State.tail(from).at(pos2)
+              if (snake.last.hits(p2)) State.tail(from).at(pos2)
               else Vector.empty
 
             body ++ tail
@@ -157,7 +157,7 @@ case class State(
       head ++ body
     } else Vector.empty
 
-    (renderedSnake ++ State.apple.at(apple))
+    (renderedSnake ++ State.apple.at(apple.position))
       .flatMap(_.times(Scale).square(Scale))
   }
 
@@ -174,10 +174,13 @@ object State {
     State(snake, newApple(snake))
   }
 
-  def newApple(snake: Vector[Entity]): Point = {
-    val apple = Point(
-      Random.nextInt(Dimensions.x),
-      Random.nextInt(Dimensions.y)
+  def newApple(snake: Vector[Entity]): Entity = {
+    val apple = Entity(
+      Point(
+        Random.nextInt(Dimensions.x),
+        Random.nextInt(Dimensions.y)
+      ),
+      Point(0, 0)
     )
 
     if (snake.exists(_.hits(apple))) newApple(snake)
@@ -264,8 +267,7 @@ case class Entity(position: Point, direction: Point) {
     Entity(position.move(whereNow).wrap(Dimensions), whereNow.direction)
   }
 
-  // TODO take an Entity, static entities have direction: 0,0
-  def hits(target: Point) = position == target
+  def hits(target: Entity) = position == target.position
 }
 
 case class Sprite(points: Vector[Point]) {
