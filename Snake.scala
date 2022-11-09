@@ -107,7 +107,19 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
-    val renderedApple = State.apple.at(apple.position)
+    val renderedApple = State.apple.at(apple.position) ++ {
+      val positions = Vector(Point(3, 4), Point(4, 4))
+      val sprites: Vector[Sprite] =
+      """
+**------
+********
+********
+**------
+""".pipe(Sprite.parseRow(_))
+
+      sprites.zip(positions).flatMap { case (sprite: Sprite, position: Point) => sprite.at(position) }
+    }
+
     val renderedSnake =
       if (!drawSnake) Vector.empty
       else {
@@ -296,6 +308,13 @@ object Sprite {
       y = (i / SpriteSize) * tiles
       if input(x + y * SpriteSize) == '*'
     } yield Point(x, y)
+  }
+
+  def parseRow(mask: String): Vector[Sprite] = {
+    val input = mask.filterNot(_.isWhitespace)
+    val size = input.size / (SpriteSize * SpriteSize)
+
+    Vector.range(0, size).map(tileIndex => parse(input, tileIndex, size))
   }
 
 }
