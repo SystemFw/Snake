@@ -57,7 +57,7 @@ case class State(
     drawSnake: Boolean = true,
     openMouth: Boolean = false
 ) {
-  // TODO make input not Optional
+
   def evolve(next: Point): State = {
     def move = {
       val advanceOrGrow =
