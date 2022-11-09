@@ -58,7 +58,7 @@ case class State(
 ) {
 
   def evolve(next: Option[Point]): State = {
-    def move2 =
+    def move =
       if (time % SlowDown != 0) this
       else {
         val directionNow =
@@ -93,48 +93,6 @@ case class State(
         )
     }
 
-    def move = {
-      val directionNow =
-        next
-          .filter(_ != snake.head.direction.opposite)
-          .getOrElse(snake.head.direction)
-
-      val advanceOrGrow =
-        copy(
-          snake = snake.head.move(directionNow) +: {
-            if (eaten.nonEmpty && snake.head.hits(eaten.head)) snake
-            else snake.init
-          }
-        )
-
-      val discardEaten =
-        if (eaten.nonEmpty && advanceOrGrow.snake.last.hits(eaten.last))
-          advanceOrGrow.copy(eaten = eaten.init)
-        else advanceOrGrow
-
-      val aboutToEat =
-        if (discardEaten.snake.head.move(directionNow).hits(apple))
-          discardEaten.copy(openMouth = true)
-        else discardEaten.copy(openMouth = false)
-
-      val eat =
-        if (aboutToEat.snake.head.hits(apple))
-          aboutToEat.copy(
-            apple = State.newApple(aboutToEat.snake),
-            eaten = aboutToEat.apple +: aboutToEat.eaten,
-            score = aboutToEat.score + 9
-          )
-        else aboutToEat
-
-      val checkLoss =
-        if (eat.snake.tail.exists(eat.snake.head.hits))
-          this.copy(lostAt = time)
-        else eat
-
-      if (time % SlowDown == 0) checkLoss
-      else this
-    }
-
     def flickerOnLoss = {
       val flicker =
         (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
@@ -145,7 +103,7 @@ case class State(
     }
 
     if (lostAt > 0) flickerOnLoss
-    else move2
+    else move
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
