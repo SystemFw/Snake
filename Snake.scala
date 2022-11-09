@@ -15,12 +15,10 @@ object Main {
     val gui = Gui.start
 
     var state = State.initial
-    var input = state.snake.head.direction
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
-      input = gui.getInput.getOrElse(input)
-      state = state.evolve(input)
+      state = state.evolve(gui.getInput)
       gui.update(state)
     }
   }
@@ -59,11 +57,16 @@ case class State(
     openMouth: Boolean = false
 ) {
 
-  def evolve(next: Point): State = {
+  def evolve(next: Option[Point]): State = {
     def move = {
+      val directionNow =
+        next
+          .filter(_ != snake.head.direction.opposite)
+          .getOrElse(snake.head.direction)
+
       val advanceOrGrow =
         copy(
-          snake = snake.head.move(next) +: {
+          snake = snake.head.move(directionNow) +: {
             if (eaten.nonEmpty && snake.head.hits(eaten.head)) snake
             else snake.init
           }
@@ -75,7 +78,7 @@ case class State(
         else advanceOrGrow
 
       val aboutToEat =
-        if (discardEaten.snake.head.move(next).hits(apple))
+        if (discardEaten.snake.head.move(directionNow).hits(apple))
           discardEaten.copy(openMouth = true)
         else discardEaten.copy(openMouth = false)
 
@@ -256,10 +259,8 @@ object State {
 }
 
 case class Entity(position: Point, direction: Point) {
-  def move(next: Point) = {
-    val whereNow = if (next.direction != direction.opposite) next else direction
-    Entity(position.move(whereNow).wrap(Dimensions), whereNow.direction)
-  }
+  def move(to: Point) =
+    Entity(position.move(to).wrap(Dimensions), to.direction)
 
   def hits(target: Entity) = position == target.position
 }
