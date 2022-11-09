@@ -157,8 +157,9 @@ case class State(
       head ++ body
     } else Vector.empty
 
-    (renderedSnake ++ State.apple.at(apple.position))
-      .flatMap(_.times(Scale).square(Scale))
+    val renderedApple = State.apple.at(apple.position)
+
+    (renderedSnake ++ renderedApple).flatMap(_.times(Scale).square(Scale))
   }
 
   def renderScore: String =
