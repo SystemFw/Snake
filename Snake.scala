@@ -108,8 +108,6 @@ case class State(
 
   def render: Vector[Point] = {
     val renderedApple = State.apple.at(apple.position) ++ {
-      // TODO the parsing logic works, but the two sprites are
-      // rendered one empty sprite apart
       val positions = Vector(Point(3, 4), Point(4, 4))
       val sprites: Vector[Sprite] =
         Sprite.parseRow(State.monster)
@@ -159,7 +157,7 @@ object State {
 ********
 ********
 ********
-********
+*******-
 """
 
   def initial: State = {
@@ -292,34 +290,26 @@ case class Sprite(points: Vector[Point]) {
     Sprite(points.map(p => Point(p.x, size - p.y)))
 }
 object Sprite {
-
-  /** Parses the input as a 4x4 sprite string, with '*' meaning bit
-    * set and any other non-whitespace character meaning bit unset.
+  /** Parses the input as a 4x4 sprite, with '*' meaning bit set and
+    * any other non-whitespace character meaning bit unset.
     */
-  // def parse(mask: String) =
-  //   mask
-  //     .filterNot(_.isWhitespace)
-  //     .zipWithIndex
-  //     .collect { case ('*', i) => Point(i % SpriteSize, i / SpriteSize) }
-  //     .pipe(points => Sprite(points.toVector))
-
   def parse(mask: String, tileIndex: Int = 0, tiles: Int = 1) = Sprite {
     val input = mask.filterNot(_.isWhitespace)
     Vector.range(0, SpriteSize * SpriteSize).flatMap { i =>
-      val x = tileIndex * SpriteSize + (i % SpriteSize)
-      val y = (i / SpriteSize)
-      val target = input(x + y * SpriteSize * tiles)
-      Option.when(target == '*')(Point(x, y))
+      val x = i % SpriteSize
+      val y = i / SpriteSize
+      val target = (tileIndex * SpriteSize + x) + (y * SpriteSize)
+      Option.when(input(target) == '*')(Point(x, y))
     }
   }
 
+  /** Parses the input as a row of 4x4 sprites */
   def parseRow(mask: String): Vector[Sprite] = {
     val input = mask.filterNot(_.isWhitespace)
-    val size = input.size / (SpriteSize * SpriteSize)
+    val size = input.length / (SpriteSize * SpriteSize)
 
     Vector.range(0, size).map(tileIndex => parse(input, tileIndex, size))
   }
-
 }
 
 case class Point(x: Int, y: Int) {
