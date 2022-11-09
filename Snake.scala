@@ -33,7 +33,7 @@ object Shared {
   val Scale = 2
 
   val Dimensions = Resolution.times(1 / SpriteSize.toDouble)
-  val Origin = Dimensions.times(0.5) // TODO Rename to center
+  val Centre = Dimensions.times(0.5)
   val SnakeSize = 6
   val SlowDown = 12
   val PauseOnLoss = 150
@@ -166,7 +166,7 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, SnakeSize).map(x => Entity(Origin.move(Point.left.times(x)), Point.right))
+      Vector.range(0, SnakeSize).map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
 
     State(snake, newApple(snake))
   }
