@@ -15,7 +15,7 @@ object Main {
     val gui = Gui.start
 
     var state = State.initial
-    var input = State.initial.direction
+    var input = state.snake.head.direction
 
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
@@ -33,7 +33,7 @@ object Shared {
   val Scale = 2
 
   val Dimensions = Resolution.times(1 / SpriteSize.toDouble)
-  val Origin = Dimensions.times(0.5)
+  val Origin = Dimensions.times(0.5) // TODO Rename to center
   val SnakeSize = 6
   val SlowDown = 12
   val PauseOnLoss = 150
@@ -48,8 +48,7 @@ object Shared {
 }
 
 case class State(
-    snake: Vector[Point],
-    direction: Point,
+    snake: Vector[Entity],
     apple: Point,
     eaten: Vector[Point] = Vector.empty,
     score: Int = 0,
@@ -59,36 +58,28 @@ case class State(
     openMouth: Boolean = false
 ) {
   // TODO make input not Optional
-  def evolve(nextDirection: Point): State = {
+  def evolve(next: Point): State = {
     def move = {
-      // TODO track direction with separate class
-      val directionNow =
-        if (nextDirection != direction.opposite) nextDirection
-        else direction
-
       val advanceOrGrow =
         copy(
-          snake = snake.head.move(directionNow).wrap(Dimensions) +: {
-            if (eaten.nonEmpty && snake.head == eaten.head) snake
+          snake = snake.head.move(next) +: {
+            if (eaten.nonEmpty && snake.head.hits(eaten.head)) snake
             else snake.init
-          },
-          direction = directionNow
+          }
         )
 
       val discardEaten =
-        if (eaten.nonEmpty && advanceOrGrow.snake.last == eaten.last)
+        if (eaten.nonEmpty && advanceOrGrow.snake.last.hits(eaten.last))
           advanceOrGrow.copy(eaten = eaten.init)
         else advanceOrGrow
 
       val aboutToEat =
-        if (
-          discardEaten.snake.head.move(directionNow).wrap(Dimensions) == apple
-        )
+        if (discardEaten.snake.head.move(next).hits(apple))
           discardEaten.copy(openMouth = true)
         else discardEaten.copy(openMouth = false)
 
       val eat =
-        if (aboutToEat.snake.head == apple)
+        if (aboutToEat.snake.head.hits(apple))
           aboutToEat.copy(
             apple = State.newApple(aboutToEat.snake),
             eaten = aboutToEat.apple +: aboutToEat.eaten,
@@ -97,7 +88,7 @@ case class State(
         else aboutToEat
 
       val checkLoss =
-        if (eat.snake.tail.contains(eat.snake.head)) this.copy(lostAt = time)
+        if (eat.snake.tail.exists(p => eat.snake.head.hits(p.position))) this.copy(lostAt = time)
         else eat
 
       if (time % SlowDown == 0) checkLoss
@@ -121,8 +112,8 @@ case class State(
     val renderedSnake: Vector[Point] = if (drawSnake) {
       val head =
         (if (!openMouth) State.head else State.headOpen)
-          .apply(direction)
-          .at(snake.head)
+          .apply(snake.head.direction)
+          .at(snake.head.position)
 
       // TODO compute tail in advance
 
@@ -138,25 +129,30 @@ case class State(
               else p
             }
 
-            val from = direction(p1, p2)
-            val to = direction(p0, p1)
+
+            val pos0 = p0.position
+            val pos1 = p1.position
+            val pos2 = p2.position
+
+            val from = direction(pos1, pos2)
+            val to = direction(pos0, pos1)
 
             // TODO full corners
             val body =
-              if (eaten.contains(p1))
-                State.bodyFull(to).at(p1)
+              if (eaten.contains(pos1))
+                State.bodyFull(to).at(pos1)
               else if (to.x == from.x || to.y == from.y)
-                State.body(to).at(p1)
+                State.body(to).at(pos1)
               else
-                State.turn(from -> to).at(p1)
+                State.turn(from -> to).at(pos1)
 
+            // messy, see note on computing tail
             val tail =
-              if (p2 == snake.last) State.tail(from).at(p2) else Vector.empty
+              if (snake.last.hits(pos2)) State.tail(from).at(pos2) else Vector.empty
 
             body ++ tail
           case _ => sys.error("impossible")
         }
-
       head ++ body
     } else Vector.empty
 
@@ -170,17 +166,18 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, SnakeSize).map(x => Origin.move(Point.left.times(x)))
-    State(snake, Point.right, newApple(snake))
+      Vector.range(0, SnakeSize).map(x => Entity(Origin.move(Point.left.times(x)), Point.right))
+
+    State(snake, newApple(snake))
   }
 
-  def newApple(snake: Vector[Point]): Point = {
+  def newApple(snake: Vector[Entity]): Point = {
     val apple = Point(
       Random.nextInt(Dimensions.x),
       Random.nextInt(Dimensions.y)
     )
 
-    if (snake.contains(apple)) newApple(snake)
+    if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
   }
 
@@ -261,8 +258,12 @@ object State {
 case class Entity(position: Point, direction: Point) {
   def move(next: Point) = {
     val whereNow = if (next.direction != direction.opposite) next else direction
+    //println(s"NEXT: $next NEXT POSITION $whereNow")
     Entity(position.move(whereNow).wrap(Dimensions), whereNow.direction)
   }
+
+  // TODO take an Entity, static entities have direction: 0,0
+  def hits(target: Point) = position == target
 }
 
 case class Sprite(points: Vector[Point]) {
