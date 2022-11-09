@@ -88,7 +88,8 @@ case class State(
         else aboutToEat
 
       val checkLoss =
-        if (eat.snake.tail.exists(p => eat.snake.head.hits(p.position))) this.copy(lostAt = time)
+        if (eat.snake.tail.exists(p => eat.snake.head.hits(p.position)))
+          this.copy(lostAt = time)
         else eat
 
       if (time % SlowDown == 0) checkLoss
@@ -129,7 +130,6 @@ case class State(
               else p
             }
 
-
             val pos0 = p0.position
             val pos1 = p1.position
             val pos2 = p2.position
@@ -148,7 +148,8 @@ case class State(
 
             // messy, see note on computing tail
             val tail =
-              if (snake.last.hits(pos2)) State.tail(from).at(pos2) else Vector.empty
+              if (snake.last.hits(pos2)) State.tail(from).at(pos2)
+              else Vector.empty
 
             body ++ tail
           case _ => sys.error("impossible")
@@ -166,7 +167,9 @@ case class State(
 object State {
   def initial: State = {
     val snake =
-      Vector.range(0, SnakeSize).map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
+      Vector
+        .range(0, SnakeSize)
+        .map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
 
     State(snake, newApple(snake))
   }
@@ -202,7 +205,7 @@ object State {
       (Point.up, Point.left) -> sprite.anti,
       (Point.up, Point.right) -> sprite.clock.mirrorX,
       (Point.left, Point.down) -> sprite.clock.mirrorX
-     )
+    )
   }
 
   val apple = """
@@ -233,7 +236,7 @@ object State {
 ----
 """.pipe(sprite)
 
-    val bodyFull = """
+  val bodyFull = """
 -**-
 **-*
 *-**
@@ -258,7 +261,6 @@ object State {
 case class Entity(position: Point, direction: Point) {
   def move(next: Point) = {
     val whereNow = if (next.direction != direction.opposite) next else direction
-    //println(s"NEXT: $next NEXT POSITION $whereNow")
     Entity(position.move(whereNow).wrap(Dimensions), whereNow.direction)
   }
 
@@ -285,6 +287,7 @@ case class Sprite(points: Vector[Point]) {
     Sprite(points.map(p => Point(p.x, size - p.y)))
 }
 object Sprite {
+
   /** Takes a 4x4 sprite string, with '*' meaning bit set */
   def parse(mask: String) =
     mask
@@ -304,7 +307,9 @@ case class Point(x: Int, y: Int) {
   def direction: Point = Point(x.sign, y.sign)
 
   def square(side: Int): Vector[Point] =
-    0.until(side).flatMap(x => 0.until(side).map(y => move(Point(x, y)))).toVector
+    0.until(side)
+      .flatMap(x => 0.until(side).map(y => move(Point(x, y))))
+      .toVector
 
   def wrap(limit: Point) = {
     def f(n: Int, limit: Int) = n.sign.min(0).abs * limit + (n % limit)
