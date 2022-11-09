@@ -108,6 +108,8 @@ case class State(
 
   def render: Vector[Point] = {
     val renderedApple = State.apple.at(apple.position) ++ {
+      // TODO the parsing logic works, but the two sprites are
+      // rendered one empty sprite apart
       val positions = Vector(Point(3, 4), Point(4, 4))
       val sprites: Vector[Sprite] =
         Sprite.parseRow(State.monster)
@@ -154,8 +156,8 @@ case class State(
 }
 object State {
   val monster = """
-**-----*
-**------
+********
+********
 ********
 ********
 """
