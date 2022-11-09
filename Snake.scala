@@ -119,38 +119,22 @@ case class State(
       val tail =
         State.tail(snake.init.last.direction).at(snake.last.position)
 
-      // TODO full corners
       val body =
         snake.init.sliding(2).flatMap {
           case Vector(headward, tailward) =>
-            if (eaten.exists(tailward.hits)) {
-              if (tailward.direction == headward.direction)
-                State.bodyFull(tailward.direction).at(tailward.position)
-              else
-                State
-                  .turnFull(tailward.direction -> headward.direction)
-                  .at(tailward.position)
-            } else {
-              if (tailward.direction == headward.direction)
-                State.body(tailward.direction).at(tailward.position)
-              else
-                State
-                  .turn(tailward.direction -> headward.direction)
-                  .at(tailward.position)
-
-            }
+            val (body, turn) =
+              if (eaten.exists(tailward.hits)) (State.bodyFull, State.turnFull)
+              else (State.body, State.turn)
 
 
-            // if (eaten.exists(tailward.hits))
-            //   State.bodyFull(tailward.direction).at(tailward.position)
-            // else if (tailward.direction == headward.direction)
-            //   State.body(tailward.direction).at(tailward.position)
-            // else
-            //   State
-            //     .turn(tailward.direction -> headward.direction)
-            //     .at(tailward.position)
+            if (tailward.direction == headward.direction)
+              body(tailward.direction).at(tailward.position)
+            else
+              turn(tailward.direction -> headward.direction)
+                .at(tailward.position)
+
           case _ => sys.error("impossible")
-        }
+    }
 
       head ++ body ++ tail
     } else Vector.empty
