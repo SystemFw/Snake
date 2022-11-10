@@ -68,10 +68,10 @@ case class State(
 
         val headNow = snake.head.move(directionNow)
 
-        val hasEaten = eaten.nonEmpty && snake.head.hits(eaten.head)
+        val hasEaten = eaten.headOption.exists(snake.head.hits)
         val eating = headNow.hits(apple)
         val aboutToEat = headNow.move(directionNow).hits(apple)
-        val swallowed = eaten.nonEmpty && snake.last.hits(eaten.last)
+        val swallowed = eaten.lastOption.exists(snake.last.hits)
         val dead = snake.tail.exists(headNow.hits)
 
         val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
@@ -153,6 +153,8 @@ case class State(
     String.format("%04d", score)
 }
 object State {
+  // TODO monsters appear after 5 eaten apples, and then
+  // every 5 + choose [1, 2, 3] eaten apples, and disappear after 20 steps
   val monster = """
 ********
 ********
