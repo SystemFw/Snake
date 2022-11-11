@@ -72,22 +72,33 @@ case class State(
         val headNow = snake.head.move(directionNow)
 
         val hasEaten = eaten.headOption.exists(snake.head.hits)
-        val eating = Option.when(headNow.hits(apple))(apple)
-        val aboutToEat = headNow.move(directionNow).hits(apple)
+        val eatingApple = Option.when(headNow.hits(apple))(apple)
+        val eatingMonster = monster.filter(headNow.hits).headOption // TODO perhaps keep this as a vector
+        val aboutToEat = headNow.move(directionNow).hits(apple) || monster.exists(headNow.move(directionNow).hits)
         val swallowed = eaten.lastOption.exists(snake.last.hits)
         val dead = snake.tail.exists(headNow.hits)
 
         val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
 
         val eatenNow =
-          eating.toVector ++ (if (swallowed) eaten.init else eaten)
+          eatingApple.toVector ++ eatingMonster.toVector ++ (if (swallowed) eaten.init else eaten)
 
-        val (appleNow, monsterNow, scoreNow) =
-          if (eating.isDefined) {
-            val newApple = State.newApple(snakeNow)
-            val newMonster = State.newMonster(snakeNow, newApple)
-            (newApple, newMonster, score + 9)
-          } else (apple, monster, score)
+        // val (appleNow, monsterNow, scoreNow) =
+        //   if (eating.isDefined) {
+        //     val newApple = State.newApple(snakeNow)
+        //     val newMonster = State.newMonster(snakeNow, newApple)
+        //     (newApple, newMonster, score + 9)
+        //   } else (apple, monster, score)
+
+        val appleNow =
+          if (eatingApple.isDefined) State.newApple(snakeNow) else apple
+
+        val monsterNow =
+          if (eatingMonster.isDefined) State.newMonster(snakeNow, appleNow) else monster
+
+        // TODO separate score for  monster
+        val scoreNow = if (eatingApple.isDefined || eatingMonster.isDefined) score + 9 else score
+
 
         if (dead) copy(lostAt = time)
         else copy(
@@ -174,7 +185,11 @@ object State {
         .range(0, SnakeSize)
         .map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
 
-    State(snake, newApple(snake))
+    val apple = newApple(snake)
+
+    val monster = newMonster(snake, apple)
+
+    State(snake = snake, apple = apple, monster = monster)
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
@@ -193,6 +208,7 @@ object State {
   // TODO dedicated Vector[Entity] vs Vector[Entity] collision detection?
   def newMonster(snake: Vector[Entity], apple: Entity): Vector[Entity] = {
     val size = 2
+    // TODO this still gets out of bounds
     val point = Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
     val monster = Vector(Entity(point, Point(0, 0)), Entity(point.move(Point.right), Point(0, 0)))
     val collision =
