@@ -167,7 +167,7 @@ case class State(
   }
 
   def renderScore: String =
-    String.format("%04d", score)
+    String.format("%04d", score) + " " + monster.map { e => s"${e.position.x}, ${e.position.y}"}.mkString(";")
 }
 object State {
   // TODO monsters appear after 5 eaten apples, and then
