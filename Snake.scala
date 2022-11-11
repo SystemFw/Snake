@@ -208,9 +208,9 @@ object State {
   // TODO dedicated Vector[Entity] vs Vector[Entity] collision detection?
   def newMonster(snake: Vector[Entity], apple: Entity): Vector[Entity] = {
     val size = 2
-    // TODO this still gets out of bounds
+    // TODO this still gets out of bounds: bug at position x: 20
     // TODO y can actually be in any position
-    val point = Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
+    val point = Point(20, 4)//Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
     val monster = Vector(Entity(point, Point(0, 0)), Entity(point.move(Point.right), Point(0, 0)))
     val collision =
       monster.exists(p => (apple +: snake).exists(p.hits))
@@ -442,9 +442,9 @@ class Gui extends JPanel {
       }
 
     override def getPreferredSize =
-      Dimension(
-        DisplaySize.x + 2 * CanvasBorderSize,
-        DisplaySize.y + 2 * CanvasBorderSize
+      Dimension( // TODO revert to 2 * border once dimensions fixed
+        DisplaySize.x + 5 * CanvasBorderSize,
+        DisplaySize.y + 5 * CanvasBorderSize
       )
   }
 }
