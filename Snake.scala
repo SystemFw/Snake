@@ -53,7 +53,11 @@ case class State(
     lostAt: Long = 0,
     time: Long = 0,
     drawSnake: Boolean = true,
-    openMouth: Boolean = false
+    openMouth: Boolean = false, // food
+    monster: Vector[Entity] = Vector(),
+    monsterTimer: Int = 20,
+    nextMonster: Int = 5 // TODO + choose[1, 3] after first time
+    //TODO random monster sprite every time
 ) {
 
   def evolve(next: Option[Point]): State = {
@@ -68,7 +72,7 @@ case class State(
         val headNow = snake.head.move(directionNow)
 
         val hasEaten = eaten.headOption.exists(snake.head.hits)
-        val eating = headNow.hits(apple)
+        val eating = Option.when(headNow.hits(apple))(apple)
         val aboutToEat = headNow.move(directionNow).hits(apple)
         val swallowed = eaten.lastOption.exists(snake.last.hits)
         val dead = snake.tail.exists(headNow.hits)
@@ -76,11 +80,14 @@ case class State(
         val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
 
         val eatenNow =
-          (if (eating) Vector(apple) else Vector()) ++
-          (if (swallowed) eaten.init else eaten)
+          eating.toVector ++ (if (swallowed) eaten.init else eaten)
 
-        val (appleNow,scoreNow) =
-          if (eating) (State.newApple(snakeNow), score + 9) else (apple, score)
+        val (appleNow, monsterNow, scoreNow) =
+          if (eating.isDefined) {
+            val newApple = State.newApple(snakeNow)
+            val newMonster = State.newMonster(snakeNow, newApple)
+            (newApple, newMonster, score + 9)
+          } else (apple, monster, score)
 
         if (dead) copy(lostAt = time)
         else copy(
@@ -88,7 +95,8 @@ case class State(
           apple = appleNow,
           eaten = eatenNow,
           score = scoreNow,
-          openMouth = aboutToEat
+          openMouth = aboutToEat,
+          monster = monsterNow
         )
     }
 
@@ -106,11 +114,10 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
-    val renderedApple = State.apple.at(apple.position) ++ {
-      val positions = Vector(Point(3, 4), Point(4, 4))
-      val sprites: Vector[Sprite] =
-        Sprite.parseRow(State.monster)
-      sprites.zip(positions).flatMap { case (sprite: Sprite, position: Point) => sprite.at(position) }
+    val renderedFood = State.apple.at(apple.position) ++ {
+      val monsterSprite = Sprite.parseRow(State.monster)
+      monsterSprite.zip(monster.map(_.position)).
+        flatMap { case (sprite: Sprite, position: Point) => sprite.at(position) }
     }
 
     val renderedSnake =
@@ -145,7 +152,7 @@ case class State(
         head ++ body ++ tail
       }
 
-    (renderedSnake ++ renderedApple).flatMap(_.times(Scale).square(Scale))
+    (renderedSnake ++ renderedFood).flatMap(_.times(Scale).square(Scale))
   }
 
   def renderScore: String =
@@ -181,6 +188,16 @@ object State {
 
     if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
+  }
+
+  // TODO dedicated Vector[Entity] vs Vector[Entity] collision detection?
+  def newMonster(snake: Vector[Entity], apple: Entity): Vector[Entity] = {
+    val size = 2
+    val point = Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
+    val monster = Vector(Entity(point, Point(0, 0)), Entity(point.move(Point.right), Point(0, 0)))
+    val collision =
+      monster.exists(p => (apple +: snake).exists(p.hits))
+    if (collision) newMonster(snake, apple) else monster
   }
 
   def sprite(mask: String) = {
