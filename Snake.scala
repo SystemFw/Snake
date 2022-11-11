@@ -209,6 +209,7 @@ object State {
   def newMonster(snake: Vector[Entity], apple: Entity): Vector[Entity] = {
     val size = 2
     // TODO this still gets out of bounds
+    // TODO y can actually be in any position
     val point = Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
     val monster = Vector(Entity(point, Point(0, 0)), Entity(point.move(Point.right), Point(0, 0)))
     val collision =
