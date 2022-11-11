@@ -45,7 +45,6 @@ object Shared {
   val CanvasBorderSize = 2
 }
 
-// TODO restarting after loss shouldn't remember the last direction
 case class State(
     snake: Vector[Entity],
     apple: Entity,
