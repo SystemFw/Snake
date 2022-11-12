@@ -78,14 +78,9 @@ case class State(
 
         val hasEaten = eaten.headOption.exists(snake.head.hits)
         val eatingApple = Option.when(headNow.hits(apple))(apple)
-        val eatingMonster =
-          monster
-            .filter(headNow.hits)
-            .headOption // TODO perhaps keep this as a vector
+        val eatingMonster = monster.filter(headNow.hits)
         val aboutToEat =
-          headNow.move(directionNow).hits(apple) || monster.exists(
-            headNow.move(directionNow).hits
-          )
+          (apple +: monster).exists(headNow.move(directionNow).hits)
         val swallowed = eaten.lastOption.exists(snake.last.hits)
         val dead = snake.tail.exists(headNow.hits)
 
@@ -95,24 +90,16 @@ case class State(
           eatingApple.toVector ++ eatingMonster.toVector ++ (if (swallowed)
                                                                eaten.init
                                                              else eaten)
-
-        // val (appleNow, monsterNow, scoreNow) =
-        //   if (eating.isDefined) {
-        //     val newApple = State.newApple(snakeNow)
-        //     val newMonster = State.newMonster(snakeNow, newApple)
-        //     (newApple, newMonster, score + 9)
-        //   } else (apple, monster, score)
-
         val appleNow =
-          if (eatingApple.isDefined) State.newApple(snakeNow) else apple
+          if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
 
         val monsterNow =
-          if (eatingMonster.isDefined) State.newMonster(snakeNow, appleNow)
+          if (eatingMonster.nonEmpty) State.newMonster(snakeNow, appleNow)
           else monster
 
-        // TODO separate score for  monster
         val scoreNow =
-          if (eatingApple.isDefined || eatingMonster.isDefined) score + 9
+          if (eatingApple.nonEmpty) score + 9
+          else if (eatingMonster.nonEmpty) score + 9 // TODO separate score for  monster
           else score
 
         if (dead) copy(lostAt = time)
@@ -184,9 +171,7 @@ case class State(
   }
 
   def renderScore: String =
-    String.format("%04d", score) + " " + monster
-      .map { e => s"${e.position.x}, ${e.position.y}" }
-      .mkString(";")
+    String.format("%04d", score)
 }
 object State {
   // TODO monsters appear after 5 eaten apples, and then
