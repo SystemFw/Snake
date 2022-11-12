@@ -50,7 +50,24 @@ class Gui extends JPanel {
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
-  private var image: Vector[Point] = Sprite.monsters.head.zip(Vector(Centre, Centre.move(Point.right))).flatMap(_.at(_)).flatMap(_.times(Scale).square(Scale)) // Vector()
+  private var image: Vector[Point] =  {
+    val sprites = Vector(
+      """
+--**
+****
+*-**
+*-*-
+""",
+      """
+**--
+****
+**-*
+-*-*
+"""
+    ).map(Sprite.parse(_))
+//      Sprite.monsters(1)
+      sprites.zip(Vector(Centre, Centre.move(Point.right.times(4)))).flatMap(_.at(_)).flatMap(_.times(Scale).square(Scale)) // Vector()
+  }
 
   private def emptyBorder(size: Int) =
     BorderFactory.createEmptyBorder(size, size, size, size)
