@@ -409,7 +409,7 @@ object Sprite {
     Vector.range(0, SpriteSize * SpriteSize).flatMap { i =>
       val x = i % SpriteSize
       val y = i / SpriteSize
-      val target = (tileIndex * SpriteSize + x) + (y * SpriteSize)
+      val target = (tileIndex * SpriteSize + x) + (y * SpriteSize * tiles)
       Option.when(input(target) == '*')(Point(x, y))
     }
   }
