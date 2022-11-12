@@ -413,13 +413,13 @@ class Gui extends JPanel {
     val panel = new JPanel
 
     panel.setLayout(new BorderLayout)
-    //    panel.setBackground(BackgroundColor)
+    panel.setBackground(BackgroundColor)
     panel.add(new Canvas, BorderLayout.CENTER)
     panel.setBorder(
       BorderFactory.createCompoundBorder(
         BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
-        BorderFactory.createLineBorder(Color.red, CanvasBorderSize)
-    ))
+        BorderFactory.createEmptyBorder(CanvasBorderSize, CanvasBorderSize, CanvasBorderSize, CanvasBorderSize)
+      ))
 
     panel
   }
