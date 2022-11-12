@@ -19,14 +19,14 @@ object Main {
     while (true) {
       Thread.sleep(FrameRate) // TODO this is pretty rudimentary
       state = state.evolve(gui.getInput)
-//      gui.update(state)
+      gui.update(state)
     }
   }
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val FrameRate = 1000 / 120
-  val Scale = 4
+  val Scale = 2
 
   val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
@@ -50,24 +50,7 @@ class Gui extends JPanel {
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
-  private var image: Vector[Point] =  {
-    val sprites = Vector(
-      """
---**
-****
-*-**
-*-*-
-""",
-      """
-**--
-****
-**-*
--*-*
-"""
-    ).map(Sprite.parse(_))
-//      Sprite.monsters(1)
-      sprites.zip(Vector(Centre, Centre.move(Point.right.times(4)))).flatMap(_.at(_)).flatMap(_.times(Scale).square(Scale)) // Vector()
-  }
+  private var image: Vector[Point] = Vector()
 
   private def emptyBorder(size: Int) =
     BorderFactory.createEmptyBorder(size, size, size, size)
