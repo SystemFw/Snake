@@ -79,6 +79,7 @@ case class State(
         val hasEaten = eaten.headOption.exists(snake.head.hits)
         val eatingApple = Option.when(headNow.hits(apple))(apple)
         val eatingMonster = monster.filter(headNow.hits)
+        val eating = eatingApple.nonEmpty || eatingMonster.nonEmpty
         val aboutToEat =
           (apple +: monster).exists(headNow.move(directionNow).hits)
         val swallowed = eaten.lastOption.exists(snake.last.hits)
@@ -93,9 +94,43 @@ case class State(
         val appleNow =
           if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
 
-        val monsterNow =
-          if (eatingMonster.nonEmpty) State.newMonster(snakeNow, appleNow)
-          else monster
+        // NOTE monster appears in the same frame as eating the trigger amount of food
+        // NOTE you don't see the monster timer at 0, only at 1
+
+        // val monsterTimerNow = if (monster.empty) 20 else  monsterTimer - 1// TODO replace constant
+        // val nextMonsterNow  =
+        //   if (monster.empty && eating) nextMonster - 1
+        //   else if (monster.nonEmpty) nextMonster
+        //   else 5
+
+        // val monsterNow  = if (monsterTimerNow == 0 || eatingMonster) Vector() else monster
+
+        // val nextMonsterNow  =
+          //   if (eatingMonster.nonEmpty || monsterTimerNow == 0) Vector.empty -> 5
+        //   else (monster, newMonster)
+
+
+        // monsterActive = ???
+        // val monsterTimerNow = if (!monsterActive) 20 else  monsterTimer - 1// TODO replace constant
+        // val monsterNow  = if (monsterTimerNow == 0 || eatingMonster) Vector() else monster
+
+        // val (monsterNow, nextMonsterNow) =
+        //   if (eatingMonster.nonEmpty || monsterTimerNow == 0) Vector.empty -> 5
+        //   else (monster, newMonster)
+
+        val (monsterNow, nextMonsterNow, monsterTimerNow) =
+          if (monster.isEmpty) {
+            val nextMonsterNow = if (eating) nextMonster - 1 else nextMonster
+            // can I reset the nextMonster here actually?
+            if (nextMonsterNow == 0)
+              (State.newMonster(snakeNow, appleNow), 5, monsterTimer)
+            else (monster, nextMonsterNow, monsterTimer)
+          } else {
+            val monsterTimerNow = monsterTimer - 1
+            if (eatingMonster.nonEmpty || monsterTimer == 0)
+              (Vector.empty, nextMonster, 20)
+            else (monster, nextMonster, monsterTimerNow)
+          }
 
         val scoreNow =
           if (eatingApple.nonEmpty) score + 9
@@ -110,7 +145,9 @@ case class State(
             eaten = eatenNow,
             score = scoreNow,
             openMouth = aboutToEat,
-            monster = monsterNow
+            monster = monsterNow,
+            nextMonster = nextMonsterNow,
+            monsterTimer = monsterTimerNow
           )
       }
 
@@ -190,10 +227,7 @@ object State {
         .map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
 
     val apple = newApple(snake)
-
-    val monster = newMonster(snake, apple)
-
-    State(snake = snake, apple = apple, monster = monster)
+    State(snake = snake, apple = apple)
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
