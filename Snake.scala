@@ -30,7 +30,6 @@ object Shared {
   val FrameRate = 1000 / 120
   val Scale = 2
 
-
   val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
   val SlowDown = 12
@@ -60,8 +59,9 @@ case class State(
     drawSnake: Boolean = true,
     openMouth: Boolean = false, // food
     monster: Vector[Entity] = Vector(),
-    monsterTimer: Int = 20, // TODO rename to monsterTTL
-    nextMonster: Int = 5 // TODO + choose[1, 3] after first time, TODO rename spawnMonster
+    monsterTTL: Int = 20, // TODO rename to monsterTTL
+    spawnMonsterIn: Int =
+      5 // TODO + choose[1, 3] after first time, TODO rename spawnMonster
     // TODO random monster sprite every time
 ) {
 
@@ -87,28 +87,29 @@ case class State(
         val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
 
         val eatenNow =
-          eatingApple.toVector ++ eatingMonster.toVector ++ (if (swallowed)
-                                                               eaten.init
-                                                             else eaten)
+          eatingApple.toVector ++ eatingMonster.toVector ++
+            (if (swallowed) eaten.init else eaten)
+
         val appleNow =
           if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
 
-        val (monsterNow, nextMonsterNow, monsterTimerNow) =
+        val (monsterNow, spawnMonsterInNow, monsterTTLNow) =
           if (monster.isEmpty) {
-            val nextMonsterNow = if (eatingApple.nonEmpty) nextMonster - 1 else nextMonster
-            if (nextMonsterNow == 0)
-              (State.newMonster(snakeNow, appleNow), 5, monsterTimer)
-            else (monster, nextMonsterNow, monsterTimer)
+            val spawnMonsterInNow = spawnMonsterIn - eatingApple.size
+            if (spawnMonsterInNow == 0)
+              (State.newMonster(snakeNow, appleNow), 5, monsterTTL)
+            else (monster, spawnMonsterInNow, monsterTTL)
           } else {
-            val monsterTimerNow = monsterTimer - 1
-            if (eatingMonster.nonEmpty || monsterTimer == 0)
-              (Vector.empty, nextMonster, 20)
-            else (monster, nextMonster, monsterTimerNow)
+            val monsterTTLNow = monsterTTL - 1
+            if (eatingMonster.nonEmpty || monsterTTL == 0)
+              (Vector.empty, spawnMonsterIn, 20)
+            else (monster, spawnMonsterIn, monsterTTLNow)
           }
 
         val scoreNow =
           if (eatingApple.nonEmpty) score + 9
-          else if (eatingMonster.nonEmpty) score + 9 // TODO separate score for  monster
+          else if (eatingMonster.nonEmpty)
+            score + 9 // TODO separate score for  monster
           else score
 
         if (dead) copy(lostAt = time)
@@ -120,8 +121,8 @@ case class State(
             score = scoreNow,
             openMouth = aboutToEat,
             monster = monsterNow,
-            nextMonster = nextMonsterNow,
-            monsterTimer = monsterTimerNow
+            spawnMonsterIn = spawnMonsterInNow,
+            monsterTTL = monsterTTLNow
           )
       }
 
