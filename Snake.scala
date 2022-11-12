@@ -57,7 +57,7 @@ case class State(
     monster: Vector[Entity] = Vector(),
     monsterTimer: Int = 20,
     nextMonster: Int = 5 // TODO + choose[1, 3] after first time
-    //TODO random monster sprite every time
+    // TODO random monster sprite every time
 ) {
 
   def evolve(next: Option[Point]): State = {
@@ -73,15 +73,23 @@ case class State(
 
         val hasEaten = eaten.headOption.exists(snake.head.hits)
         val eatingApple = Option.when(headNow.hits(apple))(apple)
-        val eatingMonster = monster.filter(headNow.hits).headOption // TODO perhaps keep this as a vector
-        val aboutToEat = headNow.move(directionNow).hits(apple) || monster.exists(headNow.move(directionNow).hits)
+        val eatingMonster =
+          monster
+            .filter(headNow.hits)
+            .headOption // TODO perhaps keep this as a vector
+        val aboutToEat =
+          headNow.move(directionNow).hits(apple) || monster.exists(
+            headNow.move(directionNow).hits
+          )
         val swallowed = eaten.lastOption.exists(snake.last.hits)
         val dead = snake.tail.exists(headNow.hits)
 
         val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
 
         val eatenNow =
-          eatingApple.toVector ++ eatingMonster.toVector ++ (if (swallowed) eaten.init else eaten)
+          eatingApple.toVector ++ eatingMonster.toVector ++ (if (swallowed)
+                                                               eaten.init
+                                                             else eaten)
 
         // val (appleNow, monsterNow, scoreNow) =
         //   if (eating.isDefined) {
@@ -94,22 +102,25 @@ case class State(
           if (eatingApple.isDefined) State.newApple(snakeNow) else apple
 
         val monsterNow =
-          if (eatingMonster.isDefined) State.newMonster(snakeNow, appleNow) else monster
+          if (eatingMonster.isDefined) State.newMonster(snakeNow, appleNow)
+          else monster
 
         // TODO separate score for  monster
-        val scoreNow = if (eatingApple.isDefined || eatingMonster.isDefined) score + 9 else score
-
+        val scoreNow =
+          if (eatingApple.isDefined || eatingMonster.isDefined) score + 9
+          else score
 
         if (dead) copy(lostAt = time)
-        else copy(
-          snake = snakeNow,
-          apple = appleNow,
-          eaten = eatenNow,
-          score = scoreNow,
-          openMouth = aboutToEat,
-          monster = monsterNow
-        )
-    }
+        else
+          copy(
+            snake = snakeNow,
+            apple = appleNow,
+            eaten = eatenNow,
+            score = scoreNow,
+            openMouth = aboutToEat,
+            monster = monsterNow
+          )
+      }
 
     def flickerOnLoss = {
       val flicker =
@@ -127,8 +138,9 @@ case class State(
   def render: Vector[Point] = {
     val renderedFood = State.apple.at(apple.position) ++ {
       val monsterSprite = Sprite.parseRow(State.monster)
-      monsterSprite.zip(monster.map(_.position)).
-        flatMap { case (sprite: Sprite, position: Point) => sprite.at(position) }
+      monsterSprite.zip(monster.map(_.position)).flatMap {
+        case (sprite: Sprite, position: Point) => sprite.at(position)
+      }
     }
 
     val renderedSnake =
@@ -167,7 +179,9 @@ case class State(
   }
 
   def renderScore: String =
-    String.format("%04d", score) + " " + monster.map { e => s"${e.position.x}, ${e.position.y}"}.mkString(";")
+    String.format("%04d", score) + " " + monster
+      .map { e => s"${e.position.x}, ${e.position.y}" }
+      .mkString(";")
 }
 object State {
   // TODO monsters appear after 5 eaten apples, and then
@@ -210,8 +224,14 @@ object State {
     val size = 2
     // TODO this still gets out of bounds: bug at position x: 20
     // TODO y can actually be in any position
-    val point = Point(20, 4)//Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
-    val monster = Vector(Entity(point, Point(0, 0)), Entity(point.move(Point.right), Point(0, 0)))
+    val point = Point(
+      20,
+      4
+    ) // Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
+    val monster = Vector(
+      Entity(point, Point(0, 0)),
+      Entity(point.move(Point.right), Point(0, 0))
+    )
     val collision =
       monster.exists(p => (apple +: snake).exists(p.hits))
     if (collision) newMonster(snake, apple) else monster
@@ -325,8 +345,9 @@ case class Sprite(points: Vector[Point]) {
     Sprite(points.map(p => Point(p.x, size - p.y)))
 }
 object Sprite {
-  /** Parses the input as a 4x4 sprite, with '*' meaning bit set and
-    * any other non-whitespace character meaning bit unset.
+
+  /** Parses the input as a 4x4 sprite, with '*' meaning bit set and any other
+    * non-whitespace character meaning bit unset.
     */
   def parse(mask: String, tileIndex: Int = 0, tiles: Int = 1) = Sprite {
     val input = mask.filterNot(_.isWhitespace)
