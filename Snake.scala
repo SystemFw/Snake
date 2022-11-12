@@ -32,7 +32,7 @@ object Shared {
 
   val Dimensions = Point(22, 13) // Resolution.times(1 / SpriteSize.toDouble)
   val Centre = Point(10, 7) // Dimensions.times(0.5)
-  val SnakeSize = 6
+  val SnakeSize = 7
   val SlowDown = 12 * 6
   val PauseOnLoss = 150
   val FlickerDown = 20
