@@ -36,6 +36,9 @@ object Shared {
   val PauseOnLoss = 150
   val FlickerDown = 20
   val FlickerUp = 30
+  val MonsterTimer = 20
+  val MonsterSpawnIn = 5
+  val MonsterSpawnRandom = 3
 
   val DisplaySize = Dimensions.times(SpriteSize).times(Scale)
   val BackgroundColor = Color(170, 220, 0)
@@ -57,11 +60,10 @@ case class State(
     lostAt: Long = 0,
     time: Long = 0,
     drawSnake: Boolean = true,
-    openMouth: Boolean = false, // food
+    openMouth: Boolean = false,
     monster: Vector[Entity] = Vector(),
-    monsterTTL: Int = 20, // TODO rename to monsterTTL
-    spawnMonsterIn: Int =
-      5 // TODO + choose[1, 3] after first time, TODO rename spawnMonster
+    monsterTTL: Int = MonsterTimer,
+    monsterSpawnIn: Int = MonsterSpawnIn
     // TODO random monster sprite every time
 ) {
 
@@ -93,17 +95,21 @@ case class State(
         val appleNow =
           if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
 
-        val (monsterNow, spawnMonsterInNow, monsterTTLNow) =
+        val (monsterNow, monsterSpawnInNow, monsterTTLNow) =
           if (monster.isEmpty) {
-            val spawnMonsterInNow = spawnMonsterIn - eatingApple.size
-            if (spawnMonsterInNow == 0)
-              (State.newMonster(snakeNow, appleNow), 5, monsterTTL)
-            else (monster, spawnMonsterInNow, monsterTTL)
+            val monsterSpawnInNow = monsterSpawnIn - eatingApple.size
+            if (monsterSpawnInNow == 0)
+              (
+                State.newMonster(snakeNow, appleNow),
+                MonsterSpawnIn + Random.nextInt(MonsterSpawnRandom),
+                monsterTTL
+              )
+            else (monster, monsterSpawnInNow, monsterTTL)
           } else {
             val monsterTTLNow = monsterTTL - 1
             if (eatingMonster.nonEmpty || monsterTTL == 0)
-              (Vector.empty, spawnMonsterIn, 20)
-            else (monster, spawnMonsterIn, monsterTTLNow)
+              (Vector.empty, monsterSpawnIn, MonsterTimer)
+            else (monster, monsterSpawnIn, monsterTTLNow)
           }
 
         val scoreNow =
@@ -121,7 +127,7 @@ case class State(
             score = scoreNow,
             openMouth = aboutToEat,
             monster = monsterNow,
-            spawnMonsterIn = spawnMonsterInNow,
+            monsterSpawnIn = monsterSpawnInNow,
             monsterTTL = monsterTTLNow
           )
       }
@@ -182,20 +188,13 @@ case class State(
     (renderedSnake ++ renderedFood).flatMap(_.times(Scale).square(Scale))
   }
 
-  // TODO show monster timer
+  // TODO show monster timer properly
   def renderScore: String =
-    String.format("%04d", score)
+    String.format("%04d", score) ++ " ".repeat(10) ++ (if (monster.nonEmpty)
+                                                         monsterTTL.toString
+                                                       else "")
 }
 object State {
-  // TODO monsters appear after 5 eaten apples, and then
-  // every 5 + choose [1, 2, 3] eaten apples, and disappear after 20 steps
-  val monster = """
-********
-********
-********
-*******-
-"""
-
   def initial: State = {
     val snake =
       Vector
@@ -311,6 +310,14 @@ object State {
 **--
 ----
 """.pipe(cornerSprite)
+
+  val monster =
+    """
+********
+********
+********
+*******-
+"""
 
 }
 
