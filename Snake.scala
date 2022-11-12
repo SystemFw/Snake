@@ -52,6 +52,9 @@ class Gui extends JPanel {
   // All reads and writes from single EDT thread: can be standard references
   private var image: Vector[Point] = Vector()
 
+  private def emptyBorder(size: Int) =
+    BorderFactory.createEmptyBorder(size, size, size, size)
+
   private val score = {
     val label = new JLabel("Score")
     val border = BorderFactory.createCompoundBorder(
@@ -62,12 +65,35 @@ class Gui extends JPanel {
     label
   }
 
+  private val canvas = {
+    val canvas = new JComponent {
+      // TODO build proper image instead
+      override def paintComponent(g: Graphics) =
+        image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+
+      override def getPreferredSize =
+        Dimension(DisplaySize.x, DisplaySize.y)
+    }
+
+    val panel = new JPanel
+    val size = CanvasBorderSize
+    val border = BorderFactory.createCompoundBorder(
+      BorderFactory.createLineBorder(Color.black, size),
+      emptyBorder(size)
+    )
+    panel.setBorder(border)
+    panel.setBackground(BackgroundColor)
+    panel.setLayout(new BorderLayout)
+    panel.add(canvas, BorderLayout.CENTER)
+    panel
+  }
+
   setBackground(BackgroundColor)
   setBorder(emptyBorder(BorderSize))
   setLayout(new BorderLayout)
 
   add(score, BorderLayout.NORTH)
-  add(Canvas.create, BorderLayout.CENTER)
+  add(canvas, BorderLayout.CENTER)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
@@ -87,33 +113,6 @@ class Gui extends JPanel {
       score.setText(state.renderScore)
       repaint()
     }
-
-  class Canvas extends JComponent {
-    // TODO build proper image instead
-    override def paintComponent(g: Graphics) =
-      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
-
-    override def getPreferredSize =
-      Dimension(DisplaySize.x, DisplaySize.y)
-  }
-  object Canvas {
-    def create = {
-      val panel = new JPanel
-      val size = CanvasBorderSize
-      val border = BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.black, size),
-        emptyBorder(size)
-      )
-      panel.setBorder(border)
-      panel.setBackground(BackgroundColor)
-      panel.setLayout(new BorderLayout)
-      panel.add(new Canvas, BorderLayout.CENTER)
-      panel
-    }
-  }
-
-  private def emptyBorder(size: Int) =
-    BorderFactory.createEmptyBorder(size, size, size, size)
 }
 object Gui {
   def start: Gui = {
@@ -404,7 +403,6 @@ object Sprite {
     Vector.range(0, size).map(tileIndex => parse(input, tileIndex, size))
   }
 
-
   def sprite(mask: String) = {
     val sprite = Sprite.parse(mask)
     Map(
@@ -496,4 +494,3 @@ object Sprite {
 *******-
 """
 }
-
