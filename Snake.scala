@@ -411,8 +411,10 @@ class Gui extends JPanel {
   setLayout(new BorderLayout)
   val canvas = {
     val panel = new JPanel
-    panel.add(new Canvas)
+
+    panel.setLayout(new BorderLayout)
     //    panel.setBackground(BackgroundColor)
+    panel.add(new Canvas, BorderLayout.CENTER)
     panel.setBorder(
       BorderFactory.createCompoundBorder(
         BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
@@ -441,12 +443,12 @@ class Gui extends JPanel {
 
   class Canvas extends JComponent {
 //    setBorder(BorderFactory.createLineBorder(Color.black, CanvasBorderSize))
-    setBorder(
-      BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
-        BorderFactory.createLineBorder(Color.red, CanvasBorderSize)
-    )
-    )
+    // setBorder(
+    //   BorderFactory.createCompoundBorder(
+    //     BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
+    //     BorderFactory.createLineBorder(Color.red, CanvasBorderSize)
+    // )
+    // )
 
     // TODO I'm manually implying another transparent border before the black one,
     // code it explicitly, then revert to * CanvasBorderSize, 2 * CanvasBorderSize
@@ -455,17 +457,17 @@ class Gui extends JPanel {
     override def paintComponent(g: Graphics) =
       image.foreach { point =>
         g.drawLine(
-          point.x + 2 * CanvasBorderSize,
-          point.y + 2 * CanvasBorderSize,
-          point.x + 2 * CanvasBorderSize,
-          point.y + 2 * CanvasBorderSize
+          point.x,
+          point.y,
+          point.x,
+          point.y
         )
       }
 
     override def getPreferredSize =
       Dimension(
-        DisplaySize.x + 4 * CanvasBorderSize,
-        DisplaySize.y + 4 * CanvasBorderSize
+        DisplaySize.x,
+        DisplaySize.y
       )
   }
 }
