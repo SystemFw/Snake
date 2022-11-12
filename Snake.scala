@@ -45,6 +45,11 @@ object Shared {
   val CanvasBorderSize = 2
 }
 
+// TODO maybe review the extent to which Entity is used, most of the
+// uses are based on position, could use entity as dumb data, change
+// headNow, eaten, apple and monster back to Points, write a collision
+// detection with intersection and more the wrapping to Point.move
+// or maybe just have hits take a Point again
 case class State(
     snake: Vector[Entity],
     apple: Entity,
@@ -207,13 +212,10 @@ object State {
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
-    val apple = Entity(
-      Point(
-        Random.nextInt(Dimensions.x),
-        Random.nextInt(Dimensions.y)
-      ),
-      Point(0, 0)
-    )
+    val apple = Point(
+      Random.nextInt(Dimensions.x),
+      Random.nextInt(Dimensions.y)
+    ).pipe(Entity.static)
 
     if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
@@ -222,16 +224,14 @@ object State {
   // TODO dedicated Vector[Entity] vs Vector[Entity] collision detection?
   def newMonster(snake: Vector[Entity], apple: Entity): Vector[Entity] = {
     val size = 2
-    // TODO this still gets out of bounds: bug at position x: 20
-    // TODO y can actually be in any position
     val point = Point(
-      20,
-      4
-    ) // Point(Random.nextInt(Dimensions.x) / size * size , Random.nextInt(Dimensions.y) / size * size)
-    val monster = Vector(
-      Entity(point, Point(0, 0)),
-      Entity(point.move(Point.right), Point(0, 0))
+      Random.nextInt(Dimensions.x) / size * size,
+      Random.nextInt(Dimensions.y)
     )
+
+    val monster =
+      Vector(point, point.move(Point.right)).map(Entity.static)
+
     val collision =
       monster.exists(p => (apple +: snake).exists(p.hits))
     if (collision) newMonster(snake, apple) else monster
@@ -324,6 +324,9 @@ case class Entity(position: Point, direction: Point) {
     Entity(position.move(to).wrap(Dimensions), to.direction)
 
   def hits(target: Entity) = position == target.position
+}
+object Entity {
+  def static(position: Point) = Entity(position, Point(0, 0))
 }
 
 case class Sprite(points: Vector[Point]) {
