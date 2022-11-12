@@ -277,7 +277,7 @@ case class State(
 
   // TODO show monster timer properly
   def renderScore: String =
-    String.format("%04d", score) ++ " ".repeat(10) ++ (if (monster.nonEmpty)
+    String.format("%04d", score) ++ " ".repeat(34) ++ (if (monster.nonEmpty)
                                                          monsterTTL.toString
                                                        else "")
 }
