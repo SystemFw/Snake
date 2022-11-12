@@ -60,8 +60,8 @@ case class State(
     drawSnake: Boolean = true,
     openMouth: Boolean = false, // food
     monster: Vector[Entity] = Vector(),
-    monsterTimer: Int = 20,
-    nextMonster: Int = 5 // TODO + choose[1, 3] after first time
+    monsterTimer: Int = 20, // TODO rename to monsterTTL
+    nextMonster: Int = 5 // TODO + choose[1, 3] after first time, TODO rename spawnMonster
     // TODO random monster sprite every time
 ) {
 
@@ -79,7 +79,6 @@ case class State(
         val hasEaten = eaten.headOption.exists(snake.head.hits)
         val eatingApple = Option.when(headNow.hits(apple))(apple)
         val eatingMonster = monster.filter(headNow.hits)
-        val eating = eatingApple.nonEmpty || eatingMonster.nonEmpty
         val aboutToEat =
           (apple +: monster).exists(headNow.move(directionNow).hits)
         val swallowed = eaten.lastOption.exists(snake.last.hits)
@@ -94,34 +93,9 @@ case class State(
         val appleNow =
           if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
 
-        // NOTE monster appears in the same frame as eating the trigger amount of food
-        // NOTE you don't see the monster timer at 0, only at 1
-
-        // val monsterTimerNow = if (monster.empty) 20 else  monsterTimer - 1// TODO replace constant
-        // val nextMonsterNow  =
-        //   if (monster.empty && eating) nextMonster - 1
-        //   else if (monster.nonEmpty) nextMonster
-        //   else 5
-
-        // val monsterNow  = if (monsterTimerNow == 0 || eatingMonster) Vector() else monster
-
-        // val nextMonsterNow  =
-          //   if (eatingMonster.nonEmpty || monsterTimerNow == 0) Vector.empty -> 5
-        //   else (monster, newMonster)
-
-
-        // monsterActive = ???
-        // val monsterTimerNow = if (!monsterActive) 20 else  monsterTimer - 1// TODO replace constant
-        // val monsterNow  = if (monsterTimerNow == 0 || eatingMonster) Vector() else monster
-
-        // val (monsterNow, nextMonsterNow) =
-        //   if (eatingMonster.nonEmpty || monsterTimerNow == 0) Vector.empty -> 5
-        //   else (monster, newMonster)
-
         val (monsterNow, nextMonsterNow, monsterTimerNow) =
           if (monster.isEmpty) {
-            val nextMonsterNow = if (eating) nextMonster - 1 else nextMonster
-            // can I reset the nextMonster here actually?
+            val nextMonsterNow = if (eatingApple.nonEmpty) nextMonster - 1 else nextMonster
             if (nextMonsterNow == 0)
               (State.newMonster(snakeNow, appleNow), 5, monsterTimer)
             else (monster, nextMonsterNow, monsterTimer)
@@ -207,6 +181,7 @@ case class State(
     (renderedSnake ++ renderedFood).flatMap(_.times(Scale).square(Scale))
   }
 
+  // TODO show monster timer
   def renderScore: String =
     String.format("%04d", score)
 }
