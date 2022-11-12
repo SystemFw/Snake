@@ -381,13 +381,28 @@ object Point {
 }
 
 class Gui extends JPanel {
-
   // Writes from event listeners which run on single EDT thread: no atomics needed
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
   private var image: Vector[Point] = Vector()
-  private val score = new JLabel("Score")
+
+  private val score = {
+    val label = new JLabel("Score")
+    val border = BorderFactory.createCompoundBorder(
+      BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
+      BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)
+    )
+    label.setBorder(border)
+    label
+  }
+
+  setBackground(BackgroundColor)
+  setBorder(emptyBorder(BorderSize))
+  setLayout(new BorderLayout)
+
+  add(score, BorderLayout.NORTH)
+  add(Canvas.create, BorderLayout.CENTER)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
@@ -399,39 +414,6 @@ class Gui extends JPanel {
     add(s"released $direction") { _ => input = None }
   }
 
-  setBorder(
-    BorderFactory.createEmptyBorder(
-      BorderSize,
-      BorderSize,
-      BorderSize,
-      BorderSize
-    )
-  )
-  setBackground(BackgroundColor)
-  setLayout(new BorderLayout)
-  val canvas = {
-    val panel = new JPanel
-
-    panel.setLayout(new BorderLayout)
-    panel.setBackground(BackgroundColor)
-    panel.add(new Canvas, BorderLayout.CENTER)
-    panel.setBorder(
-      BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
-        BorderFactory.createEmptyBorder(CanvasBorderSize, CanvasBorderSize, CanvasBorderSize, CanvasBorderSize)
-      ))
-
-    panel
-  }
-  add(canvas, BorderLayout.CENTER)
-  score.setBorder(
-    BorderFactory.createCompoundBorder(
-      BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
-      BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)
-    )
-  )
-  add(score, BorderLayout.NORTH)
-
   def getInput: Option[Point] = input
 
   def update(state: State): Unit =
@@ -442,34 +424,31 @@ class Gui extends JPanel {
     }
 
   class Canvas extends JComponent {
-//    setBorder(BorderFactory.createLineBorder(Color.black, CanvasBorderSize))
-    // setBorder(
-    //   BorderFactory.createCompoundBorder(
-    //     BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
-    //     BorderFactory.createLineBorder(Color.red, CanvasBorderSize)
-    // )
-    // )
-
-    // TODO I'm manually implying another transparent border before the black one,
-    // code it explicitly, then revert to * CanvasBorderSize, 2 * CanvasBorderSize
-
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
-      image.foreach { point =>
-        g.drawLine(
-          point.x,
-          point.y,
-          point.x,
-          point.y
-        )
-      }
+      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
 
     override def getPreferredSize =
-      Dimension(
-        DisplaySize.x,
-        DisplaySize.y
-      )
+      Dimension(DisplaySize.x, DisplaySize.y)
   }
+  object Canvas {
+    def create = {
+      val panel = new JPanel
+      val size = CanvasBorderSize
+      val border = BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.black, size),
+        emptyBorder(size)
+      )
+      panel.setBorder(border)
+      panel.setBackground(BackgroundColor)
+      panel.setLayout(new BorderLayout)
+      panel.add(new Canvas, BorderLayout.CENTER)
+      panel
+    }
+  }
+
+  private def emptyBorder(size: Int) =
+    BorderFactory.createEmptyBorder(size, size, size, size)
 }
 object Gui {
   def start: Gui = {
