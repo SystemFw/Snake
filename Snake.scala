@@ -483,14 +483,42 @@ object Sprite {
 ----
 """.pipe(cornerSprite)
 
-  // TODO monster sprites. Have a Vector[Vector[Bitmap]] here, a Vector[Bitmap] = Vector() in the state
-  // change newMonster to return a Vector[Bitmap]
-
-  val monster =
+  val monsters = Vector(
     """
-********
-********
-********
+--**----
+-*-**-*-
 *******-
+--****--
+""",
+    """
+--****--
+********
+*-****-*
+*-*--*-*
+""",
+    """
+-*-*-*--
+*-*****-
+********
+--*--*--
+""",
+    """
+--------
+*-------
+********
+-*-*-*-*
+""",
+    """
+**---*--
+**--***-
+--******
+----*-*-
+""",
+    """
+----**--
+*--**-*-
+*-*****-
+-*******
 """
+  )
 }
