@@ -3,7 +3,7 @@ import java.awt.{List => _, _}
 import java.awt.event._
 import scala.util.Random
 import scala.util.chaining._
-import Shared._
+import Main._
 
 /** Recreate the basic version of the classic Nokia 3310 Snake, no extras
   * Behaviour taken from observing https://helpfulsheep.com/snake/
@@ -22,9 +22,7 @@ object Main {
       gui.update(state)
     }
   }
-}
 
-object Shared {
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val FrameRate = 1000 / 120
@@ -45,6 +43,94 @@ object Shared {
   val BorderSize = 10
   val ScoreBorderSize = 6
   val CanvasBorderSize = 2
+}
+
+class Gui extends JPanel {
+  // Writes from event listeners which run on single EDT thread: no atomics needed
+  // Reads from main thread: volatile needed
+  @volatile private var input: Option[Point] = None
+  // All reads and writes from single EDT thread: can be standard references
+  private var image: Vector[Point] = Vector()
+
+  private val score = {
+    val label = new JLabel("Score")
+    val border = BorderFactory.createCompoundBorder(
+      BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
+      BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)
+    )
+    label.setBorder(border)
+    label
+  }
+
+  setBackground(BackgroundColor)
+  setBorder(emptyBorder(BorderSize))
+  setLayout(new BorderLayout)
+
+  add(score, BorderLayout.NORTH)
+  add(Canvas.create, BorderLayout.CENTER)
+
+  Point.directions.keys.foreach { direction =>
+    def add(name: String)(action: AbstractAction) = {
+      getActionMap.put(name, action)
+      getInputMap.put(KeyStroke.getKeyStroke(name), name)
+    }
+
+    add(direction) { _ => input = Point.directions.get(direction) }
+    add(s"released $direction") { _ => input = None }
+  }
+
+  def getInput: Option[Point] = input
+
+  def update(state: State): Unit =
+    SwingUtilities.invokeLater { () =>
+      image = state.render
+      score.setText(state.renderScore)
+      repaint()
+    }
+
+  class Canvas extends JComponent {
+    // TODO build proper image instead
+    override def paintComponent(g: Graphics) =
+      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+
+    override def getPreferredSize =
+      Dimension(DisplaySize.x, DisplaySize.y)
+  }
+  object Canvas {
+    def create = {
+      val panel = new JPanel
+      val size = CanvasBorderSize
+      val border = BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.black, size),
+        emptyBorder(size)
+      )
+      panel.setBorder(border)
+      panel.setBackground(BackgroundColor)
+      panel.setLayout(new BorderLayout)
+      panel.add(new Canvas, BorderLayout.CENTER)
+      panel
+    }
+  }
+
+  private def emptyBorder(size: Int) =
+    BorderFactory.createEmptyBorder(size, size, size, size)
+}
+object Gui {
+  def start: Gui = {
+    val gui = new Gui
+    SwingUtilities.invokeLater { () =>
+      val app = new JFrame("Snake")
+      app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+      app.setResizable(false)
+      app.add(gui)
+      app.pack
+      app.setLocationRelativeTo(
+        null
+      ) // centers the window if called after `pack`
+      app.setVisible(true)
+    }
+    gui
+  }
 }
 
 // TODO maybe review the extent to which Entity is used, most of the
@@ -148,8 +234,8 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
-    val renderedFood = State.apple.at(apple.position) ++ {
-      val monsterSprite = Sprite.parseRow(State.monster)
+    val renderedFood = Sprite.apple.at(apple.position) ++ {
+      val monsterSprite = Sprite.parseRow(Sprite.monster)
       monsterSprite.zip(monster.map(_.position)).flatMap {
         case (sprite: Sprite, position: Point) => sprite.at(position)
       }
@@ -159,20 +245,20 @@ case class State(
       if (!drawSnake) Vector.empty
       else {
         val head =
-          (if (!openMouth) State.head else State.headOpen)
+          (if (!openMouth) Sprite.head else Sprite.headOpen)
             .apply(snake.head.direction)
             .at(snake.head.position)
 
         val tail =
-          State.tail.apply(snake.init.last.direction).at(snake.last.position)
+          Sprite.tail.apply(snake.init.last.direction).at(snake.last.position)
 
         val body =
           snake.init.sliding(2).flatMap {
             case Vector(headward, tailward) =>
               val (body, turn) =
                 if (eaten.exists(tailward.hits))
-                  (State.bodyFull, State.turnFull)
-                else (State.body, State.turn)
+                  (Sprite.bodyFull, Sprite.turnFull)
+                else (Sprite.body, Sprite.turn)
 
               if (tailward.direction == headward.direction)
                 body.apply(tailward.direction).at(tailward.position)
@@ -232,6 +318,92 @@ object State {
       monster.exists(p => (apple +: snake).exists(p.hits))
     if (collision) newMonster(snake, apple) else monster
   }
+}
+
+case class Entity(position: Point, direction: Point) {
+  def move(to: Point) =
+    Entity(position.move(to).wrap(Dimensions), to.direction)
+
+  def hits(target: Entity) = position == target.position
+}
+object Entity {
+  def static(position: Point) = Entity(position, Point(0, 0))
+}
+
+case class Point(x: Int, y: Int) {
+  def move(to: Point): Point = Point(x + to.x, y + to.y)
+
+  def times(k: Double): Point = Point((x * k).toInt, (y * k).toInt)
+
+  def opposite: Point = times(-1)
+
+  def direction: Point = Point(x.sign, y.sign)
+
+  def square(side: Int): Vector[Point] =
+    0.until(side)
+      .flatMap(x => 0.until(side).map(y => move(Point(x, y))))
+      .toVector
+
+  def wrap(limit: Point) = {
+    def f(n: Int, limit: Int) = n.sign.min(0).abs * limit + (n % limit)
+    Point(f(x, limit.x), f(y, limit.y))
+  }
+}
+object Point {
+  def up: Point = Point(0, -1)
+  def down: Point = Point(0, 1)
+  def left: Point = Point(-1, 0)
+  def right: Point = Point(1, 0)
+
+  def directions: Map[String, Point] = Map(
+    "UP" -> up,
+    "DOWN" -> down,
+    "LEFT" -> left,
+    "RIGHT" -> right
+  )
+}
+
+case class Sprite(points: Vector[Point]) {
+  val size = SpriteSize - 1
+
+  def at(p: Point): Vector[Point] =
+    points.map(p.times(SpriteSize).move(_))
+
+  def clock: Sprite =
+    Sprite(points.map(p => Point(size - p.y, p.x)))
+
+  def anti: Sprite =
+    Sprite(points.map(p => Point(p.y, size - p.x)))
+
+  def mirrorY: Sprite =
+    Sprite(points.map(p => Point(size - p.x, p.y)))
+
+  def mirrorX: Sprite =
+    Sprite(points.map(p => Point(p.x, size - p.y)))
+}
+object Sprite {
+
+  /** Parses the input as a 4x4 sprite, with '*' meaning bit set and any other
+    * non-whitespace character meaning bit unset.
+    */
+  def parse(mask: String, tileIndex: Int = 0, tiles: Int = 1) = Sprite {
+    val input = mask.filterNot(_.isWhitespace)
+    Vector.range(0, SpriteSize * SpriteSize).flatMap { i =>
+      val x = i % SpriteSize
+      val y = i / SpriteSize
+      val target = (tileIndex * SpriteSize + x) + (y * SpriteSize)
+      Option.when(input(target) == '*')(Point(x, y))
+    }
+  }
+
+  /** Parses the input as a row of 4x4 sprites */
+  def parseRow(mask: String): Vector[Sprite] = {
+    val input = mask.filterNot(_.isWhitespace)
+    val size = input.length / (SpriteSize * SpriteSize)
+
+    Vector.range(0, size).map(tileIndex => parse(input, tileIndex, size))
+  }
+
 
   def sprite(mask: String) = {
     val sprite = Sprite.parse(mask)
@@ -323,178 +495,5 @@ object State {
 ********
 *******-
 """
-
 }
 
-case class Entity(position: Point, direction: Point) {
-  def move(to: Point) =
-    Entity(position.move(to).wrap(Dimensions), to.direction)
-
-  def hits(target: Entity) = position == target.position
-}
-object Entity {
-  def static(position: Point) = Entity(position, Point(0, 0))
-}
-
-case class Sprite(points: Vector[Point]) {
-  val size = SpriteSize - 1
-
-  def at(p: Point): Vector[Point] =
-    points.map(p.times(SpriteSize).move(_))
-
-  def clock: Sprite =
-    Sprite(points.map(p => Point(size - p.y, p.x)))
-
-  def anti: Sprite =
-    Sprite(points.map(p => Point(p.y, size - p.x)))
-
-  def mirrorY: Sprite =
-    Sprite(points.map(p => Point(size - p.x, p.y)))
-
-  def mirrorX: Sprite =
-    Sprite(points.map(p => Point(p.x, size - p.y)))
-}
-object Sprite {
-
-  /** Parses the input as a 4x4 sprite, with '*' meaning bit set and any other
-    * non-whitespace character meaning bit unset.
-    */
-  def parse(mask: String, tileIndex: Int = 0, tiles: Int = 1) = Sprite {
-    val input = mask.filterNot(_.isWhitespace)
-    Vector.range(0, SpriteSize * SpriteSize).flatMap { i =>
-      val x = i % SpriteSize
-      val y = i / SpriteSize
-      val target = (tileIndex * SpriteSize + x) + (y * SpriteSize)
-      Option.when(input(target) == '*')(Point(x, y))
-    }
-  }
-
-  /** Parses the input as a row of 4x4 sprites */
-  def parseRow(mask: String): Vector[Sprite] = {
-    val input = mask.filterNot(_.isWhitespace)
-    val size = input.length / (SpriteSize * SpriteSize)
-
-    Vector.range(0, size).map(tileIndex => parse(input, tileIndex, size))
-  }
-}
-
-case class Point(x: Int, y: Int) {
-  def move(to: Point): Point = Point(x + to.x, y + to.y)
-
-  def times(k: Double): Point = Point((x * k).toInt, (y * k).toInt)
-
-  def opposite: Point = times(-1)
-
-  def direction: Point = Point(x.sign, y.sign)
-
-  def square(side: Int): Vector[Point] =
-    0.until(side)
-      .flatMap(x => 0.until(side).map(y => move(Point(x, y))))
-      .toVector
-
-  def wrap(limit: Point) = {
-    def f(n: Int, limit: Int) = n.sign.min(0).abs * limit + (n % limit)
-    Point(f(x, limit.x), f(y, limit.y))
-  }
-}
-object Point {
-  def up: Point = Point(0, -1)
-  def down: Point = Point(0, 1)
-  def left: Point = Point(-1, 0)
-  def right: Point = Point(1, 0)
-
-  def directions: Map[String, Point] = Map(
-    "UP" -> up,
-    "DOWN" -> down,
-    "LEFT" -> left,
-    "RIGHT" -> right
-  )
-}
-
-class Gui extends JPanel {
-  // Writes from event listeners which run on single EDT thread: no atomics needed
-  // Reads from main thread: volatile needed
-  @volatile private var input: Option[Point] = None
-  // All reads and writes from single EDT thread: can be standard references
-  private var image: Vector[Point] = Vector()
-
-  private val score = {
-    val label = new JLabel("Score")
-    val border = BorderFactory.createCompoundBorder(
-      BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
-      BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)
-    )
-    label.setBorder(border)
-    label
-  }
-
-  setBackground(BackgroundColor)
-  setBorder(emptyBorder(BorderSize))
-  setLayout(new BorderLayout)
-
-  add(score, BorderLayout.NORTH)
-  add(Canvas.create, BorderLayout.CENTER)
-
-  Point.directions.keys.foreach { direction =>
-    def add(name: String)(action: AbstractAction) = {
-      getActionMap.put(name, action)
-      getInputMap.put(KeyStroke.getKeyStroke(name), name)
-    }
-
-    add(direction) { _ => input = Point.directions.get(direction) }
-    add(s"released $direction") { _ => input = None }
-  }
-
-  def getInput: Option[Point] = input
-
-  def update(state: State): Unit =
-    SwingUtilities.invokeLater { () =>
-      image = state.render
-      score.setText(state.renderScore)
-      repaint()
-    }
-
-  class Canvas extends JComponent {
-    // TODO build proper image instead
-    override def paintComponent(g: Graphics) =
-      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
-
-    override def getPreferredSize =
-      Dimension(DisplaySize.x, DisplaySize.y)
-  }
-  object Canvas {
-    def create = {
-      val panel = new JPanel
-      val size = CanvasBorderSize
-      val border = BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.black, size),
-        emptyBorder(size)
-      )
-      panel.setBorder(border)
-      panel.setBackground(BackgroundColor)
-      panel.setLayout(new BorderLayout)
-      panel.add(new Canvas, BorderLayout.CENTER)
-      panel
-    }
-  }
-
-  private def emptyBorder(size: Int) =
-    BorderFactory.createEmptyBorder(size, size, size, size)
-}
-object Gui {
-  def start: Gui = {
-    val gui = new Gui
-    SwingUtilities.invokeLater { () =>
-      val app = new JFrame("Snake")
-      app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-      app.setResizable(false)
-      app.add(gui)
-      app.pack
-      app.setLocationRelativeTo(
-        null
-      ) // centers the window if called after `pack`
-      app.setVisible(true)
-    }
-    gui
-  }
-}
