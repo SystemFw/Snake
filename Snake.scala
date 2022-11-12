@@ -30,15 +30,15 @@ object Shared {
   val FrameRate = 1000 / 120
   val Scale = 2
 
-  val Dimensions = Resolution.times(1 / SpriteSize.toDouble)
-  val Centre = Dimensions.times(0.5)
+  val Dimensions = Point(22, 13) // Resolution.times(1 / SpriteSize.toDouble)
+  val Centre = Point(10, 7) // Dimensions.times(0.5)
   val SnakeSize = 6
-  val SlowDown = 12
+  val SlowDown = 12 * 6
   val PauseOnLoss = 150
   val FlickerDown = 20
   val FlickerUp = 30
 
-  val DisplaySize = Resolution.times(Scale)
+  val DisplaySize = Point(22 * 4 * 2, 13 * 4 * 2) //Resolution.times(Scale)
   val BackgroundColor = Color(170, 220, 0)
   val BorderSize = 10
   val ScoreBorderSize = 6
@@ -430,21 +430,24 @@ class Gui extends JPanel {
   class Canvas extends JComponent {
     setBorder(BorderFactory.createLineBorder(Color.black, CanvasBorderSize))
 
+    // TODO I'm manually implying another transparent border before the black one,
+    // code it explicitly, then revert to * CanvasBorderSize, 2 * CanvasBorderSize
+
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
       image.foreach { point =>
         g.drawLine(
-          point.x + CanvasBorderSize,
-          point.y + CanvasBorderSize,
-          point.x + CanvasBorderSize,
-          point.y + CanvasBorderSize
+          point.x + 2 * CanvasBorderSize,
+          point.y + 2 * CanvasBorderSize,
+          point.x + 2 * CanvasBorderSize,
+          point.y + 2 * CanvasBorderSize
         )
       }
 
     override def getPreferredSize =
-      Dimension( // TODO revert to 2 * border once dimensions fixed
-        DisplaySize.x + 5 * CanvasBorderSize,
-        DisplaySize.y + 5 * CanvasBorderSize
+      Dimension(
+        DisplaySize.x + 4 * CanvasBorderSize,
+        DisplaySize.y + 4 * CanvasBorderSize
       )
   }
 }
