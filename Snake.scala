@@ -25,20 +25,20 @@ object Main {
 }
 
 object Shared {
-  val Resolution = Point(84, 48)
+  val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val FrameRate = 1000 / 120
   val Scale = 2
 
-  val Dimensions = Point(22, 13) // Resolution.times(1 / SpriteSize.toDouble)
-  val Centre = Point(10, 7) // Dimensions.times(0.5)
+
+  val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
-  val SlowDown = 12 * 6
+  val SlowDown = 12
   val PauseOnLoss = 150
   val FlickerDown = 20
   val FlickerUp = 30
 
-  val DisplaySize = Point(22 * 4 * 2, 13 * 4 * 2) //Resolution.times(Scale)
+  val DisplaySize = Dimensions.times(SpriteSize).times(Scale)
   val BackgroundColor = Color(170, 220, 0)
   val BorderSize = 10
   val ScoreBorderSize = 6
