@@ -409,7 +409,19 @@ class Gui extends JPanel {
   )
   setBackground(BackgroundColor)
   setLayout(new BorderLayout)
-  add(new Canvas, BorderLayout.CENTER)
+  val canvas = {
+    val panel = new JPanel
+    panel.add(new Canvas)
+    //    panel.setBackground(BackgroundColor)
+    panel.setBorder(
+      BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
+        BorderFactory.createLineBorder(Color.red, CanvasBorderSize)
+    ))
+
+    panel
+  }
+  add(canvas, BorderLayout.CENTER)
   score.setBorder(
     BorderFactory.createCompoundBorder(
       BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
@@ -428,7 +440,13 @@ class Gui extends JPanel {
     }
 
   class Canvas extends JComponent {
-    setBorder(BorderFactory.createLineBorder(Color.black, CanvasBorderSize))
+//    setBorder(BorderFactory.createLineBorder(Color.black, CanvasBorderSize))
+    setBorder(
+      BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
+        BorderFactory.createLineBorder(Color.red, CanvasBorderSize)
+    )
+    )
 
     // TODO I'm manually implying another transparent border before the black one,
     // code it explicitly, then revert to * CanvasBorderSize, 2 * CanvasBorderSize
