@@ -52,6 +52,7 @@ object Shared {
 // headNow, eaten, apple and monster back to Points, write a collision
 // detection with intersection and more the wrapping to Point.move
 // or maybe just have hits take a Point again
+// a directions: Vector[Point] seems also doable, updated in one place only
 case class State(
     snake: Vector[Entity],
     apple: Entity,
@@ -79,6 +80,7 @@ case class State(
         val headNow = snake.head.move(directionNow)
 
         val hasEaten = eaten.headOption.exists(snake.head.hits)
+        // TODO convert these two to boolean
         val eatingApple = Option.when(headNow.hits(apple))(apple)
         val eatingMonster = monster.filter(headNow.hits)
         val aboutToEat =
@@ -310,6 +312,9 @@ object State {
 **--
 ----
 """.pipe(cornerSprite)
+
+  // TODO monster sprites. Have a Vector[Vector[Bitmap]] here, a Vector[Bitmap] = Vector() in the state
+  // change newMonster to return a Vector[Bitmap]
 
   val monster =
     """
