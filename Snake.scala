@@ -296,7 +296,7 @@ object State {
         .map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
 
     val apple = newApple(snake)
-    State(snake = snake, apple = apple)
+    State(snake = snake, apple = Entity.static(Point(10, 0)))
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
