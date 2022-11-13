@@ -26,14 +26,17 @@ object Main {
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val FrameRate = 1000 / 120
+  val Tick = 88 // blink tick is 270
+  val Level = 9
   val Scale = 2
 
   val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
-  val SlowDown = 12
-  val PauseOnLoss = 150
-  val FlickerDown = 20
-  val FlickerUp = 30
+//  val SlowDown = 12
+  val PauseOnLoss =  24 // 150 //2 * Tick // 150
+  val FlickerDown = 3 // Tick /
+  val FlickerUp =  3 // Tick / 3
+
   val MonsterTimer = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
@@ -225,6 +228,8 @@ case class State(
       }
 
     def flickerOnLoss = {
+//      assert(FlickerDown < FlickerUp)
+
       val flicker =
         (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
 
@@ -528,4 +533,3 @@ object Sprite {
 """
   ).map(parseRow)
 }
-
