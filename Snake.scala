@@ -17,7 +17,7 @@ object Main {
     var state = State.initial
 
     while (true) {
-      Thread.sleep(88) // FrameRate) // TODO this is pretty rudimentary
+      Thread.sleep(Tick)
       state = state.evolve(gui.getInput)
       gui.update(state)
     }
@@ -25,18 +25,17 @@ object Main {
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
-  val FrameRate = 1000 / 120
-  val Tick = 88 // blink tick is 270
-  val Level = 9
   val Scale = 2
+
+  val Tick = 88
+  val PauseOnLoss =  24
+  val FlickerDown = 3
+  val FlickerUp =  3
 
   val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
-//  val SlowDown = 12
-  val PauseOnLoss =  24 // 150 //2 * Tick // 150
-  val FlickerDown = 3 // Tick /
-  val FlickerUp =  3 // Tick / 3
 
+  val Level = 9
   val MonsterTimer = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
@@ -46,8 +45,6 @@ object Main {
   val BorderSize = 10
   val ScoreBorderSize = 6
   val CanvasBorderSize = 2
-
- // p0 + 5 * (level + 10) - 2 * (20 - t) - (level - 2)
 }
 
 class Gui extends JPanel {
@@ -71,6 +68,7 @@ class Gui extends JPanel {
     label
   }
 
+  // TODO the very first row doesn't display correctly
   private val canvas = {
     val canvas = new JComponent {
       // TODO build proper image instead
@@ -207,9 +205,10 @@ case class State(
           }
 
         val scoreNow =
-          if (eatingApple.nonEmpty) score + 9
+          if (eatingApple.nonEmpty) score + Level
           else if (eatingMonster.nonEmpty)
-            score + 9 // TODO separate score for  monster
+            // Magic formula due to observation
+            score + 5 * (Level + 10) - 2 * (20 - monsterTTL) - (Level - 2)
           else score
 
         if (dead) copy(lostAt = time)
@@ -227,9 +226,8 @@ case class State(
           )
       }
 
+    // TODO simplify this based on FlickerDown == FlickerUp
     def flickerOnLoss = {
-//      assert(FlickerDown < FlickerUp)
-
       val flicker =
         (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
 
