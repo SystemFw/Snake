@@ -174,26 +174,33 @@ case class State(
       val headNow = snake.head.move(directionNow)
 
       val hasEaten = eaten.headOption.exists(snake.head.hits)
-      // TODO convert these two to boolean?
-      val eatingApple = Option.when(headNow.hits(apple))(apple)
-      val eatingMonster = monster.filter(headNow.hits)
-      val aboutToEat =
-        (apple +: monster).exists(headNow.move(directionNow).hits)
+      val eatingApple = headNow.hits(apple)
+      val eatingMonster = monster.exists(headNow.hits)
       val swallowed = eaten.lastOption.exists(snake.last.hits)
       val dead = snake.tail.exists(headNow.hits)
+      val aboutToEat =
+        (apple +: monster).exists(headNow.move(directionNow).hits)
 
       val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
 
       val eatenNow =
-        eatingApple.toVector ++ eatingMonster.toVector ++
+        Vector(headNow).filter(_ => eatingApple || eatingMonster) ++
           (if (swallowed) eaten.init else eaten)
 
       val appleNow =
-        if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
+        if (eatingApple) State.newApple(snakeNow) else apple
+
+      val scoreNow =
+        if (eatingApple) score + Level
+        else if (eatingMonster)
+          // Magic formula due to observation
+          score + 5 * (Level + 10) - 2 * (20 - monsterTTL) - (Level - 2)
+        else score
 
       val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
         if (monster.isEmpty) {
-          val monsterSpawnInNow = monsterSpawnIn - eatingApple.size
+          val monsterSpawnInNow =
+            if(eatingApple) monsterSpawnIn - 1 else monsterSpawnIn
           if (monsterSpawnInNow == 0)
             (
               State.newMonster(snakeNow, appleNow),
@@ -203,17 +210,10 @@ case class State(
           else ((monster, monsterSprite), monsterSpawnInNow, monsterTTL)
         } else {
           val monsterTTLNow = monsterTTL - 1
-          if (eatingMonster.nonEmpty || monsterTTL == 0)
+          if (eatingMonster || monsterTTL == 0)
             ((Vector.empty, Vector.empty), monsterSpawnIn, MonsterTimer)
           else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
         }
-
-      val scoreNow =
-        if (eatingApple.nonEmpty) score + Level
-        else if (eatingMonster.nonEmpty)
-          // Magic formula due to observation
-          score + 5 * (Level + 10) - 2 * (20 - monsterTTL) - (Level - 2)
-        else score
 
       if (dead) copy(lostAt = time)
       else
