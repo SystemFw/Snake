@@ -194,7 +194,7 @@ case class State(
       val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
         if (monster.isEmpty) {
           val monsterSpawnInNow =
-            if(eatingApple) monsterSpawnIn - 1 else monsterSpawnIn
+            if (eatingApple) monsterSpawnIn - 1 else monsterSpawnIn
           if (monsterSpawnInNow == 0)
             (
               State.newMonster(snakeNow, appleNow),
@@ -314,13 +314,8 @@ object State {
       Random.nextInt(Dimensions.x) / size * size,
       Random.nextInt(Dimensions.y)
     )
-
-    val monster =
-      Vector(point, point.move(Point.right)).map(Entity.static)
-
-    val collision =
-      monster.exists(p => (apple +: snake).exists(p.hits))
-
+    val monster = Vector(point, point.move(Point.right)).map(Entity.static)
+    val collision = monster.exists(p => (apple +: snake).exists(p.hits))
     val sprite = Random.shuffle(Sprite.monsters).head
 
     if (collision) newMonster(snake, apple) else (monster, sprite)
