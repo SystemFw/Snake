@@ -19,7 +19,7 @@ object Main {
     while (true) {
       Thread.sleep(Tick)
       state = state.evolve(gui.getInput)
-      gui.update(state)
+//      gui.update(state)
     }
   }
 
@@ -51,7 +51,21 @@ class Gui extends JPanel {
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
-  private var image: Vector[Point] = Vector()
+  private var image: Vector[Point] =
+  {
+    0.to(9)
+      .toVector
+      .map(i => Centre.move(Point.right.times(i)))
+      .map(p => Vector(p, p.move(Point.down)))
+      .zip(Sprite.digits)
+      .flatMap { (points, digits) =>
+        points
+          .zip(digits)
+          .flatMap { case (p, d) => d.at(p) }
+          .flatMap(_.times(Scale).square(Scale))
+      }
+  }
+    //Vector()
 
   private def emptyBorder(size: Int) =
     BorderFactory.createEmptyBorder(size, size, size, size)
