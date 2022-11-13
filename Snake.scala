@@ -505,5 +505,8 @@ object Sprite {
 -***---*-***-***---*-***-***--*--***-***
 ----------------------------------------
 ----------------------------------------
-"""
+""".pipe(parseRow).splitAt(10).pipe { case (topRow, bottomRow) =>
+      topRow.zip(bottomRow).map { case (top, bottom) => Vector(top, bottom) }
+    }
+
 }
