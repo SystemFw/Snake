@@ -28,7 +28,7 @@ object Main {
   val Scale = 2
 
   val Tick = 88
-  val PauseOnLoss =  24
+  val PauseOnLoss = 24
   val FlickerDown = 3
   val FlickerUp =  3
 
@@ -68,22 +68,20 @@ class Gui extends JPanel {
     label
   }
 
-  // TODO the very first row doesn't display correctly
   private val canvas = {
     val canvas = new JComponent {
       // TODO build proper image instead
       override def paintComponent(g: Graphics) =
-        image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+        image.foreach(point => g.drawLine(point.x + CanvasBorderSize, point.y + CanvasBorderSize, point.x + CanvasBorderSize, point.y + CanvasBorderSize))
 
       override def getPreferredSize =
-        Dimension(DisplaySize.x, DisplaySize.y)
+        Dimension(DisplaySize.x + CanvasBorderSize, DisplaySize.y + CanvasBorderSize)
     }
 
     val panel = new JPanel
-    val size = CanvasBorderSize
     val border = BorderFactory.createCompoundBorder(
-      BorderFactory.createLineBorder(Color.black, size),
-      emptyBorder(size)
+      BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
+      emptyBorder(CanvasBorderSize)
     )
     panel.setBorder(border)
     panel.setBackground(BackgroundColor)
