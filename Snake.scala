@@ -17,7 +17,7 @@ object Main {
     var state = State.initial
 
     while (true) {
-      Thread.sleep(FrameRate) // TODO this is pretty rudimentary
+      Thread.sleep(88) // FrameRate) // TODO this is pretty rudimentary
       state = state.evolve(gui.getInput)
       gui.update(state)
     }
@@ -43,6 +43,8 @@ object Main {
   val BorderSize = 10
   val ScoreBorderSize = 6
   val CanvasBorderSize = 2
+
+ // p0 + 5 * (level + 10) - 2 * (20 - t) - (level - 2)
 }
 
 class Gui extends JPanel {
@@ -55,6 +57,7 @@ class Gui extends JPanel {
   private def emptyBorder(size: Int) =
     BorderFactory.createEmptyBorder(size, size, size, size)
 
+  // TODO classic game displays even borders and numbers "manually"
   private val score = {
     val label = new JLabel("Score")
     val border = BorderFactory.createCompoundBorder(
@@ -155,8 +158,9 @@ case class State(
 
   def evolve(next: Option[Point]): State = {
     def move =
-      if (time % SlowDown != 0) this
-      else {
+      // if (time % SlowDown != 0) this
+      // else
+    {
         val directionNow =
           next
             .filter(_ != snake.head.direction.opposite)
@@ -524,3 +528,4 @@ object Sprite {
 """
   ).map(parseRow)
 }
+
