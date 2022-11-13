@@ -19,13 +19,13 @@ object Main {
     while (true) {
       Thread.sleep(Tick)
       state = state.evolve(gui.getInput)
-//      gui.update(state)
+      gui.update(state)
     }
   }
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
-  val Scale = 4
+  val Scale = 2
 
   val Tick = 88
   val FlickerEvery = 3
@@ -51,8 +51,7 @@ class Gui extends JPanel {
   // Reads from main thread: volatile needed
   @volatile private var input: Option[Point] = None
   // All reads and writes from single EDT thread: can be standard references
-  private var image: Vector[Point] = Sprite.renderDigits
-  // Vector()
+  private var image: Vector[Point] = Vector()
 
   private def emptyBorder(size: Int) =
     BorderFactory.createEmptyBorder(size, size, size, size)
@@ -277,6 +276,17 @@ case class State(
         head ++ body ++ tail
       }
 
+
+    def renderDigits =
+      0.until(9)
+        .toVector
+        .map(i => Centre.move(Point.right.times(i)))
+        .map(p => Vector(p, p.move(Point.down)))
+        .zip(Sprite.digits)
+        .flatMap { (points, digits) =>
+          digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
+        }
+
     (renderedSnake ++ renderedFood).flatMap(_.times(Scale).square(Scale))
   }
 
@@ -496,7 +506,7 @@ object Sprite {
 --****-- *-*--*-* --*--*-- -*-*-*-* ----*-*- -*******
 """.pipe(parseRow).grouped(2).toVector
 
-  val digitsStr = """
+  val digits: Vector[Vector[Sprite]] = """
 ----------------------------------------
 -***---*-***-***-*-*-***-***-***-***-***
 -*-*--**---*---*-*-*-*---*-----*-*-*-*-*
@@ -505,48 +515,9 @@ object Sprite {
 -***---*-***-***---*-***-***--*--***-***
 ----------------------------------------
 ----------------------------------------
-"""
-
-  val digits: Vector[Vector[Sprite]] =
-    digitsStr.pipe { digits =>
-      val (firstHalf, secondHalf) = digits.splitAt(digits.length / 2)
-      val (topRow, bottomRow) = (parseRow(firstHalf), parseRow(secondHalf))
-      topRow.zip(bottomRow).map { case (top, bottom) => Vector(top, bottom) }
-    }
-
-  def renderDigits = {
-    0.until(9)
-      .toVector
-      .map(i => Centre.move(Point.right.times(i)))
-      .map(p => Vector(p, p.move(Point.down)))
-      .zip(Sprite.digits)
-      .flatMap { (points, digits) =>
-        points
-          .zip(digits)
-          .flatMap { case (p, d) => d.at(p) }
-          .flatMap(_.times(Scale).square(Scale))
-      }
-
-    // Vector(Point(10, 5), Point(10, 6))
-    //   .zip(digits.head)
-    //   .flatMap { (p, sprite) =>
-    //     sprite.at(p)
-    //   }
-    //   .flatMap(_.times(Scale).square(Scale))
+""".pipe { digits =>
+    val (firstHalf, secondHalf) = digits.splitAt(digits.length / 2)
+    val (topRow, bottomRow) = (parseRow(firstHalf), parseRow(secondHalf))
+    topRow.zip(bottomRow).map { case (top, bottom) => Vector(top, bottom) }
   }
-
-//     val digits: Vector[Vector[Sprite]] =
-//   """
-// ----------------------------------------
-// -***---*-***-***-*-*-***-***-***-***-***
-// -*-*--**---*---*-*-*-*---*-----*-*-*-*-*
-// -*-*---*-***-***-***-***-***--*--***-***
-// -*-*---*-*-----*---*---*-*-*--*--*-*---*
-// -***---*-***-***---*-***-***--*--***-***
-// ----------------------------------------
-// ----------------------------------------
-// """.pipe(parseRow).splitAt(10).pipe { case (topRow, bottomRow) =>
-//       topRow.zip(bottomRow).map { case (top, bottom) => Vector(top, bottom) }
-//     }
-
 }
