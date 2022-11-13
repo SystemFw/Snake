@@ -28,9 +28,8 @@ object Main {
   val Scale = 2
 
   val Tick = 88
-  val PauseOnLoss = 24
-  val FlickerDown = 3
-  val FlickerUp = 3
+  val FlickerEvery = 3
+  val FlickerFor = 8
 
   val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
@@ -231,12 +230,10 @@ case class State(
         )
     }
 
-    // TODO simplify this based on FlickerDown == FlickerUp
     def flickerOnLoss = {
-      val flicker =
-        (time / FlickerDown) % ((FlickerDown + FlickerUp) / FlickerDown) == 0
+      val flicker = (time / FlickerEvery) % 2 == 0
 
-      if (time - lostAt > PauseOnLoss) State.initial
+      if (time - lostAt > FlickerFor * FlickerEvery) State.initial
       else if (!flicker) copy(drawSnake = true)
       else copy(drawSnake = false)
     }
