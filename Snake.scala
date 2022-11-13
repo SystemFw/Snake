@@ -407,7 +407,7 @@ object Sprite {
     Vector.range(0, size).map(tileIndex => parse(input, tileIndex, size))
   }
 
-  def sprite(mask: String) = {
+  def sprite(mask: String): Map[Point, Sprite] = {
     val sprite = Sprite.parse(mask)
     Map(
       Point.right -> sprite,
@@ -417,7 +417,7 @@ object Sprite {
     )
   }
 
-  def cornerSprite(mask: String) = {
+  def cornerSprite(mask: String): Map[(Point, Point), Sprite] = {
     val sprite = Sprite.parse(mask)
     Map(
       (Point.right, Point.up) -> sprite,
@@ -431,63 +431,63 @@ object Sprite {
     )
   }
 
-  val apple = """
+  val apple: Sprite = """
 -*--
 *-*-
 -*--
 ----
 """.pipe(parse(_))
 
-  val head = """
+  val head: Map[Point, Sprite] = """
 *---
 -**-
 ***-
 ----
 """.pipe(sprite)
 
-  val headOpen = """
+  val headOpen: Map[Point, Sprite] = """
 *-*-
 -*--
 **--
 --*-
 """.pipe(sprite)
 
-  val body = """
+  val body: Map[Point, Sprite] = """
 ----
 **-*
 *-**
 ----
 """.pipe(sprite)
 
-  val bodyFull = """
+  val bodyFull: Map[Point, Sprite] = """
 -**-
 **-*
 *-**
 -**-
 """.pipe(sprite)
 
-  val tail = """
+  val tail: Map[Point, Sprite] = """
 ----
 --**
 ****
 ----
 """.pipe(sprite)
 
-  val turn = """
+  val turn: Map[(Point, Point), Sprite] = """
 -**-
 *-*-
 **--
 ----
 """.pipe(cornerSprite)
 
-  val turnFull = """
+  val turnFull: Map[(Point, Point), Sprite] = """
 ***-
 *-*-
 **--
 ----
 """.pipe(cornerSprite)
 
-  val monsters =
+  val monsters: Vector[Vector[Sprite]] =
     """
 --**---- --****-- -*-*-*-- -------- **---*-- ----**--
 -*-**-*- ******** *-*****- *------- **--***- *--**-*-
@@ -495,7 +495,7 @@ object Sprite {
 --****-- *-*--*-* --*--*-- -*-*-*-* ----*-*- -*******
 """.pipe(parseRow).grouped(2).toVector
 
-  val digits =
+  val digits: Vector[Vector[Sprite]] =
   """
 ----------------------------------------
 -***---*-***-***-*-*-***-***-***-***-***
