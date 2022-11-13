@@ -30,7 +30,7 @@ object Main {
   val Tick = 88
   val PauseOnLoss = 24
   val FlickerDown = 3
-  val FlickerUp =  3
+  val FlickerUp = 3
 
   val Centre = Dimensions.times(0.5)
   val SnakeSize = 7
@@ -72,10 +72,20 @@ class Gui extends JPanel {
     val canvas = new JComponent {
       // TODO build proper image instead
       override def paintComponent(g: Graphics) =
-        image.foreach(point => g.drawLine(point.x + CanvasBorderSize, point.y + CanvasBorderSize, point.x + CanvasBorderSize, point.y + CanvasBorderSize))
+        image.foreach(point =>
+          g.drawLine(
+            point.x + CanvasBorderSize,
+            point.y + CanvasBorderSize,
+            point.x + CanvasBorderSize,
+            point.y + CanvasBorderSize
+          )
+        )
 
       override def getPreferredSize =
-        Dimension(DisplaySize.x + CanvasBorderSize, DisplaySize.y + CanvasBorderSize)
+        Dimension(
+          DisplaySize.x + CanvasBorderSize,
+          DisplaySize.y + CanvasBorderSize
+        )
     }
 
     val panel = new JPanel
@@ -156,73 +166,70 @@ case class State(
 ) {
 
   def evolve(next: Option[Point]): State = {
-    def move =
-      // if (time % SlowDown != 0) this
-      // else
-    {
-        val directionNow =
-          next
-            .filter(_ != snake.head.direction.opposite)
-            .getOrElse(snake.head.direction)
+    def move = {
+      val directionNow =
+        next
+          .filter(_ != snake.head.direction.opposite)
+          .getOrElse(snake.head.direction)
 
-        val headNow = snake.head.move(directionNow)
+      val headNow = snake.head.move(directionNow)
 
-        val hasEaten = eaten.headOption.exists(snake.head.hits)
-        // TODO convert these two to boolean?
-        val eatingApple = Option.when(headNow.hits(apple))(apple)
-        val eatingMonster = monster.filter(headNow.hits)
-        val aboutToEat =
-          (apple +: monster).exists(headNow.move(directionNow).hits)
-        val swallowed = eaten.lastOption.exists(snake.last.hits)
-        val dead = snake.tail.exists(headNow.hits)
+      val hasEaten = eaten.headOption.exists(snake.head.hits)
+      // TODO convert these two to boolean?
+      val eatingApple = Option.when(headNow.hits(apple))(apple)
+      val eatingMonster = monster.filter(headNow.hits)
+      val aboutToEat =
+        (apple +: monster).exists(headNow.move(directionNow).hits)
+      val swallowed = eaten.lastOption.exists(snake.last.hits)
+      val dead = snake.tail.exists(headNow.hits)
 
-        val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
+      val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
 
-        val eatenNow =
-          eatingApple.toVector ++ eatingMonster.toVector ++
-            (if (swallowed) eaten.init else eaten)
+      val eatenNow =
+        eatingApple.toVector ++ eatingMonster.toVector ++
+          (if (swallowed) eaten.init else eaten)
 
-        val appleNow =
-          if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
+      val appleNow =
+        if (eatingApple.nonEmpty) State.newApple(snakeNow) else apple
 
-        val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
-          if (monster.isEmpty) {
-            val monsterSpawnInNow = monsterSpawnIn - eatingApple.size
-            if (monsterSpawnInNow == 0)
-              (
-                State.newMonster(snakeNow, appleNow),
-                MonsterSpawnIn + Random.nextInt(MonsterSpawnRandom),
-                monsterTTL
-              )
-            else ((monster, monsterSprite), monsterSpawnInNow, monsterTTL)
-          } else {
-            val monsterTTLNow = monsterTTL - 1
-            if (eatingMonster.nonEmpty || monsterTTL == 0)
-              ((Vector.empty, Vector.empty), monsterSpawnIn, MonsterTimer)
-            else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
-          }
+      val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
+        if (monster.isEmpty) {
+          val monsterSpawnInNow = monsterSpawnIn - eatingApple.size
+          if (monsterSpawnInNow == 0)
+            (
+              State.newMonster(snakeNow, appleNow),
+              MonsterSpawnIn + Random.nextInt(MonsterSpawnRandom),
+              monsterTTL
+            )
+          else ((monster, monsterSprite), monsterSpawnInNow, monsterTTL)
+        } else {
+          val monsterTTLNow = monsterTTL - 1
+          if (eatingMonster.nonEmpty || monsterTTL == 0)
+            ((Vector.empty, Vector.empty), monsterSpawnIn, MonsterTimer)
+          else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
+        }
 
-        val scoreNow =
-          if (eatingApple.nonEmpty) score + Level
-          else if (eatingMonster.nonEmpty)
-            // Magic formula due to observation
-            score + 5 * (Level + 10) - 2 * (20 - monsterTTL) - (Level - 2)
-          else score
+      val scoreNow =
+        if (eatingApple.nonEmpty) score + Level
+        else if (eatingMonster.nonEmpty)
+          // Magic formula due to observation
+          score + 5 * (Level + 10) - 2 * (20 - monsterTTL) - (Level - 2)
+        else score
 
-        if (dead) copy(lostAt = time)
-        else
-          copy(
-            snake = snakeNow,
-            apple = appleNow,
-            eaten = eatenNow,
-            score = scoreNow,
-            openMouth = aboutToEat,
-            monster = monsterNow,
-            monsterSprite = monsterSpriteNow,
-            monsterSpawnIn = monsterSpawnInNow,
-            monsterTTL = monsterTTLNow
-          )
-      }
+      if (dead) copy(lostAt = time)
+      else
+        copy(
+          snake = snakeNow,
+          apple = appleNow,
+          eaten = eatenNow,
+          score = scoreNow,
+          openMouth = aboutToEat,
+          monster = monsterNow,
+          monsterSprite = monsterSpriteNow,
+          monsterSpawnIn = monsterSpawnInNow,
+          monsterTTL = monsterTTLNow
+        )
+    }
 
     // TODO simplify this based on FlickerDown == FlickerUp
     def flickerOnLoss = {
@@ -294,7 +301,7 @@ object State {
         .map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
 
     val apple = newApple(snake)
-    State(snake = snake, apple = Entity.static(Point(10, 0)))
+    State(snake = snake, apple = apple)
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
@@ -307,7 +314,10 @@ object State {
     else apple
   }
 
-  def newMonster(snake: Vector[Entity], apple: Entity): (Vector[Entity], Vector[Sprite]) = {
+  def newMonster(
+      snake: Vector[Entity],
+      apple: Entity
+  ): (Vector[Entity], Vector[Sprite]) = {
     val size = 2
     val point = Point(
       Random.nextInt(Dimensions.x) / size * size,
