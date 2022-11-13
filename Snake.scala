@@ -277,17 +277,30 @@ case class State(
       }
 
 
-    def renderDigits =
-      0.until(9)
-        .toVector
-        .map(i => Centre.move(Point.right.times(i)))
-        .map(p => Vector(p, p.move(Point.down)))
-        .zip(Sprite.digits)
+    val renderedScore = {
+      val p = Point(2, 2)
+      val precision = 4
+
+      val points =
+        0.until(precision)
+          .toVector
+          .map(i => p.move(Point.right.times(i)))
+          .map(p => Vector(p, p.move(Point.down)))
+
+      val sprites =
+        String
+          .format("%04d", score)
+          .toVector
+          .map(n => Sprite.digits(n.asDigit))
+
+      points
+        .zip(sprites)
         .flatMap { (points, digits) =>
           digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
         }
+    }
 
-    (renderedSnake ++ renderedFood).flatMap(_.times(Scale).square(Scale))
+    (renderedSnake ++ renderedFood ++ renderedScore).flatMap(_.times(Scale).square(Scale))
   }
 
   // TODO show monster timer properly
