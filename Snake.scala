@@ -143,12 +143,6 @@ object Gui {
   }
 }
 
-// TODO maybe review the extent to which Entity is used, most of the
-// uses are based on position, could use entity as dumb data, change
-// headNow, eaten, apple and monster back to Points, write a collision
-// detection with intersection and more the wrapping to Point.move
-// or maybe just have hits take a Point again
-// a directions: Vector[Point] seems also doable, updated in one place only
 case class State(
     snake: Vector[Entity],
     apple: Entity,
