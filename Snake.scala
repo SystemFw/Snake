@@ -55,6 +55,8 @@ class Gui extends JPanel {
   private var image: Vector[Point] = Vector()
 
   private val canvas = new JComponent {
+    // TODO given that the margin is now proportional to the scale,
+    // might as well simplify paintComponent again
     val margin = 2 * Scale
 
     // TODO build proper image instead
@@ -65,11 +67,7 @@ class Gui extends JPanel {
   }
 
   setBackground(BackgroundColor)
-//   val borderSize = 7
-// //  setBorder(BorderFactory.createEmptyBorder(4, 4, borderSize, borderSize))
-//   // setBorder(BorderFactory.createLineBorder(Color.red, borderSize))
-//   setLayout(new BorderLayout)
-  add(canvas)//, BorderLayout.CENTER)
+  add(canvas)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
@@ -284,21 +282,19 @@ object State {
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
-    // val apple = Point(
-    //   Random.nextInt(Dimensions.x),
-    //   Random.nextInt(Dimensions.y)
-    // ).pipe(Entity.static)
+    val apple = Point(
+      Random.nextInt(Dimensions.x),
+      Random.nextInt(Dimensions.y)
+    ).pipe(Entity.static)
 
-    // TODO the 0 points aren't displayed fully
-    val apple = Random.shuffle(
-      Vector(
-        Point(0, 0),
-        Point(21, 0),
-        Point(0, 12),
-        Point(21, 12))
-    ).head.pipe(Entity.static)
-
-
+    // TODO remove after debug
+    // val apple = Random.shuffle(
+    //   Vector(
+    //     Point(0, 0),
+    //     Point(21, 0),
+    //     Point(0, 12),
+    //     Point(21, 12))
+    // ).head.pipe(Entity.static)
     if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
   }
