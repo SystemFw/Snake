@@ -54,17 +54,20 @@ class Gui extends JPanel {
   // All reads and writes from single EDT thread: can be standard references
   private var image: Vector[Point] = Vector()
 
+  val borderSize = 4
   private val canvas = new JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
-      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+      image.foreach(point => g.drawLine(point.x + 2, point.y + 2, point.x + 2, point.y + 2))
+//      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+//      image.foreach(point => g.drawLine(point.x + borderSize, point.y + borderSize, point.x + borderSize, point.y + borderSize))
     override def getPreferredSize =
-      Dimension(DisplaySize.x, DisplaySize.y)
-//      Dimension(DisplaySize.x, DisplaySize.y)
+      Dimension(DisplaySize.x + borderSize, DisplaySize.y + borderSize)
   }
 
   setBackground(BackgroundColor)
-  setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7))
+  //  setBorder(BorderFactory.createEmptyBorder(borderSize, borderSize, borderSize, borderSize))
+  setBorder(BorderFactory.createLineBorder(Color.red, borderSize))
   setLayout(new BorderLayout)
   add(canvas, BorderLayout.CENTER)
 
@@ -166,7 +169,7 @@ case class State(
         } else {
           val monsterTTLNow = monsterTTL - 1
           if (eatingMonster || monsterTTL == 0)
-            ((Vector.empty, Vector.empty), monsterSpawnIn, MonsterTimer)
+            ((Vector.empty, Vector.empty), monsterSpawnIn, MonsterTTL)
           else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
         }
 
@@ -288,7 +291,7 @@ object State {
 
     // TODO the 0 points aren't displayed fully
     val apple = Random.shuffle(
-      Vector(Point(0, 5), Point(5, 0), Point(21, 5), Point(5, 12))
+      Vector(Point(0, 5), Point(5, 0), Point(21, 5), Point(5, 12), Point(21, 12))
     ).head.pipe(Entity.static)
 
     if (snake.exists(_.hits(apple))) newApple(snake)
