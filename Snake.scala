@@ -25,7 +25,7 @@ object Main {
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
-  val Scale = 2
+  val Scale = 10
 
   val Tick = 88
   val FlickerEvery = 3
@@ -55,19 +55,21 @@ class Gui extends JPanel {
   private var image: Vector[Point] = Vector()
 
   private val canvas = new JComponent {
+    val margin = 2 * Scale
+
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
-     image.foreach(point => g.drawLine(point.x + borderSize, point.y + borderSize, point.x + borderSize, point.y + borderSize))
+     image.foreach(point => g.drawLine(point.x + margin, point.y + margin, point.x + margin, point.y + margin))
 
-    override def getPreferredSize = Dimension(DisplaySize.x + 2 * borderSize, DisplaySize.y + 2 * borderSize)
+    override def getPreferredSize = Dimension(DisplaySize.x + 2 * margin, DisplaySize.y + 2 * margin)
   }
 
   setBackground(BackgroundColor)
-  val borderSize = 7
-//  setBorder(BorderFactory.createEmptyBorder(4, 4, borderSize, borderSize))
-  // setBorder(BorderFactory.createLineBorder(Color.red, borderSize))
-  setLayout(new BorderLayout)
-  add(canvas, BorderLayout.CENTER)
+//   val borderSize = 7
+// //  setBorder(BorderFactory.createEmptyBorder(4, 4, borderSize, borderSize))
+//   // setBorder(BorderFactory.createLineBorder(Color.red, borderSize))
+//   setLayout(new BorderLayout)
+  add(canvas)//, BorderLayout.CENTER)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
@@ -289,7 +291,11 @@ object State {
 
     // TODO the 0 points aren't displayed fully
     val apple = Random.shuffle(
-      Vector(Point(0, 0), Point(0, 5), Point(5, 0), Point(21, 5), Point(5, 12), Point(21, 12))
+      Vector(
+        Point(0, 0),
+        Point(21, 0),
+        Point(0, 12),
+        Point(21, 12))
     ).head.pipe(Entity.static)
 
 
