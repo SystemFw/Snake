@@ -252,7 +252,7 @@ case class State(
 
 
     val renderedScore = {
-      val p = DigitOffset
+      val p = Point(0, 0)// DigitOffset
       val precision = 4
 
       val points =
