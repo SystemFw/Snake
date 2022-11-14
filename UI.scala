@@ -14,34 +14,18 @@ object Main {
 }
 
 class Gui extends JPanel {
-  private def emptyBorder(size: Int) =
-    BorderFactory.createEmptyBorder(size, size, size, size)
-
-  private val canvas = {
-    val canvas = new JComponent {
-      override def paintComponent(g: Graphics) =
-        g.setColor(Color.red)
-        g.drawLine(0,0,0,0)
-        g.drawLine(X, X, X, X)
+  val canvas = new JComponent {
+     override def paintComponent(g: Graphics) =
+       g.setColor(Color.red)
+       g.drawLine(0,0,0,0)
+       g.drawLine(X, X, X, X)
 
       override def getPreferredSize =
         Dimension(X, X)
-    }
-
-    val panel = new JPanel
-    // val border = BorderFactory.createCompoundBorder(
-    //   BorderFactory.createLineBorder(Color.green, CanvasBorderSize),
-    //   emptyBorder(CanvasBorderSize)
-    // )
-    val border = emptyBorder(BorderSize)
-
-    panel.setBorder(border)
-    panel.setBackground(Color.blue)
-    panel.setLayout(new BorderLayout)
-    panel.add(canvas, BorderLayout.CENTER)
-    panel
   }
 
+  setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7))
+  setBackground(Color.blue)
   setLayout(new BorderLayout)
   add(canvas, BorderLayout.CENTER)
 }
