@@ -54,58 +54,18 @@ class Gui extends JPanel {
   // All reads and writes from single EDT thread: can be standard references
   private var image: Vector[Point] = Vector()
 
-  private def emptyBorder(size: Int) =
-    BorderFactory.createEmptyBorder(size, size, size, size)
-
-  // TODO classic game displays even borders and numbers "manually"
-  private val score = {
-    val label = new JLabel("Score")
-    val border = BorderFactory.createCompoundBorder(
-      BorderFactory.createEmptyBorder(0, 0, ScoreBorderSize, 0),
-      BorderFactory.createMatteBorder(0, 0, CanvasBorderSize, 0, Color.black)
-    )
-    label.setBorder(border)
-    label
-  }
-
-  private val canvas = {
-    val canvas = new JComponent {
-      // TODO
-      // build proper image instead
-      override def paintComponent(g: Graphics) =
-        image.foreach(point =>
-          g.drawLine(
-            point.x + CanvasBorderSize,
-            point.y + CanvasBorderSize,
-            point.x + CanvasBorderSize,
-            point.y + CanvasBorderSize
-          )
-        )
-
-      override def getPreferredSize =
-        Dimension(
-          DisplaySize.x + CanvasBorderSize,
-          DisplaySize.y + CanvasBorderSize
-        )
-    }
-
-    val panel = new JPanel
-    val border = BorderFactory.createCompoundBorder(
-      BorderFactory.createLineBorder(Color.black, CanvasBorderSize),
-      emptyBorder(CanvasBorderSize)
-    )
-    panel.setBorder(border)
-    panel.setBackground(BackgroundColor)
-    panel.setLayout(new BorderLayout)
-    panel.add(canvas, BorderLayout.CENTER)
-    panel
+  private val canvas = new JComponent {
+    // TODO build proper image instead
+    override def paintComponent(g: Graphics) =
+      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+    override def getPreferredSize =
+      Dimension(DisplaySize.x, DisplaySize.y)
+//      Dimension(DisplaySize.x, DisplaySize.y)
   }
 
   setBackground(BackgroundColor)
-  setBorder(emptyBorder(BorderSize))
+  setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7))
   setLayout(new BorderLayout)
-
-  add(score, BorderLayout.NORTH)
   add(canvas, BorderLayout.CENTER)
 
   Point.directions.keys.foreach { direction =>
@@ -123,7 +83,6 @@ class Gui extends JPanel {
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
-      score.setText(state.renderScore)
       repaint()
     }
 }
@@ -322,10 +281,15 @@ object State {
   }
 
   def newApple(snake: Vector[Entity]): Entity = {
-    val apple = Point(
-      Random.nextInt(Dimensions.x),
-      Random.nextInt(Dimensions.y)
-    ).pipe(Entity.static)
+    // val apple = Point(
+    //   Random.nextInt(Dimensions.x),
+    //   Random.nextInt(Dimensions.y)
+    // ).pipe(Entity.static)
+
+    // TODO the 0 points aren't displayed fully
+    val apple = Random.shuffle(
+      Vector(Point(0, 5), Point(5, 0), Point(21, 5), Point(5, 12))
+    ).head.pipe(Entity.static)
 
     if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
