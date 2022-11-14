@@ -40,11 +40,24 @@ object Main {
   val MonsterSpawnRandom = 3
 
   // TODO display UI elements manually
-  val DisplaySize = Dimensions.times(SpriteSize).times(Scale)
   val BackgroundColor = Color(170, 220, 0) // TODO color match
-  val BorderSize = 10
-  val ScoreBorderSize = 6
-  val CanvasBorderSize = 2
+
+  val OuterMargin = 2
+  val Border = 1
+  val InnerMargin = 1
+  val DigitHeight = 8
+  val UpperLine = 1
+  val UpperLineGap = 2
+
+  val SnakeOffset = Point(OuterMargin + Border + InnerMargin, OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap)
+  val DigitOffset = Point(OuterMargin, OuterMargin)
+
+  val DisplaySize = {
+    val scaledDimensions = Dimensions.times(SpriteSize).times(Scale)
+    val XOffset = 2 * (OuterMargin + Border + InnerMargin) * Scale
+    val YOffset = (2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap) * Scale
+    Point(scaledDimensions.x + XOffset, scaledDimensions.y + YOffset)
+  }
 }
 
 class Gui extends JPanel {
@@ -61,9 +74,9 @@ class Gui extends JPanel {
 
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
-     image.foreach(point => g.drawLine(point.x + margin, point.y + margin, point.x + margin, point.y + margin))
+     image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
 
-    override def getPreferredSize = Dimension(DisplaySize.x + 2 * margin, DisplaySize.y + 2 * margin)
+    override def getPreferredSize = Dimension(DisplaySize.x, DisplaySize.y)
   }
 
   setBackground(BackgroundColor)
@@ -239,7 +252,7 @@ case class State(
 
 
     val renderedScore = {
-      val p = Point(2, 2)
+      val p = DigitOffset
       val precision = 4
 
       val points =
@@ -261,7 +274,7 @@ case class State(
         }
     }
 
-    (renderedSnake ++ renderedFood ++ renderedScore).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore).flatMap(_.times(Scale).square(Scale))
   }
 
   // TODO show monster timer properly
