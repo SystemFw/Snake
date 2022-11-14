@@ -9,8 +9,7 @@ object Main {
   def main(args: Array[String]): Unit =
     Gui.start
 
-  val BorderSize = 10
-  val CanvasBorderSize = 2
+  val BorderSize = 7 // Border is necessary for the canvas to display fully. Scale invariant
   val X = 150
 }
 
@@ -30,10 +29,12 @@ class Gui extends JPanel {
     }
 
     val panel = new JPanel
-    val border = BorderFactory.createCompoundBorder(
-      BorderFactory.createLineBorder(Color.green, CanvasBorderSize),
-      emptyBorder(CanvasBorderSize)
-    )
+    // val border = BorderFactory.createCompoundBorder(
+    //   BorderFactory.createLineBorder(Color.green, CanvasBorderSize),
+    //   emptyBorder(CanvasBorderSize)
+    // )
+    val border = emptyBorder(BorderSize)
+
     panel.setBorder(border)
     panel.setBackground(Color.blue)
     panel.setLayout(new BorderLayout)
