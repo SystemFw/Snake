@@ -11,7 +11,7 @@ object Main {
 
   val BorderSize = 10
   val CanvasBorderSize = 2
-
+  val X = 150
 }
 
 class Gui extends JPanel {
@@ -25,7 +25,7 @@ class Gui extends JPanel {
         g.drawLine(25, 25, 25, 25)
 
       override def getPreferredSize =
-        Dimension(300, 300)
+        Dimension(X, X)
     }
 
     val panel = new JPanel
