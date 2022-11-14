@@ -25,9 +25,9 @@ object Main {
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
-  val Scale = 2
+  val Scale = 15
 
-  val Tick = 88
+  val Tick = 88 * 10
   val FlickerEvery = 3
   val FlickerFor = 8
 
@@ -58,15 +58,16 @@ class Gui extends JPanel {
   private val canvas = new JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
-      image.foreach(point => g.drawLine(point.x + 2, point.y + 2, point.x + 2, point.y + 2))
-//      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+//      image.foreach(point => g.drawLine(point.x + 1, point.y + 1, point.x + 1, point.y + 1))
+      //image.foreach(point => g.drawLine(point.x + 2, point.y + 2, point.x + 2, point.y + 2))
+     image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
 //      image.foreach(point => g.drawLine(point.x + borderSize, point.y + borderSize, point.x + borderSize, point.y + borderSize))
     override def getPreferredSize =
-      Dimension(DisplaySize.x + borderSize, DisplaySize.y + borderSize)
+      Dimension(DisplaySize.x, DisplaySize.y)
   }
 
   setBackground(BackgroundColor)
-  //  setBorder(BorderFactory.createEmptyBorder(borderSize, borderSize, borderSize, borderSize))
+//  setBorder(BorderFactory.createEmptyBorder(borderSize, borderSize, borderSize, borderSize))
   setBorder(BorderFactory.createLineBorder(Color.red, borderSize))
   setLayout(new BorderLayout)
   add(canvas, BorderLayout.CENTER)
@@ -291,8 +292,9 @@ object State {
 
     // TODO the 0 points aren't displayed fully
     val apple = Random.shuffle(
-      Vector(Point(0, 5), Point(5, 0), Point(21, 5), Point(5, 12), Point(21, 12))
+      Vector(Point(0, 0))//, Point(0, 5), Point(5, 0), Point(21, 5), Point(5, 12), Point(21, 12))
     ).head.pipe(Entity.static)
+
 
     if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
