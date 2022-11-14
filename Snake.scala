@@ -273,8 +273,8 @@ case class State(
     val renderedEdge = {
       // val X = Dimensions.x
       // val Y = Dimensions.y
-      val X = Dimensions.x * Scale * SpriteSize
-      val Y = Dimensions.y * Scale * SpriteSize
+      val X = (Dimensions.x) * Scale * SpriteSize
+      val Y = (Dimensions.y) * Scale * SpriteSize
       val x = 0.to(X).toVector // inclusive
 
       val y = 0.to(Y).toVector  // inclusive
@@ -286,7 +286,7 @@ case class State(
       } yield Point(x, y).move(SnakeOffset)
     }
 
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore).flatMap(_.times(Scale).square(Scale)) ++ renderedEdge.flatMap(_.square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(Point(2, 8))) ++ renderedScore).flatMap(_.times(Scale).square(Scale)) ++ renderedEdge.flatMap(_.square(Scale))
   }
 
   // TODO show monster timer properly
