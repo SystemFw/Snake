@@ -41,7 +41,6 @@ class Gui extends JPanel {
     panel
   }
 
-  setBorder(emptyBorder(BorderSize))
   setLayout(new BorderLayout)
   add(canvas, BorderLayout.CENTER)
 }
