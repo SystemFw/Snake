@@ -68,10 +68,6 @@ class Gui extends JPanel {
   private var image: Vector[Point] = Vector()
 
   private val canvas = new JComponent {
-    // TODO given that the margin is now proportional to the scale,
-    // might as well simplify paintComponent again
-    val margin = 2 * Scale
-
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
