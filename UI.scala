@@ -22,7 +22,8 @@ class Gui extends JPanel {
     val canvas = new JComponent {
       override def paintComponent(g: Graphics) =
         g.setColor(Color.red)
-        g.drawLine(25, 25, 25, 25)
+        g.drawLine(0,0,0,0)
+        g.drawLine(X, X, X, X)
 
       override def getPreferredSize =
         Dimension(X, X)
