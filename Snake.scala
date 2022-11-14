@@ -31,7 +31,7 @@ object Main {
   val FlickerEvery = 3
   val FlickerFor = 8
 
-  val Centre = Dimensions.times(0.5)
+  val Center = Dimensions.times(0.5)
   val SnakeSize = 7
 
   val Level = 9
@@ -39,8 +39,9 @@ object Main {
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
 
+  // TODO display UI elements manually
   val DisplaySize = Dimensions.times(SpriteSize).times(Scale)
-  val BackgroundColor = Color(170, 220, 0)
+  val BackgroundColor = Color(170, 220, 0) // TODO color match
   val BorderSize = 10
   val ScoreBorderSize = 6
   val CanvasBorderSize = 2
@@ -314,7 +315,7 @@ object State {
     val snake =
       Vector
         .range(0, SnakeSize)
-        .map(x => Entity(Centre.move(Point.left.times(x)), Point.right))
+        .map(x => Entity(Center.move(Point.left.times(x)), Point.right))
 
     val apple = newApple(snake)
     State(snake = snake, apple = apple)
@@ -519,6 +520,7 @@ object Sprite {
 --****-- *-*--*-* --*--*-- -*-*-*-* ----*-*- -*******
 """.pipe(parseRow).grouped(2).toVector
 
+  // TODO should '1' be shifted to the left by one?
   val digits: Vector[Vector[Sprite]] = """
 ----------------------------------------
 -***---*-***-***-*-*-***-***-***-***-***
