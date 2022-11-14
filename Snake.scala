@@ -35,7 +35,7 @@ object Main {
   val SnakeSize = 7
 
   val Level = 9
-  val MonsterTimer = 20
+  val MonsterTTL = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
 
@@ -115,7 +115,7 @@ case class State(
     openMouth: Boolean = false,
     monster: Vector[Entity] = Vector(),
     monsterSprite: Vector[Sprite] = Vector(),
-    monsterTTL: Int = MonsterTimer,
+    monsterTTL: Int = MonsterTTL,
     monsterSpawnIn: Int = MonsterSpawnIn
 ) {
 
@@ -149,7 +149,7 @@ case class State(
         if (eatingApple) score + Level
         else if (eatingMonster)
           // Magic formula due to observation
-          score + 5 * (Level + 10) - 2 * (20 - monsterTTL) - (Level - 2)
+          score + 5 * (Level + 10) - 2 * (MonsterTTL - monsterTTL) - (Level - 2)
         else score
 
       val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
