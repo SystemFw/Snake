@@ -43,7 +43,7 @@ object Main {
   val BackgroundColor = Color(170, 220, 0) // TODO color match
 
   val FullDimensions = Dimensions.times(SpriteSize)
-  val OuterMargin = 2
+  val OuterMargin = 4
   val DigitHeight = 2 * SpriteSize
   val UpperLine = 1
   val UpperLineGap = 2
