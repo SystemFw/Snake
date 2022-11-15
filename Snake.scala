@@ -78,10 +78,8 @@ class Gui extends JPanel {
   }
 
   setBackground(BackgroundColor)
-  // TODO ensures no border
   setLayout(new BorderLayout)
   add(canvas, BorderLayout.CENTER)
-//  add(canvas)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
