@@ -42,24 +42,33 @@ object Main {
   // TODO display UI elements manually
   val BackgroundColor = Color(170, 220, 0) // TODO color match
 
+  val FullDimensions = Dimensions.times(SpriteSize)
   val OuterMargin = 2
-  val Border = 1
-  val InnerMargin = 1
-  val DigitHeight = 8
+  val DigitHeight = 2 * SpriteSize
   val UpperLine = 1
   val UpperLineGap = 2
+  val Border = 1
+  val InnerMargin = 1
 
-  val SnakeOffset = Point(OuterMargin + Border + InnerMargin, OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap)
-  val DigitOffset = Point(OuterMargin, OuterMargin)
+  val DisplaySize =
+    FullDimensions.move(
+      Point(
+        2 * (OuterMargin + Border + InnerMargin),
+        2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLineGap + UpperLineGap
+      )
+    ).times(Scale)
 
-  val DisplaySize = {
-    val scaledDimensions = Dimensions.times(SpriteSize).times(Scale)
-    val XOffset = 2 * (OuterMargin + Border + InnerMargin) * Scale
-    val YOffset = (2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap) * Scale
-    Point(scaledDimensions.x + XOffset, scaledDimensions.y + YOffset)
-    Point(scaledDimensions.x, scaledDimensions.y)
-    Dimensions.times(SpriteSize).move(Point(2, 2)).times(Scale)
-  }
+  // val SnakeOffset = Point(OuterMargin + Border + InnerMargin, OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap)
+  // val DigitOffset = Point(OuterMargin, OuterMargin)
+
+  // val DisplaySize = {
+  //   val scaledDimensions = Dimensions.times(SpriteSize).times(Scale)
+  //   val XOffset = 2 * (OuterMargin + Border + InnerMargin) * Scale
+  //   val YOffset = (2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap) * Scale
+  //   Point(scaledDimensions.x + XOffset, scaledDimensions.y + YOffset)
+  //   Point(scaledDimensions.x, scaledDimensions.y)
+  //   Dimensions.times(SpriteSize).move(Point(2, 2)).times(Scale)
+  // }
 }
 
 class Gui extends JPanel {
