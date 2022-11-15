@@ -47,8 +47,10 @@ object Main {
   // TODO make this into a point
   val DigitHeight = 2 * SpriteSize
   val DigitWidth = 1 * SpriteSize
+  // TODO Upper line and UpperLineGap can probably be unified
   val UpperLine = 1
   val UpperLineGap = 2
+  // TODO Border and inner margin can probably be unified
   val Border = 1
   val InnerMargin = 1
 
@@ -282,6 +284,7 @@ case class State(
       }
 
 
+    // TODO abstract this into a helper
     val renderedScore = {
       val p = Point(0, 0)// DigitOffset
       val precision = 4
@@ -355,6 +358,7 @@ case class State(
         .to(FullDimensions.x + 2 * (Border + InnerMargin))
         .map(x => Point(x, 0))
 
+    // TODO Refactor
     ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(_.move(MonsterTTLOffset)) ++ renderedMonsterSprite.map(_.move(MonsterSpriteOffset))).flatMap(_.times(Scale).square(Scale))
   }
 }
