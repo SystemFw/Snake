@@ -25,7 +25,7 @@ object Main {
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
-  val Scale = 2
+  val Scale = 5
 
   val Tick = 88
   val FlickerEvery = 3
@@ -77,8 +77,10 @@ class Gui extends JPanel {
   }
 
   setBackground(BackgroundColor)
-  setLayout(new BorderLayout)
-  add(canvas, BorderLayout.CENTER)
+  // TODO ensures no border
+  // setLayout(new BorderLayout)
+  // add(canvas, BorderLayout.CENTER)
+  add(canvas)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
@@ -290,7 +292,7 @@ case class State(
 
     ((renderedSnake ++ renderedFood) ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
     //.flatMap(_.square(Scale))
-    Vector(Point(0, 0))
+    Vector(Point(0, 0), Point(21, 12)).flatMap(_.times(Scale * SpriteSize).square(Scale))
   }
 
   // TODO show monster timer properly
