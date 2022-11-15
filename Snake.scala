@@ -74,6 +74,11 @@ object Main {
     OuterMargin,
     OuterMargin + DigitHeight
   )
+
+  val ScoreOffset = Point(
+    OuterMargin,
+    OuterMargin
+  )
 }
 
 class Gui extends JPanel {
@@ -304,7 +309,7 @@ case class State(
         .to(FullDimensions.x + 2 * (Border + InnerMargin))
         .map(x => Point(x, 0))
 
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset))).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset))).flatMap(_.times(Scale).square(Scale))
   }
 
   // TODO show monster timer properly
