@@ -15,7 +15,7 @@ object Main {
     val gui = Gui.start
 
     var state = State.initial
-
+    // TODO first frame takes a while to draw
     while (true) {
       Thread.sleep(Tick)
       state = state.evolve(gui.getInput)
@@ -27,6 +27,8 @@ object Main {
   val SpriteSize = 4
   val Scale = 2
 
+  // ticks = List(658, 478, 378, 298, 228, 178, 138, 108, 88)
+  // TODO maybe use level 8 instead (108), should adjust Flicker and Level is so
   val Tick = 88
   val FlickerEvery = 3
   val FlickerFor = 8
@@ -34,13 +36,15 @@ object Main {
   val Center = Dimensions.times(0.5)
   val SnakeSize = 7
 
+  // TODO it would be cool to change level dynamically my pressing numbers
+  // (0 or maybe space is pause)
   val Level = 9
   val MonsterTTL = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
 
   // TODO display UI elements manually
-  val BackgroundColor = Color(170, 220, 0) // TODO color match
+  val BackgroundColor = Color(170, 220, 0) // TODO color match?
 
   val FullDimensions = Dimensions.times(SpriteSize)
   val OuterMargin = 4
@@ -54,7 +58,7 @@ object Main {
   val Border = 1
   val InnerMargin = 1
 
-  // TODO move this to the appropriate places, at point of use
+  // TODO move these to the appropriate places, at point of use
   val DisplaySize =
     FullDimensions.move(
       Point(
@@ -127,6 +131,8 @@ class Gui extends JPanel {
 
   def getInput: Option[Point] = input
 
+  // TODO repaint() already calls invokeLater
+  // could make image volatile and remove the invokeLater?
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
@@ -262,7 +268,7 @@ case class State(
         val tail =
           Sprite.tail.apply(snake.init.last.direction).at(snake.last.position)
 
-        val body =
+        val body = // TODO collect flatten to void the case _
           snake.init.sliding(2).flatMap {
             case Vector(headward, tailward) =>
               val (body, turn) =
