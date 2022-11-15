@@ -64,6 +64,11 @@ object Main {
     OuterMargin + Border + InnerMargin + DigitHeight + UpperLineGap + UpperLineGap
   )
 
+  val EdgeOffset = Point(
+    OuterMargin,
+    OuterMargin + DigitHeight + UpperLineGap + UpperLineGap
+  )
+
   // val SnakeOffset = Point(OuterMargin + Border + InnerMargin, OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap)
   // val DigitOffset = Point(OuterMargin, OuterMargin)
 
@@ -299,7 +304,7 @@ case class State(
       } yield Point(x, y)
     }
 
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore ++ renderedEdge.map(_.move(EdgeOffset))).flatMap(_.times(Scale).square(Scale))
   }
 
   // TODO show monster timer properly
