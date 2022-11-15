@@ -286,8 +286,8 @@ case class State(
       } yield Point(x, y)
     }
 
-    ((renderedSnake ++ renderedFood) ++ renderedScore) //.flatMap(_.times(Scale).square(Scale))
-      ++ renderedEdge//.flatMap(_.square(Scale))
+    ((renderedSnake ++ renderedFood) ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
+      //.flatMap(_.square(Scale))
   }
 
   // TODO show monster timer properly
