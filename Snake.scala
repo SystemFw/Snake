@@ -50,6 +50,7 @@ object Main {
   val Border = 1
   val InnerMargin = 1
 
+  // TODO move this to the appropriate places
   val DisplaySize =
     FullDimensions.move(
       Point(
@@ -57,6 +58,11 @@ object Main {
         2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLineGap + UpperLineGap
       )
     ).times(Scale)
+
+  val SnakeOffset = Point(
+    OuterMargin + Border + InnerMargin,
+    OuterMargin + Border + InnerMargin + DigitHeight + UpperLineGap + UpperLineGap
+  )
 
   // val SnakeOffset = Point(OuterMargin + Border + InnerMargin, OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap)
   // val DigitOffset = Point(OuterMargin, OuterMargin)
@@ -293,7 +299,7 @@ case class State(
       } yield Point(x, y)
     }
 
-    (renderedSnake ++ renderedFood ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
   }
 
   // TODO show monster timer properly
