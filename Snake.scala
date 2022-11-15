@@ -25,7 +25,7 @@ object Main {
 
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
-  val Scale = 5
+  val Scale = 2
 
   val Tick = 88
   val FlickerEvery = 3
@@ -79,9 +79,9 @@ class Gui extends JPanel {
 
   setBackground(BackgroundColor)
   // TODO ensures no border
-  // setLayout(new BorderLayout)
-  // add(canvas, BorderLayout.CENTER)
-  add(canvas)
+  setLayout(new BorderLayout)
+  add(canvas, BorderLayout.CENTER)
+//  add(canvas)
 
   Point.directions.keys.foreach { direction =>
     def add(name: String)(action: AbstractAction) = {
