@@ -57,6 +57,7 @@ object Main {
     val XOffset = 2 * (OuterMargin + Border + InnerMargin) * Scale
     val YOffset = (2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap) * Scale
     Point(scaledDimensions.x + XOffset, scaledDimensions.y + YOffset)
+    Point(scaledDimensions.x, scaledDimensions.y)
   }
 }
 
@@ -287,7 +288,8 @@ case class State(
     }
 
     ((renderedSnake ++ renderedFood) ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
-      //.flatMap(_.square(Scale))
+    //.flatMap(_.square(Scale))
+    Vector(Point(0, 0))
   }
 
   // TODO show monster timer properly
