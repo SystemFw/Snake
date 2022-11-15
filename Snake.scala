@@ -55,31 +55,25 @@ object Main {
     FullDimensions.move(
       Point(
         2 * (OuterMargin + Border + InnerMargin),
-        2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLineGap + UpperLineGap
+        2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap
       )
     ).times(Scale)
 
+  // Note these get scaled at the point of use
   val SnakeOffset = Point(
     OuterMargin + Border + InnerMargin,
-    OuterMargin + Border + InnerMargin + DigitHeight + UpperLineGap + UpperLineGap
+    OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap
   )
 
   val EdgeOffset = Point(
     OuterMargin,
-    OuterMargin + DigitHeight + UpperLineGap + UpperLineGap
+    OuterMargin + DigitHeight + UpperLine + UpperLineGap
   )
 
-  // val SnakeOffset = Point(OuterMargin + Border + InnerMargin, OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap)
-  // val DigitOffset = Point(OuterMargin, OuterMargin)
-
-  // val DisplaySize = {
-  //   val scaledDimensions = Dimensions.times(SpriteSize).times(Scale)
-  //   val XOffset = 2 * (OuterMargin + Border + InnerMargin) * Scale
-  //   val YOffset = (2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap) * Scale
-  //   Point(scaledDimensions.x + XOffset, scaledDimensions.y + YOffset)
-  //   Point(scaledDimensions.x, scaledDimensions.y)
-  //   Dimensions.times(SpriteSize).move(Point(2, 2)).times(Scale)
-  // }
+  val LineOffset = Point(
+    OuterMargin,
+    OuterMargin + DigitHeight
+  )
 }
 
 class Gui extends JPanel {
@@ -293,6 +287,7 @@ case class State(
         }
     }
 
+    // TODO both edge and line can be moved to state object, they are static
     val renderedEdge = {
       val X = FullDimensions.x + 2 * (Border + InnerMargin)
       val Y = FullDimensions.y + 2 * (Border + InnerMargin)
@@ -304,7 +299,12 @@ case class State(
       } yield Point(x, y)
     }
 
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore ++ renderedEdge.map(_.move(EdgeOffset))).flatMap(_.times(Scale).square(Scale))
+    val renderedLine =
+      0
+        .to(FullDimensions.x + 2 * (Border + InnerMargin))
+        .map(x => Point(x, 0))
+
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset))).flatMap(_.times(Scale).square(Scale))
   }
 
   // TODO show monster timer properly
