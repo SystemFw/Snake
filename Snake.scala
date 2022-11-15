@@ -58,6 +58,7 @@ object Main {
     val YOffset = (2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap) * Scale
     Point(scaledDimensions.x + XOffset, scaledDimensions.y + YOffset)
     Point(scaledDimensions.x, scaledDimensions.y)
+    Dimensions.times(SpriteSize).move(Point(2, 2)).times(Scale)
   }
 }
 
@@ -292,7 +293,7 @@ case class State(
 
     ((renderedSnake ++ renderedFood) ++ renderedScore ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
     //.flatMap(_.square(Scale))
-    Vector(Point(0, 0), Point(21, 12)).flatMap(_.times(Scale * SpriteSize).square(Scale))
+//    Vector(Point(0, 0), Point(21, 12)).flatMap(_.times(Scale * SpriteSize).square(Scale))
   }
 
   // TODO show monster timer properly
