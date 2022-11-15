@@ -44,13 +44,15 @@ object Main {
 
   val FullDimensions = Dimensions.times(SpriteSize)
   val OuterMargin = 4
+  // TODO make this into a point
   val DigitHeight = 2 * SpriteSize
+  val DigitWidth = 1 * SpriteSize
   val UpperLine = 1
   val UpperLineGap = 2
   val Border = 1
   val InnerMargin = 1
 
-  // TODO move this to the appropriate places
+  // TODO move this to the appropriate places, at point of use
   val DisplaySize =
     FullDimensions.move(
       Point(
@@ -77,6 +79,12 @@ object Main {
 
   val ScoreOffset = Point(
     OuterMargin,
+    OuterMargin
+  )
+
+  // TODO replace 2 with precision after moving all these to point of use
+  val MonsterTTLOffset = Point(
+    OuterMargin + Border + InnerMargin + FullDimensions.x - 2 * DigitWidth,
     OuterMargin
   )
 }
@@ -281,7 +289,7 @@ case class State(
 
       val sprites =
         String
-          .format("%04d", score)
+          .format(s"%0${precision}d", score)
           .toVector
           .map(n => Sprite.digits(n.asDigit))
 
@@ -291,6 +299,33 @@ case class State(
           digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
         }
     }
+
+    // TODO should I display 00 or not? I think the original game does not
+    val renderedMonsterTTL = {
+      val p = Point(0, 0)// DigitOffset
+      val precision = 2
+
+      val points =
+        0.until(precision)
+          .toVector
+          .map(i => p.move(Point.right.times(i)))
+          .map(p => Vector(p, p.move(Point.down)))
+
+      val sprites =
+        String
+          .format(s"%0${precision}d", monsterTTL)
+          .toVector
+          .map(n => Sprite.digits(n.asDigit))
+
+      if (!monster.isEmpty)
+        points
+          .zip(sprites)
+          .flatMap { (points, digits) =>
+            digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
+          }
+      else Vector.empty
+    }
+
 
     // TODO both edge and line can be moved to state object, they are static
     val renderedEdge = {
@@ -309,14 +344,8 @@ case class State(
         .to(FullDimensions.x + 2 * (Border + InnerMargin))
         .map(x => Point(x, 0))
 
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset))).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(_.move(MonsterTTLOffset))).flatMap(_.times(Scale).square(Scale))
   }
-
-  // TODO show monster timer properly
-  def renderScore: String =
-    String.format("%04d", score) ++ " ".repeat(34) ++ (if (monster.nonEmpty)
-                                                         monsterTTL.toString
-                                                       else "")
 }
 object State {
   def initial: State = {
@@ -383,6 +412,7 @@ case class Point(x: Int, y: Int) {
 
   def direction: Point = Point(x.sign, y.sign)
 
+  // TODO see if I can replicate the pixel-y squares the phone had
   def square(side: Int): Vector[Point] =
     0.until(side)
       .flatMap(x => 0.until(side).map(y => move(Point(x, y))))
