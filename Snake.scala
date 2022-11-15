@@ -87,6 +87,11 @@ object Main {
     OuterMargin + Border + InnerMargin + FullDimensions.x - 2 * DigitWidth,
     OuterMargin
   )
+
+  val MonsterSpriteOffset = Point(
+    MonsterTTLOffset.x - 2 * DigitWidth,
+    MonsterTTLOffset.y + SpriteSize / 2
+  )
 }
 
 class Gui extends JPanel {
@@ -317,7 +322,7 @@ case class State(
           .toVector
           .map(n => Sprite.digits(n.asDigit))
 
-      if (!monster.isEmpty)
+      if (monster.nonEmpty)
         points
           .zip(sprites)
           .flatMap { (points, digits) =>
@@ -325,6 +330,12 @@ case class State(
           }
       else Vector.empty
     }
+
+    val renderedMonsterSprite =
+      if (monster.nonEmpty)
+        Vector(Point(0, 0), Point(1, 0)).zip(monsterSprite).flatMap { case (p, sprite) => sprite.at(p) }
+      else Vector.empty
+
 
 
     // TODO both edge and line can be moved to state object, they are static
@@ -344,7 +355,7 @@ case class State(
         .to(FullDimensions.x + 2 * (Border + InnerMargin))
         .map(x => Point(x, 0))
 
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(_.move(MonsterTTLOffset))).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(_.move(MonsterTTLOffset)) ++ renderedMonsterSprite.map(_.move(MonsterSpriteOffset))).flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
