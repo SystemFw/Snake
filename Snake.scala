@@ -52,14 +52,6 @@ object Main {
 
   // TODO inner margin for snake asymetric (visible with up-down motion)
   // TODO move these to the appropriate places, at point of use
-  val DisplaySize =
-    FullDimensions.move(
-      Point(
-        2 * (Margin + Border),
-        2 * (Margin + Border) + DigitSize.y + UpperLine
-      )
-    ).times(Scale)
-
   // Note these get scaled at the point of use
   val SnakeOffset = Point(
     Margin + Border,
@@ -105,7 +97,10 @@ class Gui extends JPanel {
     override def paintComponent(g: Graphics) =
      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
 
-    override def getPreferredSize = Dimension(DisplaySize.x, DisplaySize.y)
+    override def getPreferredSize = Dimension(
+      Scale * (FullDimensions.x + 2 * (Margin + Border)),
+      Scale * (FullDimensions.y + 2 * (Margin + Border) + DigitSize.y + UpperLine)
+    )
   }
 
   setBackground(BackgroundColor)
