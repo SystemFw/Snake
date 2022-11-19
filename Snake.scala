@@ -222,14 +222,14 @@ case class State(
           .at(this.snake.head.position)
 
       val tail =
-        Sprite
-          .tail
+        Sprite.tail
           .apply(this.snake.init.last.direction)
           .at(this.snake.last.position)
 
       val body =
-        this.snake.init.sliding(2).collect {
-          case Vector(headward, tailward) =>
+        this.snake.init
+          .sliding(2)
+          .collect { case Vector(headward, tailward) =>
             val (body, turn) =
               if (eaten.exists(tailward.hits))
                 (Sprite.bodyFull, Sprite.turnFull)
@@ -241,18 +241,17 @@ case class State(
               turn
                 .apply(tailward.direction -> headward.direction)
                 .at(tailward.position)
-        }.flatten
+          }
+          .flatten
 
       val snake =
         if (!drawSnake) Vector.empty
         else head ++ tail ++ body
 
-
       val offset =
         Point(Margin + Border, Margin + Border + DigitSize.y + UpperLine)
 
       (apple ++ monster ++ snake).map(_.move(offset))
-
     }
 
     def renderDigits(target: Int, offset: Point, precision: Int) = {
@@ -291,10 +290,9 @@ case class State(
           ttlOffset.move(Point(-precision * DigitSize.x, SpriteSize / 2))
 
         renderDigits(monsterTTL, ttlOffset, precision) ++
-        monsterSprite
-          .zipWithIndex
-          .flatMap { case (sprite, x) => sprite.at(Point(x, 0)) }
-          .map(_.move(spriteOffset))
+          monsterSprite.zipWithIndex
+            .flatMap { case (sprite, x) => sprite.at(Point(x, 0)) }
+            .map(_.move(spriteOffset))
       } else Vector.empty
 
       score ++ monster
@@ -318,10 +316,8 @@ case class State(
         if (x == 0 || x == X) || (y == 0 || y == Y)
       } yield Point(x, y).move(edgeOffset)
 
-
       border ++ line
     }
-
 
     (entities ++ scoreline ++ borders).flatMap(_.times(Scale).square(Scale))
   }
@@ -343,14 +339,6 @@ object State {
       Random.nextInt(Dimensions.y)
     ).pipe(Entity.static)
 
-    // TODO remove after debug
-    // val apple = Random.shuffle(
-    //   Vector(
-    //     Point(0, 0),
-    //     Point(21, 0),
-    //     Point(0, 12),
-    //     Point(21, 12))
-    // ).head.pipe(Entity.static)
     if (snake.exists(_.hits(apple))) newApple(snake)
     else apple
   }
