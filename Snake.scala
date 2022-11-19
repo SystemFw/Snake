@@ -53,10 +53,7 @@ object Main {
   // TODO inner margin for snake asymetric (visible with up-down motion)
   // TODO move these to the appropriate places, at point of use
   // Note these get scaled at the point of use
-  val SnakeOffset = Point(
-    Margin + Border,
-    Margin + Border + DigitSize.y + UpperLine
-  )
+
 
   val EdgeOffset = Point(
     Margin,
@@ -277,8 +274,12 @@ case class State(
         head ++ body ++ tail
       }
 
-    val renderedEntities =
-      (renderedSnake ++ renderedFood).map(_.move(SnakeOffset))
+    val renderedEntities = {
+      val snakeOffset =
+        Point(Margin + Border, Margin + Border + DigitSize.y + UpperLine)
+
+      (renderedSnake ++ renderedFood).map(_.move(snakeOffset))
+    }
 
     // TODO abstract this into a helper
     val renderedScore = {
