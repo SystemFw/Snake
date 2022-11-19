@@ -55,10 +55,7 @@ object Main {
   // Note these get scaled at the point of use
 
 
-  val EdgeOffset = Point(
-    Margin,
-    Margin + DigitSize.y + UpperLine
-  )
+
 
   val LineOffset = Point(
     Margin,
@@ -343,13 +340,14 @@ case class State(
     val renderedEdge = {
       val X = FullDimensions.x + 2 * Border
       val Y = FullDimensions.y + 2 * Border
+      val edgeOffset = Point(Margin, Margin + DigitSize.y + UpperLine)
 
       for {
         x <- 0.to(X).toVector // inclusive
         y <- 0.to(Y).toVector
         if (x == 0 || x == X) || (y == 0 || y == Y)
-      } yield Point(x, y)
-    }.map(_.move(EdgeOffset))
+      } yield Point(x, y).move(edgeOffset)
+    }
 
     val renderedLine =
       0
