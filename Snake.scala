@@ -273,20 +273,16 @@ case class State(
       MonsterTTLOffset.y + SpriteSize / 2
     )
 
-    // TODO abstract this into a helper
-    val renderedScore = {
-      val p = Point(0, 0) // DigitOffset
-      val precision = 4
-
+    def renderDigits(target: Int, precision: Int) = {
       val points =
         0.until(precision)
           .toVector
-          .map(i => p.move(Point.right.times(i)))
+          .map(i => Point.right.times(i))
           .map(p => Vector(p, p.move(Point.down)))
 
       val sprites =
         String
-          .format(s"%0${precision}d", score)
+          .format(s"%0${precision}d", target)
           .toVector
           .map(n => Sprite.digits(n.asDigit))
 
@@ -295,33 +291,17 @@ case class State(
         .flatMap { (points, digits) =>
           digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
         }
-    }.map(_.move(ScoreOffset))
+    }
+
+    // TODO abstract this into a helper
+    val renderedScore =
+      renderDigits(score, precision = 4).map(_.move(ScoreOffset))
 
     // TODO should I display 00 or not? I think the original game does not
-    val renderedMonsterTTL = {
-      val p = Point(0, 0) // DigitOffset
-      val precision = 2
-
-      val points =
-        0.until(precision)
-          .toVector
-          .map(i => p.move(Point.right.times(i)))
-          .map(p => Vector(p, p.move(Point.down)))
-
-      val sprites =
-        String
-          .format(s"%0${precision}d", monsterTTL)
-          .toVector
-          .map(n => Sprite.digits(n.asDigit))
-
+    val renderedMonsterTTL =
       if (monster.nonEmpty)
-        points
-          .zip(sprites)
-          .flatMap { (points, digits) =>
-            digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
-          }
+        renderDigits(monsterTTL, precision = 2).map(_.move(MonsterTTLOffset))
       else Vector.empty
-    }.map(_.move(MonsterTTLOffset))
 
     val renderedMonsterSprite = {
       if (monster.nonEmpty)
