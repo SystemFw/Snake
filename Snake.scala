@@ -47,10 +47,8 @@ object Main {
   val BackgroundColor = Color(170, 220, 0) // TODO color match?
 
   val FullDimensions = Dimensions.times(SpriteSize)
-  val OuterMargin = 4
-  // TODO make this into a point
+  val Margin = 4
   val DigitSize = Point(SpriteSize, 2 * SpriteSize)
-
   val UpperLine = 3
   val Border = 2
 
@@ -58,36 +56,36 @@ object Main {
   val DisplaySize =
     FullDimensions.move(
       Point(
-        2 * (OuterMargin + Border),
-        2 * (OuterMargin + Border) + DigitSize.y + UpperLine
+        2 * (Margin + Border),
+        2 * (Margin + Border) + DigitSize.y + UpperLine
       )
     ).times(Scale)
 
   // Note these get scaled at the point of use
   val SnakeOffset = Point(
-    OuterMargin + Border,
-    OuterMargin + Border + DigitSize.y + UpperLine
+    Margin + Border,
+    Margin + Border + DigitSize.y + UpperLine
   )
 
   val EdgeOffset = Point(
-    OuterMargin,
-    OuterMargin + DigitSize.y + UpperLine
+    Margin,
+    Margin + DigitSize.y + UpperLine
   )
 
   val LineOffset = Point(
-    OuterMargin,
-    OuterMargin + DigitSize.y
+    Margin,
+    Margin + DigitSize.y
   )
 
   val ScoreOffset = Point(
-    OuterMargin,
-    OuterMargin
+    Margin,
+    Margin
   )
 
   // TODO replace 2 with precision after moving all these to point of use
   val MonsterTTLOffset = Point(
-    OuterMargin + Border + FullDimensions.x - 2 * DigitSize.x,
-    OuterMargin
+    Margin + Border + FullDimensions.x - 2 * DigitSize.x,
+    Margin
   )
 
   val MonsterSpriteOffset = Point(
