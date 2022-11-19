@@ -277,6 +277,9 @@ case class State(
         head ++ body ++ tail
       }
 
+    val renderedEntities =
+      (renderedSnake ++ renderedFood).map(_.move(SnakeOffset))
+
     // TODO abstract this into a helper
     val renderedScore = {
       val p = Point(0, 0) // DigitOffset
@@ -299,7 +302,7 @@ case class State(
         .flatMap { (points, digits) =>
           digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
         }
-    }
+    }.map(_.move(ScoreOffset))
 
     // TODO should I display 00 or not? I think the original game does not
     val renderedMonsterTTL = {
@@ -325,14 +328,15 @@ case class State(
             digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
           }
       else Vector.empty
-    }
+    }.map(_.move(MonsterTTLOffset))
 
-    val renderedMonsterSprite =
+    val renderedMonsterSprite = {
       if (monster.nonEmpty)
         Vector(Point(0, 0), Point(1, 0)).zip(monsterSprite).flatMap {
           case (p, sprite) => sprite.at(p)
         }
-      else Vector.empty
+        else Vector.empty
+    }.map(_.move(MonsterSpriteOffset))
 
     // TODO both edge and line can be moved to state object, they are static
     val renderedEdge = {
@@ -344,21 +348,16 @@ case class State(
         y <- 0.to(Y).toVector
         if (x == 0 || x == X) || (y == 0 || y == Y)
       } yield Point(x, y)
-    }
+    }.map(_.move(EdgeOffset))
 
     val renderedLine =
       0
         .to(FullDimensions.x + 2 * Border)
         .map(x => Point(x, 0))
+        .map(_.move(LineOffset))
 
     // TODO Refactor
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore
-      .map(_.move(ScoreOffset)) ++ renderedLine.map(
-      _.move(LineOffset)
-    ) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(
-      _.move(MonsterTTLOffset)
-    ) ++ renderedMonsterSprite.map(_.move(MonsterSpriteOffset)))
-      .flatMap(_.times(Scale).square(Scale))
+    (renderedEntities ++ renderedScore ++ renderedLine ++ renderedEdge ++ renderedMonsterTTL ++ renderedMonsterSprite).flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
