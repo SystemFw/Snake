@@ -43,15 +43,14 @@ object Main {
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
 
-  // TODO display UI elements manually
-  val BackgroundColor = Color(170, 220, 0) // TODO color match?
-
+  val BackgroundColor = Color(170, 220, 0)
   val FullDimensions = Dimensions.times(SpriteSize)
   val Margin = 4
   val DigitSize = Point(SpriteSize, 2 * SpriteSize)
   val UpperLine = 3
   val Border = 2
 
+  // TODO inner margin for snake asymetric (visible with up-down motion)
   // TODO move these to the appropriate places, at point of use
   val DisplaySize =
     FullDimensions.move(
