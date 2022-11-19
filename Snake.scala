@@ -54,7 +54,6 @@ object Main {
   // TODO move these to the appropriate places, at point of use
   // Note these get scaled at the point of use
 
-
 }
 
 class Gui extends JPanel {
@@ -256,7 +255,6 @@ case class State(
       (renderedSnake ++ renderedFood).map(_.move(snakeOffset))
     }
 
-
     val ScoreOffset = Point(
       Margin,
       Margin
@@ -286,10 +284,12 @@ case class State(
           .toVector
           .map(n => Sprite.digits(n.asDigit))
 
-      points.zip(sprites)
-        .flatMap {  case (points, digits) =>
+      points
+        .zip(sprites)
+        .flatMap { case (points, digits) =>
           digits.zip(points).flatMap { case (sprite, p) => sprite.at(p) }
-        }.map(_.move(offset))
+        }
+        .map(_.move(offset))
     }
 
     // TODO abstract this into a helper
@@ -307,7 +307,7 @@ case class State(
         Vector(Point(0, 0), Point(1, 0)).zip(monsterSprite).flatMap {
           case (p, sprite) => sprite.at(p)
         }
-        else Vector.empty
+      else Vector.empty
     }.map(_.move(MonsterSpriteOffset))
 
     // TODO both edge and line can be moved to state object, they are static
@@ -329,7 +329,8 @@ case class State(
         .map(x => Point(x + Margin, Margin + DigitSize.y))
 
     // TODO refactor
-    (renderedEntities ++ renderedScore ++ renderedLine ++ renderedEdge ++ renderedMonsterTTL ++ renderedMonsterSprite).flatMap(_.times(Scale).square(Scale))
+    (renderedEntities ++ renderedScore ++ renderedLine ++ renderedEdge ++ renderedMonsterTTL ++ renderedMonsterSprite)
+      .flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
