@@ -51,9 +51,8 @@ object Main {
   // TODO make this into a point
   val DigitHeight = 2 * SpriteSize
   val DigitWidth = 1 * SpriteSize
-  // TODO Upper line and UpperLineGap can probably be unified
-  val UpperLine = 1
-  val UpperLineGap = 2
+
+  val UpperLine = 3
   val Border = 2
 
   // TODO move these to the appropriate places, at point of use
@@ -61,19 +60,19 @@ object Main {
     FullDimensions.move(
       Point(
         2 * (OuterMargin + Border),
-        2 * (OuterMargin + Border) + DigitHeight + UpperLine + UpperLineGap
+        2 * (OuterMargin + Border) + DigitHeight + UpperLine
       )
     ).times(Scale)
 
   // Note these get scaled at the point of use
   val SnakeOffset = Point(
     OuterMargin + Border,
-    OuterMargin + Border + DigitHeight + UpperLine + UpperLineGap
+    OuterMargin + Border + DigitHeight + UpperLine
   )
 
   val EdgeOffset = Point(
     OuterMargin,
-    OuterMargin + DigitHeight + UpperLine + UpperLineGap
+    OuterMargin + DigitHeight + UpperLine
   )
 
   val LineOffset = Point(
