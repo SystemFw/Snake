@@ -54,23 +54,21 @@ object Main {
   // TODO Upper line and UpperLineGap can probably be unified
   val UpperLine = 1
   val UpperLineGap = 2
-  // TODO Border and inner margin can probably be unified
-  val Border = 1
-  val InnerMargin = 1
+  val Border = 2
 
   // TODO move these to the appropriate places, at point of use
   val DisplaySize =
     FullDimensions.move(
       Point(
-        2 * (OuterMargin + Border + InnerMargin),
-        2 * (OuterMargin + Border + InnerMargin) + DigitHeight + UpperLine + UpperLineGap
+        2 * (OuterMargin + Border),
+        2 * (OuterMargin + Border) + DigitHeight + UpperLine + UpperLineGap
       )
     ).times(Scale)
 
   // Note these get scaled at the point of use
   val SnakeOffset = Point(
-    OuterMargin + Border + InnerMargin,
-    OuterMargin + Border + InnerMargin + DigitHeight + UpperLine + UpperLineGap
+    OuterMargin + Border,
+    OuterMargin + Border + DigitHeight + UpperLine + UpperLineGap
   )
 
   val EdgeOffset = Point(
@@ -90,7 +88,7 @@ object Main {
 
   // TODO replace 2 with precision after moving all these to point of use
   val MonsterTTLOffset = Point(
-    OuterMargin + Border + InnerMargin + FullDimensions.x - 2 * DigitWidth,
+    OuterMargin + Border + FullDimensions.x - 2 * DigitWidth,
     OuterMargin
   )
 
@@ -349,8 +347,8 @@ case class State(
 
     // TODO both edge and line can be moved to state object, they are static
     val renderedEdge = {
-      val X = FullDimensions.x + 2 * (Border + InnerMargin)
-      val Y = FullDimensions.y + 2 * (Border + InnerMargin)
+      val X = FullDimensions.x + 2 * Border
+      val Y = FullDimensions.y + 2 * Border
 
       for {
         x <- 0.to(X).toVector // inclusive
@@ -361,7 +359,7 @@ case class State(
 
     val renderedLine =
       0
-        .to(FullDimensions.x + 2 * (Border + InnerMargin))
+        .to(FullDimensions.x + 2 * Border)
         .map(x => Point(x, 0))
 
     // TODO Refactor
