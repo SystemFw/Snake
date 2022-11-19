@@ -208,50 +208,51 @@ case class State(
 
   def render: Vector[Point] = {
     // TODO inner margin for snake asymetric (visible with up-down motion)
-    // TODO a unique val entities, with this. to disambiguate
-    val renderedFood =
-      Sprite.apple.at(apple.position) ++
+    val entities = {
+      val apple = Sprite.apple.at(this.apple.position)
+
+      val monster =
         monsterSprite
-          .zip(monster)
+          .zip(this.monster)
           .flatMap { case (sprite, p) => sprite.at(p.position) }
 
-    val renderedSnake =
-      if (!drawSnake) Vector.empty
-      else {
-        val head =
-          (if (!openMouth) Sprite.head else Sprite.headOpen)
-            .apply(snake.head.direction)
-            .at(snake.head.position)
+      val head =
+        (if (!openMouth) Sprite.head else Sprite.headOpen)
+          .apply(this.snake.head.direction)
+          .at(this.snake.head.position)
 
-        val tail =
-          Sprite.tail.apply(snake.init.last.direction).at(snake.last.position)
+      val tail =
+        Sprite
+          .tail
+          .apply(this.snake.init.last.direction)
+          .at(this.snake.last.position)
 
-        val body = // TODO collect flatten to void the case _
-          snake.init.sliding(2).flatMap {
-            case Vector(headward, tailward) =>
-              val (body, turn) =
-                if (eaten.exists(tailward.hits))
-                  (Sprite.bodyFull, Sprite.turnFull)
-                else (Sprite.body, Sprite.turn)
+      val body =
+        this.snake.init.sliding(2).collect {
+          case Vector(headward, tailward) =>
+            val (body, turn) =
+              if (eaten.exists(tailward.hits))
+                (Sprite.bodyFull, Sprite.turnFull)
+              else (Sprite.body, Sprite.turn)
 
-              if (tailward.direction == headward.direction)
-                body.apply(tailward.direction).at(tailward.position)
-              else
-                turn
-                  .apply(tailward.direction -> headward.direction)
-                  .at(tailward.position)
+            if (tailward.direction == headward.direction)
+              body.apply(tailward.direction).at(tailward.position)
+            else
+              turn
+                .apply(tailward.direction -> headward.direction)
+                .at(tailward.position)
+        }.flatten
 
-            case _ => sys.error("impossible")
-          }
+      val snake =
+        if (!drawSnake) Vector.empty
+        else head ++ tail ++ body
 
-        head ++ body ++ tail
-      }
 
-    val renderedEntities = {
-      val snakeOffset =
+      val offset =
         Point(Margin + Border, Margin + Border + DigitSize.y + UpperLine)
 
-      (renderedSnake ++ renderedFood).map(_.move(snakeOffset))
+      (apple ++ monster ++ snake).map(_.move(offset))
+
     }
 
     def renderDigits(target: Int, offset: Point, precision: Int) = {
@@ -289,7 +290,7 @@ case class State(
         val spriteOffset =
           ttlOffset.move(Point(-precision * DigitSize.x, SpriteSize / 2))
 
-        renderDigits(this.monsterTTL, ttlOffset, precision) ++
+        renderDigits(monsterTTL, ttlOffset, precision) ++
         monsterSprite
           .zipWithIndex
           .flatMap { case (sprite, x) => sprite.at(Point(x, 0)) }
@@ -299,26 +300,30 @@ case class State(
       score ++ monster
     }
 
-    // TODO both edge and line can be moved to state object, they are static
-    val renderedEdge = {
+    val borders = {
+      val lineOffset = Point(Margin, Margin + DigitSize.y)
+      val edgeOffset = lineOffset.move(Point(0, UpperLine))
       val X = FullDimensions.x + 2 * Border
       val Y = FullDimensions.y + 2 * Border
-      val edgeOffset = Point(Margin, Margin + DigitSize.y + UpperLine)
 
-      for {
+      val line =
+        0
+          .to(FullDimensions.x + 2 * Border)
+          .map(x => Point(x, 0))
+          .map(p => p.move(lineOffset))
+
+      val border = for {
         x <- 0.to(X).toVector // inclusive
         y <- 0.to(Y).toVector
         if (x == 0 || x == X) || (y == 0 || y == Y)
       } yield Point(x, y).move(edgeOffset)
+
+
+      border ++ line
     }
 
-    val renderedLine =
-      0
-        .to(FullDimensions.x + 2 * Border)
-        .map(x => Point(x + Margin, Margin + DigitSize.y))
 
-    // TODO refactor
-    (renderedEntities ++ scoreline ++ renderedLine ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
+    (entities ++ scoreline ++ borders).flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
