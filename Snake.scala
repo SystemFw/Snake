@@ -1,3 +1,5 @@
+//> using scala "2.13.10"
+
 import javax.swing._
 import java.awt.{List => _, _}
 import java.awt.event._
@@ -43,17 +45,12 @@ object Main {
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
 
-  val BackgroundColor = Color(170, 220, 0)
+  val BackgroundColor = new Color(170, 220, 0)
   val FullDimensions = Dimensions.times(SpriteSize)
   val Margin = 4
   val DigitSize = Point(SpriteSize, 2 * SpriteSize)
   val UpperLine = 3
   val Border = 2
-
-  // TODO inner margin for snake asymetric (visible with up-down motion)
-  // TODO move these to the appropriate places, at point of use
-  // Note these get scaled at the point of use
-
 }
 
 class Gui extends JPanel {
@@ -68,7 +65,7 @@ class Gui extends JPanel {
     override def paintComponent(g: Graphics) =
       image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
 
-    override def getPreferredSize = Dimension(
+    override def getPreferredSize = new Dimension(
       (FullDimensions.x + 2 * (Margin + Border)) * Scale,
       (FullDimensions.y + 2 * (Margin + Border) + DigitSize.y + UpperLine) * Scale
     )
