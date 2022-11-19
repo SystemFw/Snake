@@ -210,6 +210,8 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
+    // TODO inner margin for snake asymetric (visible with up-down motion)
+    // TODO a unique val entities, with this. to disambiguate
     val renderedFood =
       Sprite.apple.at(apple.position) ++
         monsterSprite
@@ -255,22 +257,6 @@ case class State(
       (renderedSnake ++ renderedFood).map(_.move(snakeOffset))
     }
 
-    val ScoreOffset = Point(
-      Margin,
-      Margin
-    )
-
-    // TODO replace 2 with precision after moving all these to point of use
-    val MonsterTTLOffset = Point(
-      Margin + Border + FullDimensions.x - 2 * DigitSize.x,
-      Margin
-    )
-
-    val MonsterSpriteOffset = Point(
-      MonsterTTLOffset.x - 2 * DigitSize.x,
-      MonsterTTLOffset.y + SpriteSize / 2
-    )
-
     def renderDigits(target: Int, offset: Point, precision: Int) = {
       val points =
         0.until(precision)
@@ -292,23 +278,29 @@ case class State(
         .map(_.move(offset))
     }
 
-    // TODO abstract this into a helper
-    val renderedScore =
-      renderDigits(score, ScoreOffset, precision = 4)
+    val scoreline = {
+      val score =
+        renderDigits(this.score, offset = Point(Margin, Margin), precision = 4)
 
-    // TODO should I display 00 or not? I think the original game does not
-    val renderedMonsterTTL =
-      if (monster.nonEmpty)
-        renderDigits(monsterTTL, MonsterTTLOffset, precision = 2)
-      else Vector.empty
+      // TODO should I display 00 or not? I think the original game does not
+      val monster = if (this.monster.nonEmpty) {
+        val precision = 2
+        val ttlOffset = Point(
+          Margin + Border + FullDimensions.x - precision * DigitSize.x,
+          Margin
+        )
+        val spriteOffset =
+          ttlOffset.move(Point(-precision * DigitSize.x, SpriteSize / 2))
 
-    val renderedMonsterSprite = {
-      if (monster.nonEmpty)
-        Vector(Point(0, 0), Point(1, 0)).zip(monsterSprite).flatMap {
-          case (p, sprite) => sprite.at(p)
-        }
-      else Vector.empty
-    }.map(_.move(MonsterSpriteOffset))
+        renderDigits(this.monsterTTL, ttlOffset, precision) ++
+        monsterSprite
+          .zipWithIndex
+          .flatMap { case (sprite, x) => sprite.at(Point(x, 0)) }
+          .map(_.move(spriteOffset))
+      } else Vector.empty
+
+      score ++ monster
+    }
 
     // TODO both edge and line can be moved to state object, they are static
     val renderedEdge = {
@@ -329,8 +321,7 @@ case class State(
         .map(x => Point(x + Margin, Margin + DigitSize.y))
 
     // TODO refactor
-    (renderedEntities ++ renderedScore ++ renderedLine ++ renderedEdge ++ renderedMonsterTTL ++ renderedMonsterSprite)
-      .flatMap(_.times(Scale).square(Scale))
+    (renderedEntities ++ scoreline ++ renderedLine ++ renderedEdge).flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
