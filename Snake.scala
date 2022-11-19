@@ -95,11 +95,11 @@ class Gui extends JPanel {
   private val canvas = new JComponent {
     // TODO build proper image instead
     override def paintComponent(g: Graphics) =
-     image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
+      image.foreach(point => g.drawLine(point.x, point.y, point.x, point.y))
 
     override def getPreferredSize = Dimension(
-      Scale * (FullDimensions.x + 2 * (Margin + Border)),
-      Scale * (FullDimensions.y + 2 * (Margin + Border) + DigitSize.y + UpperLine)
+      (FullDimensions.x + 2 * (Margin + Border)) * Scale,
+      (FullDimensions.y + 2 * (Margin + Border) + DigitSize.y + UpperLine) * Scale
     )
   }
 
@@ -277,10 +277,9 @@ case class State(
         head ++ body ++ tail
       }
 
-
     // TODO abstract this into a helper
     val renderedScore = {
-      val p = Point(0, 0)// DigitOffset
+      val p = Point(0, 0) // DigitOffset
       val precision = 4
 
       val points =
@@ -304,7 +303,7 @@ case class State(
 
     // TODO should I display 00 or not? I think the original game does not
     val renderedMonsterTTL = {
-      val p = Point(0, 0)// DigitOffset
+      val p = Point(0, 0) // DigitOffset
       val precision = 2
 
       val points =
@@ -330,10 +329,10 @@ case class State(
 
     val renderedMonsterSprite =
       if (monster.nonEmpty)
-        Vector(Point(0, 0), Point(1, 0)).zip(monsterSprite).flatMap { case (p, sprite) => sprite.at(p) }
+        Vector(Point(0, 0), Point(1, 0)).zip(monsterSprite).flatMap {
+          case (p, sprite) => sprite.at(p)
+        }
       else Vector.empty
-
-
 
     // TODO both edge and line can be moved to state object, they are static
     val renderedEdge = {
@@ -353,7 +352,13 @@ case class State(
         .map(x => Point(x, 0))
 
     // TODO Refactor
-    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore.map(_.move(ScoreOffset)) ++ renderedLine.map(_.move(LineOffset)) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(_.move(MonsterTTLOffset)) ++ renderedMonsterSprite.map(_.move(MonsterSpriteOffset))).flatMap(_.times(Scale).square(Scale))
+    ((renderedSnake ++ renderedFood).map(_.move(SnakeOffset)) ++ renderedScore
+      .map(_.move(ScoreOffset)) ++ renderedLine.map(
+      _.move(LineOffset)
+    ) ++ renderedEdge.map(_.move(EdgeOffset)) ++ renderedMonsterTTL.map(
+      _.move(MonsterTTLOffset)
+    ) ++ renderedMonsterSprite.map(_.move(MonsterSpriteOffset)))
+      .flatMap(_.times(Scale).square(Scale))
   }
 }
 object State {
