@@ -55,28 +55,6 @@ object Main {
   // Note these get scaled at the point of use
 
 
-
-
-  val LineOffset = Point(
-    Margin,
-    Margin + DigitSize.y
-  )
-
-  val ScoreOffset = Point(
-    Margin,
-    Margin
-  )
-
-  // TODO replace 2 with precision after moving all these to point of use
-  val MonsterTTLOffset = Point(
-    Margin + Border + FullDimensions.x - 2 * DigitSize.x,
-    Margin
-  )
-
-  val MonsterSpriteOffset = Point(
-    MonsterTTLOffset.x - 2 * DigitSize.x,
-    MonsterTTLOffset.y + SpriteSize / 2
-  )
 }
 
 class Gui extends JPanel {
@@ -278,6 +256,23 @@ case class State(
       (renderedSnake ++ renderedFood).map(_.move(snakeOffset))
     }
 
+
+    val ScoreOffset = Point(
+      Margin,
+      Margin
+    )
+
+    // TODO replace 2 with precision after moving all these to point of use
+    val MonsterTTLOffset = Point(
+      Margin + Border + FullDimensions.x - 2 * DigitSize.x,
+      Margin
+    )
+
+    val MonsterSpriteOffset = Point(
+      MonsterTTLOffset.x - 2 * DigitSize.x,
+      MonsterTTLOffset.y + SpriteSize / 2
+    )
+
     // TODO abstract this into a helper
     val renderedScore = {
       val p = Point(0, 0) // DigitOffset
@@ -352,10 +347,9 @@ case class State(
     val renderedLine =
       0
         .to(FullDimensions.x + 2 * Border)
-        .map(x => Point(x, 0))
-        .map(_.move(LineOffset))
+        .map(x => Point(x + Margin, Margin + DigitSize.y))
 
-    // TODO Refactor
+    // TODO refactor
     (renderedEntities ++ renderedScore ++ renderedLine ++ renderedEdge ++ renderedMonsterTTL ++ renderedMonsterSprite).flatMap(_.times(Scale).square(Scale))
   }
 }
