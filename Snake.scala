@@ -27,33 +27,29 @@ object Main {
     // 2) Add a concurrent queue to the game state, and a input thread adds input to that
     //    queue at a fixed frame rate. Now the game state is in charge of resetting its input which
     //    is good, but it introduces an mutability into game state, which I don't love
-    // 3) Have snake velocity and flickering independent of frame rate like I originally had.
-    //    Decoupled and simple, but I wonder about precision. However in a more complex game
-    //    with multiple entities at different velocities, coupling speed to game rate would
-    //    be unfeasible, but on the other hand you'd move by fractional entities, not fixed steps
-    //    there.
+    // 3) add a concurrent queue to the game loop, and make the game
+    // loop in charge of the restart rather than the game logic itself
+    // 4) make GUI a bit more sophisticated: input contains a concurrent Vector of all the input
+    //    received in that frame, gets drained when getInput is called, rather than set to None
+    //    upon release
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
-      Thread.sleep(state.velocity)
+      Thread.sleep(FPS)
     }
   }
 
+  val FPS = 1000 / 60
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val Scale = 2
 
-  // NOTE, assuming an approximation of 60fps as 16ms, then velocities are:
-  // List(41, 29, 23, 18, 14, 11, 8, 6, 5)
-  // and flicker is 16
-
   val Center = Dimensions.times(0.5)
   val SnakeSize = 7
-  // TODO maybe use level 8 instead
-  val Velocities = Vector(658, 478, 378, 298, 228, 178, 138, 108, 88)
-  val Flicker = 270
+  val Velocities = Vector(41, 29, 23, 18, 14, 11, 8, 6, 5)
+  val Flicker = 16
   val FlickerFor = 10
-  val DefaultLevel = Level(9)
+  val DefaultLevel = Level(9) // TODO maybe use level 8 instead
   val MonsterTTL = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
@@ -136,6 +132,7 @@ object Gui {
   }
 }
 
+// TODO add Pause and NoInput <-- remove Option
 sealed trait Input
 case class Direction(p: Point) extends Input
 case class Level(value: Int) extends Input {
@@ -147,19 +144,19 @@ object Level {
 
 // TODO dynamic level
 case class State(
+    score: Int = 0,
+    level: Level = DefaultLevel,
     snake: Vector[Entity],
     apple: Entity,
     eaten: Vector[Entity] = Vector.empty,
-    score: Int = 0,
     dead: Boolean = false,
-    flickers: Long = 0,
-    drawSnake: Boolean = true,
     openMouth: Boolean = false,
     monster: Vector[Entity] = Vector(),
     monsterSprite: Vector[Sprite] = Vector(),
     monsterTTL: Int = MonsterTTL,
     monsterSpawnIn: Int = MonsterSpawnIn,
-    level: Level = DefaultLevel,
+    flickers: Long = 0,
+    drawSnake: Boolean = true,
     velocity: Int = DefaultLevel.velocity,
     time: Int = 0
 ) {
@@ -219,10 +216,10 @@ case class State(
       if (dead) copy(dead = true, velocity = Flicker)
       else
         copy(
+          score = scoreNow,
           snake = snakeNow,
           apple = appleNow,
           eaten = eatenNow,
-          score = scoreNow,
           openMouth = aboutToEat,
           monster = monsterNow,
           monsterSprite = monsterSpriteNow,
@@ -231,16 +228,17 @@ case class State(
         )
     }
 
-    def flickerOnLoss =
+    def flicker =
       if (flickers > FlickerFor) State.initial
       else if (flickers % 2 != 0) copy(drawSnake = true, flickers = flickers + 1)
       else copy(drawSnake = false, flickers = flickers + 1)
 
-    if (dead) flickerOnLoss
-    else input match {
+    if (time % velocity != 0) this
+    else if (dead) flicker
+    else input match { // TODO refactor after input refactor
       case None => move(None)
       case Some(Direction(point)) => move(Some(point))
-      case Some(l @ Level(_)) => copy(level = l).evolve(None)
+      case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity).evolve(None) // TODO check whether evolve here is needed
     }
   }.copy(time = time + 1)
 
@@ -318,7 +316,7 @@ case class State(
         renderDigits(this.score, offset = Point(Margin, Margin), precision = 4)
 
       // TODO should I display 00 or not? I think the original game does not
-      val monster = if (this.monster.nonEmpty) {
+      val monsterTimer = if (monster.nonEmpty) {
         val precision = 2
         val ttlOffset = Point(
           Margin + Border + FullDimensions.x - precision * DigitSize.x,
@@ -333,7 +331,7 @@ case class State(
             .map(_.move(spriteOffset))
       } else Vector.empty
 
-      score ++ monster
+      score ++ monsterTimer
     }
 
     val borders = {
