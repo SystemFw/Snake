@@ -19,9 +19,9 @@ object Main {
     var state = State.initial
     // TODO first frame takes a while to draw
     while (true) {
-      Thread.sleep(Tick)
       state = state.evolve(gui.getInput)
       gui.update(state)
+      Thread.sleep(state.velocity)
     }
   }
 
@@ -29,17 +29,14 @@ object Main {
   val SpriteSize = 4
   val Scale = 2
 
-  // ticks = List(658, 478, 378, 298, 228, 178, 138, 108, 88)
-  // TODO maybe use level 8 instead (108), should adjust Flicker and Level is so
-  val Tick = 88
-  val FlickerEvery = 3
-  val FlickerFor = 8
+  // TODO maybe use level 8 instead
+  val Velocity = List(658, 478, 378, 298, 228, 178, 138, 108, 88)
+  val Flicker = 270
+  val FlickerFor = 10
 
   val Center = Dimensions.times(0.5)
   val SnakeSize = 7
 
-  // TODO it would be cool to change level dynamically my pressing numbers
-  // (0 or maybe space is pause)
   val Level = 9
   val MonsterTTL = 20
   val MonsterSpawnIn = 5
@@ -125,7 +122,9 @@ case class State(
     monster: Vector[Entity] = Vector(),
     monsterSprite: Vector[Sprite] = Vector(),
     monsterTTL: Int = MonsterTTL,
-    monsterSpawnIn: Int = MonsterSpawnIn
+    monsterSpawnIn: Int = MonsterSpawnIn,
+    level: Int = Level,
+    velocity: Int = Velocity(Level - 1)
 ) {
 
   def evolve(next: Option[Point]): State = {
@@ -155,10 +154,10 @@ case class State(
         if (eatingApple) State.newApple(snakeNow) else apple
 
       val scoreNow =
-        if (eatingApple) score + Level
+        if (eatingApple) score + level
         else if (eatingMonster)
           // Magic formula due to observation
-          score + 5 * (Level + 10) - 2 * (MonsterTTL - monsterTTL) - (Level - 2)
+          score + 5 * (level + 10) - 2 * (MonsterTTL - monsterTTL) - (level - 2)
         else score
 
       val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
@@ -195,9 +194,9 @@ case class State(
     }
 
     def flickerOnLoss = {
-      val flicker = (time / FlickerEvery) % 2 == 0
-
-      if (time - lostAt > FlickerFor * FlickerEvery) State.initial
+      // TODO refactor flickering once variable rate is in place
+      val flicker = (time / 3) % 2 == 0
+      if (time - lostAt > 8 * 3) State.initial
       else if (!flicker) copy(drawSnake = true)
       else copy(drawSnake = false)
     }
