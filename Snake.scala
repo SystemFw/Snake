@@ -20,6 +20,18 @@ object Main {
     var state = State.initial
     // TODO first frame takes a while to draw
     // TODO at lower speeds, responsiveness is impacted, can I mitigate that?
+    // Not resetting input is responsive, but then resetting state is broken.
+    // Options:
+    // 1) don't reset input in GUI, but then the game loop has to reset it on loss
+    //    I don't love the coupling: now gui, game loop and game logic are all interdependent
+    // 2) Add a concurrent queue to the game state, and a input thread adds input to that
+    //    queue at a fixed frame rate. Now the game state is in charge of resetting its input which
+    //    is good, but it introduces an mutability into game state, which I don't love
+    // 3) Have snake velocity and flickering independent of frame rate like I originally had.
+    //    Decoupled and simple, but I wonder about precision. However in a more complex game
+    //    with multiple entities at different velocities, coupling speed to game rate would
+    //    be unfeasible, but on the other hand you'd move by fractional entities, not fixed steps
+    //    there.
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
