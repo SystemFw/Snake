@@ -3,6 +3,7 @@
 import javax.swing._
 import java.awt.{List => _, _}
 import java.awt.event._
+import java.util.concurrent.atomic.AtomicReference
 import scala.util.Random
 import scala.util.chaining._
 import Main._
@@ -39,7 +40,7 @@ object Main {
     }
   }
 
-  val FPS = 1000 / 60
+  val FPS = 500 // 1000 / 60
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val Scale = 2
@@ -63,10 +64,10 @@ object Main {
 }
 
 class Gui extends JPanel {
-  // Writes from event listeners which run on single EDT thread: no atomics needed
-  // Reads from main thread: volatile needed
-  @volatile private var input: Option[Input] = None
-  // All reads and writes from single EDT thread: can be standard references
+//  @volatile private var input: Option[Input] = None
+  private val input: AtomicReference[Option[Input]] = new AtomicReference(None)
+
+  // Can be a standard reference since all reads and writes are from single EDT thread
   private var image: Vector[Point] = Vector()
 
   private val canvas = new JComponent {
@@ -90,8 +91,8 @@ class Gui extends JPanel {
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    add(direction.toString) { _ => input = Some(Direction(Point.directions(direction))) }
-    add(s"released ${direction.toString}") { _ => input = None }
+    add(direction.toString) { _ => input.set(Some(Direction(Point.directions(direction)))) }
+    //add(s"released ${direction.toString}") { _ => input = None }
   }
 
   1.to(9).foreach { level =>
@@ -100,11 +101,15 @@ class Gui extends JPanel {
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    add(level.toString) { _ => input = Some(Level(level))}
-    add(s"released ${level.toString}") { _ => input = None }
+    add(level.toString) { _ => input.set(Some(Level(level))) }
+//    add(s"released ${level.toString}") { _ => input = None }
   }
 
-  def getInput: Option[Input] = input
+  def getInput: Option[Input] = {
+    val i = input.getAndSet(None)
+    println(s"reader read: $i")
+    i
+  }
 
   // TODO repaint() already calls invokeLater
   // could make image volatile and remove the invokeLater?
@@ -157,7 +162,7 @@ case class State(
     monsterSpawnIn: Int = MonsterSpawnIn,
     flickers: Long = 0,
     drawSnake: Boolean = true,
-    velocity: Int = DefaultLevel.velocity,
+    velocity: Int = 1, // DefaultLevel.velocity,
     time: Int = 0
 ) {
 
