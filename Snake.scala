@@ -93,7 +93,7 @@ class Gui extends JPanel {
     }
 
     add(direction.toString) { _ => input = Some(Input.Direction(Point.directions(direction))) }
-//    add(s"released ${direction.toString}") { _ => input = None }
+    add(s"released ${direction.toString}") { _ => input = None }
   }
 
   1.to(9).foreach { level =>
@@ -103,7 +103,7 @@ class Gui extends JPanel {
     }
 
     add(level.toString) { _ => input = Some(Input.Level(level))}
-  //  add(s"released ${level.toString}") { _ => input = None }
+    add(s"released ${level.toString}") { _ => input = None }
   }
 
   def getInput: Option[Input] = input
