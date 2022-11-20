@@ -43,7 +43,12 @@ object Main {
   val SpriteSize = 4
   val Scale = 2
 
+  // NOTE, assuming an approximation of 60fps as 16ms, then velocities are:
+  // List(41, 29, 23, 18, 14, 11, 8, 6, 5)
+  // and flicker is 16
+
   // TODO maybe use level 8 instead
+  // TODO use Vector for consistency
   val Velocity = List(658, 478, 378, 298, 228, 178, 138, 108, 88)
   val Flicker = 270
   val FlickerFor = 10
