@@ -35,7 +35,7 @@ object Main {
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
-      Thread.sleep(state.level.velocity)
+      Thread.sleep(state.velocity)
     }
   }
 
@@ -50,8 +50,7 @@ object Main {
   val Center = Dimensions.times(0.5)
   val SnakeSize = 7
   // TODO maybe use level 8 instead
-  // TODO use Vector for consistency
-  val Velocity = Vector(270, 658, 478, 378, 298, 228, 178, 138, 108, 88)
+  val Velocities = Vector(658, 478, 378, 298, 228, 178, 138, 108, 88)
   val Flicker = 270
   val FlickerFor = 10
   val DefaultLevel = Level(9)
@@ -140,10 +139,9 @@ object Gui {
 sealed trait Input
 case class Direction(p: Point) extends Input
 case class Level(value: Int) extends Input {
-  def velocity: Int = Velocity(value)
+  def velocity: Int = Velocities(value - 1)
 }
 object Level {
-  val dead = Level(0)
   val all = 1.to(9).map(Level.apply)
 }
 
@@ -153,7 +151,7 @@ case class State(
     apple: Entity,
     eaten: Vector[Entity] = Vector.empty,
     score: Int = 0,
-    lostAt: Long = 0,
+    dead: Boolean = false,
     flickers: Long = 0,
     drawSnake: Boolean = true,
     openMouth: Boolean = false,
@@ -161,7 +159,9 @@ case class State(
     monsterSprite: Vector[Sprite] = Vector(),
     monsterTTL: Int = MonsterTTL,
     monsterSpawnIn: Int = MonsterSpawnIn,
-    level: Level = DefaultLevel
+    level: Level = DefaultLevel,
+    velocity: Int = DefaultLevel.velocity,
+    time: Int = 0
 ) {
 
   def evolve(input: Option[Input]): State = {
@@ -193,8 +193,7 @@ case class State(
       val scoreNow = {
         val level = this.level.value
         if (eatingApple) score + level
-        else if (eatingMonster)
-          // Magic formula due to observation
+        else if (eatingMonster) // Magic formula due to observation
           score + 5 * (level + 10) - 2 * (MonsterTTL - monsterTTL) - (level - 2)
         else score
       }
@@ -217,7 +216,7 @@ case class State(
           else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
         }
 
-      if (dead) copy(level = Level.dead)
+      if (dead) copy(dead = true, velocity = Flicker)
       else
         copy(
           snake = snakeNow,
@@ -237,13 +236,13 @@ case class State(
       else if (flickers % 2 != 0) copy(drawSnake = true, flickers = flickers + 1)
       else copy(drawSnake = false, flickers = flickers + 1)
 
-    if (level == Level.dead) flickerOnLoss
+    if (dead) flickerOnLoss
     else input match {
       case None => move(None)
       case Some(Direction(point)) => move(Some(point))
       case Some(l @ Level(_)) => copy(level = l).evolve(None)
     }
-  }
+  }.copy(time = time + 1)
 
   def render: Vector[Point] = {
     // TODO inner margin for snake asymetric (visible with up-down motion)
