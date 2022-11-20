@@ -54,7 +54,7 @@ object Main {
 class Gui extends JPanel {
   // Writes from event listeners which run on single EDT thread: no atomics needed
   // Reads from main thread: volatile needed
-  @volatile private var input: Option[Point] = None
+  @volatile private var input: Option[Input] = None
   // All reads and writes from single EDT thread: can be standard references
   private var image: Vector[Point] = Vector()
 
@@ -79,11 +79,21 @@ class Gui extends JPanel {
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    add(direction) { _ => input = Point.directions.get(direction) }
-    add(s"released $direction") { _ => input = None }
+    add(direction.toString) { _ => input = Some(Input.Direction(Point.directions(direction))) }
+    add(s"released ${direction.toString}") { _ => input = None }
   }
 
-  def getInput: Option[Point] = input
+  1.to(9).foreach { level =>
+    def add(name: String)(action: AbstractAction) = {
+      getActionMap.put(name, action)
+      getInputMap.put(KeyStroke.getKeyStroke(name), name)
+    }
+
+    add(level.toString) { _ => input = Some(Input.Level(level))}
+    add(s"released ${level.toString}") { _ => input = None }
+  }
+
+  def getInput: Option[Input] = input
 
   // TODO repaint() already calls invokeLater
   // could make image volatile and remove the invokeLater?
@@ -111,6 +121,12 @@ object Gui {
   }
 }
 
+sealed trait Input
+case object Input {
+  case class Direction(p: Point) extends Input
+  case class Level(level: Int) extends Input
+}
+
 // TODO dynamic level
 case class State(
     snake: Vector[Entity],
@@ -129,8 +145,8 @@ case class State(
     velocity: Int = Velocity(Level - 1)
 ) {
 
-  def evolve(next: Option[Point]): State = {
-    def move = {
+  def evolve(input: Option[Input]): State = {
+    def move(next: Option[Point]) = {
       val directionNow =
         next
           .filter(_ != snake.head.direction.opposite)
@@ -201,7 +217,11 @@ case class State(
       else copy(drawSnake = false)
 
     if (lostAt > 0) flickerOnLoss
-    else move
+    else input match {
+      case None => move(None)
+      case Some(Input.Direction(point)) => move(Some(point))
+      case Some(Input.Level(level)) => move(None)
+    }
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
