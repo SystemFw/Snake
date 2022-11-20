@@ -225,7 +225,7 @@ case class State(
         copy(
           level = level,
           velocity = Velocity(level - 1)
-        ).evolve(None)
+        )
     }
   }.copy(time = time + 1)
 
