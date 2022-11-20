@@ -35,7 +35,7 @@ object Main {
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
-      Thread.sleep(state.velocity)
+      Thread.sleep(state.level.velocity)
     }
   }
 
@@ -47,16 +47,14 @@ object Main {
   // List(41, 29, 23, 18, 14, 11, 8, 6, 5)
   // and flicker is 16
 
-  // TODO maybe use level 8 instead
-  // TODO use Vector for consistency
-  val Velocity = List(658, 478, 378, 298, 228, 178, 138, 108, 88)
-  val Flicker = 270
-  val FlickerFor = 10
-
   val Center = Dimensions.times(0.5)
   val SnakeSize = 7
-
-  val Level = 9
+  // TODO maybe use level 8 instead
+  // TODO use Vector for consistency
+  val Velocity = Vector(270, 658, 478, 378, 298, 228, 178, 138, 108, 88)
+  val Flicker = 270
+  val FlickerFor = 10
+  val DefaultLevel = Level(9)
   val MonsterTTL = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
@@ -97,7 +95,7 @@ class Gui extends JPanel {
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    add(direction.toString) { _ => input = Some(Input.Direction(Point.directions(direction))) }
+    add(direction.toString) { _ => input = Some(Direction(Point.directions(direction))) }
     add(s"released ${direction.toString}") { _ => input = None }
   }
 
@@ -107,7 +105,7 @@ class Gui extends JPanel {
       getInputMap.put(KeyStroke.getKeyStroke(name), name)
     }
 
-    add(level.toString) { _ => input = Some(Input.Level(level))}
+    add(level.toString) { _ => input = Some(Level(level))}
     add(s"released ${level.toString}") { _ => input = None }
   }
 
@@ -140,9 +138,13 @@ object Gui {
 }
 
 sealed trait Input
-case object Input {
-  case class Direction(p: Point) extends Input
-  case class Level(level: Int) extends Input
+case class Direction(p: Point) extends Input
+case class Level(value: Int) extends Input {
+  def velocity: Int = Velocity(value)
+}
+object Level {
+  val dead = Level(0)
+  val all = 1.to(9).map(Level.apply)
 }
 
 // TODO dynamic level
@@ -152,15 +154,14 @@ case class State(
     eaten: Vector[Entity] = Vector.empty,
     score: Int = 0,
     lostAt: Long = 0,
-    time: Long = 0,
+    flickers: Long = 0,
     drawSnake: Boolean = true,
     openMouth: Boolean = false,
     monster: Vector[Entity] = Vector(),
     monsterSprite: Vector[Sprite] = Vector(),
     monsterTTL: Int = MonsterTTL,
     monsterSpawnIn: Int = MonsterSpawnIn,
-    level: Int = Level,
-    velocity: Int = Velocity(Level - 1)
+    level: Level = DefaultLevel
 ) {
 
   def evolve(input: Option[Input]): State = {
@@ -189,12 +190,14 @@ case class State(
       val appleNow =
         if (eatingApple) State.newApple(snakeNow) else apple
 
-      val scoreNow =
+      val scoreNow = {
+        val level = this.level.value
         if (eatingApple) score + level
         else if (eatingMonster)
           // Magic formula due to observation
           score + 5 * (level + 10) - 2 * (MonsterTTL - monsterTTL) - (level - 2)
         else score
+      }
 
       val ((monsterNow, monsterSpriteNow), monsterSpawnInNow, monsterTTLNow) =
         if (monster.isEmpty) {
@@ -214,7 +217,7 @@ case class State(
           else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
         }
 
-      if (dead) copy(lostAt = time, velocity = Flicker)
+      if (dead) copy(level = Level.dead)
       else
         copy(
           snake = snakeNow,
@@ -230,21 +233,17 @@ case class State(
     }
 
     def flickerOnLoss =
-      if (time - lostAt > FlickerFor) State.initial
-      else if (time % 2 != 0) copy(drawSnake = true)
-      else copy(drawSnake = false)
+      if (flickers > FlickerFor) State.initial
+      else if (flickers % 2 != 0) copy(drawSnake = true, flickers = flickers + 1)
+      else copy(drawSnake = false, flickers = flickers + 1)
 
-    if (lostAt > 0) flickerOnLoss
+    if (level == Level.dead) flickerOnLoss
     else input match {
       case None => move(None)
-      case Some(Input.Direction(point)) => move(Some(point))
-      case Some(Input.Level(level)) =>
-        copy(
-          level = level,
-          velocity = Velocity(level - 1)
-        ).evolve(None)
+      case Some(Direction(point)) => move(Some(point))
+      case Some(l @ Level(_)) => copy(level = l).evolve(None)
     }
-  }.copy(time = time + 1)
+  }
 
   def render: Vector[Point] = {
     // TODO inner margin for snake asymetric (visible with up-down motion)
