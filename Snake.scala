@@ -178,7 +178,7 @@ case class State(
           else ((monster, monsterSprite), monsterSpawnIn, monsterTTLNow)
         }
 
-      if (dead) copy(lostAt = time)
+      if (dead) copy(lostAt = time, velocity = Flicker)
       else
         copy(
           snake = snakeNow,
@@ -193,13 +193,10 @@ case class State(
         )
     }
 
-    def flickerOnLoss = {
-      // TODO refactor flickering once variable rate is in place
-      val flicker = (time / 3) % 2 == 0
-      if (time - lostAt > 8 * 3) State.initial
-      else if (!flicker) copy(drawSnake = true)
+    def flickerOnLoss =
+      if (time - lostAt > FlickerFor) State.initial
+      else if (time % 2 != 0) copy(drawSnake = true)
       else copy(drawSnake = false)
-    }
 
     if (lostAt > 0) flickerOnLoss
     else move
