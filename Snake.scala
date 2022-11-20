@@ -19,6 +19,7 @@ object Main {
 
     var state = State.initial
     // TODO first frame takes a while to draw
+    // TODO at lower speeds, responsiveness is impacted, can I mitigate that?
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
@@ -220,7 +221,11 @@ case class State(
     else input match {
       case None => move(None)
       case Some(Input.Direction(point)) => move(Some(point))
-      case Some(Input.Level(level)) => move(None)
+      case Some(Input.Level(level)) =>
+        copy(
+          level = level,
+          velocity = Velocity(level - 1)
+        ).evolve(None)
     }
   }.copy(time = time + 1)
 
