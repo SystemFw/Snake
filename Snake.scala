@@ -37,7 +37,7 @@ object Main {
   val Velocities = Vector(41, 29, 23, 18, 14, 11, 8, 6, 5)
   val Flicker = 16
   val FlickerFor = 10
-  val DefaultLevel = Level(9) // TODO maybe use level 8 instead
+  val DefaultLevel = Level(8)
   val MonsterTTL = 20
   val MonsterSpawnIn = 5
   val MonsterSpawnRandom = 3
@@ -230,11 +230,14 @@ case class State(
     else
       {
         actualInput match {
-          case direction: Direction => move(direction).copy(paused = false)
-          case level: Level => copy(level = level, velocity = level.velocity, paused = false)
+          case direction: Direction =>
+            move(direction).copy(paused = false)
+          case level: Level =>
+            copy(level = level, velocity = level.velocity, paused = false)
           case NoInput =>
             if (paused) this else move(Direction(snake.head.direction))
-          case Pause => copy(paused = !paused)
+          case Pause =>
+            copy(paused = !paused)
         }
       }.copy(recordedInput = NoInput)
   }.copy(time = time + 1)
