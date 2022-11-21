@@ -20,23 +20,6 @@ object Main {
 
     var state = State.initial
     // TODO first frame takes a while to draw
-    // TODO at lower speeds, responsiveness is impacted, can I mitigate that?
-    // Not resetting input is responsive, but then resetting state is broken.
-    // Options:
-    // 1) don't reset input in GUI, but then the game loop has to reset it on loss
-    //    I don't love the coupling: now gui, game loop and game logic are all interdependent
-    // 2) Add a concurrent queue to the game state, and a input thread adds input to that
-    //    queue at a fixed frame rate. Now the game state is in charge of resetting its input which
-    //    is good, but it introduces an mutability into game state, which I don't love
-    // 3) add a concurrent queue to the game loop, and make the game
-    // loop in charge of the restart rather than the game logic itself
-    // 4) make GUI a bit more sophisticated: input contains a concurrent Vector of all the input
-    //    received in that frame, gets drained when getInput is called, rather than set to None
-    //    upon release
-    // ^ implemented 4, and whilst commands don't get lost during a frame, they get lost in the game
-    //   logic due to the slowdown logic. I need to implement a similar (non concurrent) command buffer
-    //   in the logic then, at which point it's unclear on whether also having the change in GUI makes
-    //   sense, or whether the frame rate is responsive enough
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
