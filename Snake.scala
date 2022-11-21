@@ -93,7 +93,9 @@ class Gui extends JPanel {
   }
 
   Direction.values.foreach { case (name, direction) => onKey(name, direction) }
-  Level.values.zipWithIndex.foreach { case (level, n) => onKey((n + 1).toString, level) }
+  Level.values.zipWithIndex.foreach { case (level, n) =>
+    onKey((n + 1).toString, level)
+  }
 
   def getInput: Input = input.getAndSet(NoInput)
 
@@ -228,7 +230,8 @@ case class State(
 
     def flicker =
       if (flickers > FlickerFor) State.initial
-      else if (flickers % 2 != 0) copy(drawSnake = true, flickers = flickers + 1)
+      else if (flickers % 2 != 0)
+        copy(drawSnake = true, flickers = flickers + 1)
       else copy(drawSnake = false, flickers = flickers + 1)
 
     val actualInput =
@@ -236,14 +239,14 @@ case class State(
 
     if (time % velocity != 0) copy(recordedInput = actualInput)
     else if (dead) flicker
-    else {
-      actualInput match {
-        case NoInput => move(Direction(snake.head.direction))
-        case direction: Direction => move(direction)
-        case level: Level => copy(level = level, velocity = level.velocity)
-      }
-    }.copy(recordedInput = NoInput)
-
+    else
+      {
+        actualInput match {
+          case NoInput              => move(Direction(snake.head.direction))
+          case direction: Direction => move(direction)
+          case level: Level => copy(level = level, velocity = level.velocity)
+        }
+      }.copy(recordedInput = NoInput)
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
