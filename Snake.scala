@@ -155,6 +155,7 @@ object Level {
 case class State(
     score: Int = 0,
     level: Level = DefaultLevel,
+    recordedInput: Option[Input] = None,
     snake: Vector[Entity],
     apple: Entity,
     eaten: Vector[Entity] = Vector.empty,
@@ -171,6 +172,7 @@ case class State(
 ) {
 
   def evolve(input: Option[Input]): State = {
+
     def move(next: Option[Point]) = {
       val directionNow =
         next
@@ -242,13 +244,18 @@ case class State(
       else if (flickers % 2 != 0) copy(drawSnake = true, flickers = flickers + 1)
       else copy(drawSnake = false, flickers = flickers + 1)
 
-    if (time % velocity != 0) this
+    val actualInput = input.orElse(recordedInput)
+
+    if (time % velocity != 0) copy(recordedInput = actualInput)
     else if (dead) flicker
-    else input match { // TODO refactor after input refactor
-      case None => move(None)
-      case Some(Direction(point)) => move(Some(point))
-      case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity).evolve(None) // TODO check whether evolve here is needed, it should only be the case if commands don't clear up in GUI
-    }
+    else {
+      actualInput match { // TODO refactor after input refactor
+        case None => move(None)
+        case Some(Direction(point)) => move(Some(point))
+        case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity) // .evolve(None) // TODO check whether evolve here is needed, it should only be the case if commands don't clear up in GUI
+      }
+    }.copy(recordedInput = None)
+
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
