@@ -107,7 +107,6 @@ object Gui {
   }
 }
 
-// TODO add Pause and NoInput <-- remove Option
 sealed trait Input
 case class Direction(value: Point) extends Input
 object Direction {
