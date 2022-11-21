@@ -33,6 +33,10 @@ object Main {
     // 4) make GUI a bit more sophisticated: input contains a concurrent Vector of all the input
     //    received in that frame, gets drained when getInput is called, rather than set to None
     //    upon release
+    // ^ implemented 4, and whilst commands don't get lost during a frame, they get lost in the game
+    //   logic due to the slowdown logic. I need to implement a similar (non concurrent) command buffer
+    //   in the logic then, at which point it's unclear on whether also having the change in GUI makes
+    //   sense, or whether the frame rate is responsive enough
     while (true) {
       state = state.evolve(gui.getInput)
       gui.update(state)
@@ -40,7 +44,7 @@ object Main {
     }
   }
 
-  val FPS = 500 // 1000 / 60
+  val FPS = 1000 / 60
   val Dimensions = Point(22, 13)
   val SpriteSize = 4
   val Scale = 2
@@ -147,7 +151,7 @@ object Level {
   val all = 1.to(9).map(Level.apply)
 }
 
-// TODO dynamic level
+
 case class State(
     score: Int = 0,
     level: Level = DefaultLevel,
@@ -162,7 +166,7 @@ case class State(
     monsterSpawnIn: Int = MonsterSpawnIn,
     flickers: Long = 0,
     drawSnake: Boolean = true,
-    velocity: Int = 1, // DefaultLevel.velocity,
+    velocity: Int = DefaultLevel.velocity,
     time: Int = 0
 ) {
 
@@ -243,7 +247,7 @@ case class State(
     else input match { // TODO refactor after input refactor
       case None => move(None)
       case Some(Direction(point)) => move(Some(point))
-      case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity).evolve(None) // TODO check whether evolve here is needed
+      case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity).evolve(None) // TODO check whether evolve here is needed, it should only be the case if commands don't clear up in GUI
     }
   }.copy(time = time + 1)
 
