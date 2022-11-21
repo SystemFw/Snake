@@ -252,7 +252,7 @@ case class State(
       actualInput match { // TODO refactor after input refactor
         case None => move(None)
         case Some(Direction(point)) => move(Some(point))
-        case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity) // .evolve(None) // TODO check whether evolve here is needed, it should only be the case if commands don't clear up in GUI
+        case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity)
       }
     }.copy(recordedInput = None)
 
