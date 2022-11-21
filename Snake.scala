@@ -68,11 +68,8 @@ object Main {
 }
 
 class Gui extends JPanel {
-//  @volatile private var input: Option[Input] = None
   private val input: AtomicReference[Option[Input]] = new AtomicReference(None)
-
-  // Can be a standard reference since all reads and writes are from single EDT thread
-  private var image: Vector[Point] = Vector()
+  private var image: Vector[Point] = Vector() // All reads and writes from EDT
 
   private val canvas = new JComponent {
     // TODO build proper image instead
@@ -89,29 +86,17 @@ class Gui extends JPanel {
   setLayout(new BorderLayout)
   add(canvas, BorderLayout.CENTER)
 
-  Point.directions.keys.foreach { direction =>
-    def add(name: String)(action: AbstractAction) = {
-      getActionMap.put(name, action)
-      getInputMap.put(KeyStroke.getKeyStroke(name), name)
-    }
-
-    add(direction.toString) { _ => input.set(Some(Direction(Point.directions(direction)))) }
-    //add(s"released ${direction.toString}") { _ => input = None }
+  private def onKey(name: String, value: Input) = {
+    val action: AbstractAction = _ => input.set(Some(value))
+    getActionMap.put(name, action)
+    getInputMap.put(KeyStroke.getKeyStroke(name), name)
   }
 
-  1.to(9).foreach { level =>
-    def add(name: String)(action: AbstractAction) = {
-      getActionMap.put(name, action)
-      getInputMap.put(KeyStroke.getKeyStroke(name), name)
-    }
-
-    add(level.toString) { _ => input.set(Some(Level(level))) }
-//    add(s"released ${level.toString}") { _ => input = None }
-  }
+  Direction.values.foreach { case (name, direction) => onKey(name, direction) }
+  Level.values.zipWithIndex.foreach { case (level, n) => onKey((n + 1).toString, level) }
 
   def getInput: Option[Input] = input.getAndSet(None)
-  // TODO repaint() already calls invokeLater
-  // could make image volatile and remove the invokeLater?
+
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
       image = state.render
@@ -138,14 +123,21 @@ object Gui {
 
 // TODO add Pause and NoInput <-- remove Option
 sealed trait Input
-case class Direction(p: Point) extends Input
+case class Direction(value: Point) extends Input
+object Direction {
+  def values: Map[String, Direction] = Map(
+    "UP" -> Direction(Point.up),
+    "DOWN" -> Direction(Point.down),
+    "LEFT" -> Direction(Point.left),
+    "RIGHT" -> Direction(Point.right)
+  )
+}
 case class Level(value: Int) extends Input {
   def velocity: Int = Velocities(value - 1)
 }
 object Level {
-  val all = 1.to(9).map(Level.apply)
+  val values = 1.to(9).map(Level.apply)
 }
-
 
 case class State(
     score: Int = 0,
@@ -442,13 +434,6 @@ object Point {
   def down: Point = Point(0, 1)
   def left: Point = Point(-1, 0)
   def right: Point = Point(1, 0)
-
-  def directions: Map[String, Point] = Map(
-    "UP" -> up,
-    "DOWN" -> down,
-    "LEFT" -> left,
-    "RIGHT" -> right
-  )
 }
 
 case class Sprite(points: Vector[Point]) {
