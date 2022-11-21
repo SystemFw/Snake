@@ -68,7 +68,7 @@ object Main {
 }
 
 class Gui extends JPanel {
-  private val input: AtomicReference[Option[Input]] = new AtomicReference(None)
+  private val input: AtomicReference[Input] = new AtomicReference(NoInput)
   private var image: Vector[Point] = Vector() // All reads and writes from EDT
 
   private val canvas = new JComponent {
@@ -87,7 +87,7 @@ class Gui extends JPanel {
   add(canvas, BorderLayout.CENTER)
 
   private def onKey(name: String, value: Input) = {
-    val action: AbstractAction = _ => input.set(Some(value))
+    val action: AbstractAction = _ => input.set(value)
     getActionMap.put(name, action)
     getInputMap.put(KeyStroke.getKeyStroke(name), name)
   }
@@ -95,7 +95,7 @@ class Gui extends JPanel {
   Direction.values.foreach { case (name, direction) => onKey(name, direction) }
   Level.values.zipWithIndex.foreach { case (level, n) => onKey((n + 1).toString, level) }
 
-  def getInput: Option[Input] = input.getAndSet(None)
+  def getInput: Input = input.getAndSet(NoInput)
 
   def update(state: State): Unit =
     SwingUtilities.invokeLater { () =>
@@ -138,11 +138,12 @@ case class Level(value: Int) extends Input {
 object Level {
   val values = 1.to(9).map(Level.apply)
 }
+case object NoInput extends Input
 
 case class State(
     score: Int = 0,
     level: Level = DefaultLevel,
-    recordedInput: Option[Input] = None,
+    recordedInput: Input = NoInput,
     snake: Vector[Entity],
     apple: Entity,
     eaten: Vector[Entity] = Vector.empty,
@@ -158,7 +159,7 @@ case class State(
     time: Int = 0
 ) {
 
-  def evolve(input: Option[Input]): State = {
+  def evolve(input: Input): State = {
 
     def move(next: Direction) = {
       val directionNow =
@@ -230,17 +231,18 @@ case class State(
       else if (flickers % 2 != 0) copy(drawSnake = true, flickers = flickers + 1)
       else copy(drawSnake = false, flickers = flickers + 1)
 
-    val actualInput = input.orElse(recordedInput)
+    val actualInput =
+      if (input == NoInput) recordedInput else input
 
     if (time % velocity != 0) copy(recordedInput = actualInput)
     else if (dead) flicker
     else {
-      actualInput match { // TODO refactor after input refactor
-        case None => move(Direction(snake.head.direction))
-        case Some(direction: Direction) => move(direction)
-        case Some(level: Level) => copy(level = level, velocity = level.velocity)
+      actualInput match {
+        case NoInput => move(Direction(snake.head.direction))
+        case direction: Direction => move(direction)
+        case level: Level => copy(level = level, velocity = level.velocity)
       }
-    }.copy(recordedInput = None)
+    }.copy(recordedInput = NoInput)
 
   }.copy(time = time + 1)
 
