@@ -160,11 +160,10 @@ case class State(
 
   def evolve(input: Option[Input]): State = {
 
-    def move(next: Option[Point]) = {
+    def move(next: Direction) = {
       val directionNow =
-        next
-          .filter(_ != snake.head.direction.opposite)
-          .getOrElse(snake.head.direction)
+        if (next.value != snake.head.direction.opposite) next.value
+        else snake.head.direction
 
       val headNow = snake.head.move(directionNow)
 
@@ -237,9 +236,9 @@ case class State(
     else if (dead) flicker
     else {
       actualInput match { // TODO refactor after input refactor
-        case None => move(None)
-        case Some(Direction(point)) => move(Some(point))
-        case Some(l @ Level(_)) => copy(level = l, velocity = l.velocity)
+        case None => move(Direction(snake.head.direction))
+        case Some(direction: Direction) => move(direction)
+        case Some(level: Level) => copy(level = level, velocity = level.velocity)
       }
     }.copy(recordedInput = None)
 
