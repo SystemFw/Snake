@@ -109,12 +109,7 @@ class Gui extends JPanel {
 //    add(s"released ${level.toString}") { _ => input = None }
   }
 
-  def getInput: Option[Input] = {
-    val i = input.getAndSet(None)
-    println(s"reader read: $i")
-    i
-  }
-
+  def getInput: Option[Input] = input.getAndSet(None)
   // TODO repaint() already calls invokeLater
   // could make image volatile and remove the invokeLater?
   def update(state: State): Unit =
