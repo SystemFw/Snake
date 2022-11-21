@@ -79,6 +79,7 @@ class Gui extends JPanel {
   Level.values.zipWithIndex.foreach { case (level, n) =>
     onKey((n + 1).toString, level)
   }
+  onKey(Pause.key, Pause)
 
   def getInput: Input = input.getAndSet(NoInput)
 
@@ -124,11 +125,15 @@ object Level {
   val values = 1.to(9).map(Level.apply)
 }
 case object NoInput extends Input
+case object Pause extends Input {
+  val key = "SPACE"
+}
 
 case class State(
     score: Int = 0,
     level: Level = DefaultLevel,
     recordedInput: Input = NoInput,
+    paused: Boolean = false,
     snake: Vector[Entity],
     apple: Entity,
     eaten: Vector[Entity] = Vector.empty,
@@ -225,9 +230,11 @@ case class State(
     else
       {
         actualInput match {
-          case NoInput              => move(Direction(snake.head.direction))
-          case direction: Direction => move(direction)
-          case level: Level => copy(level = level, velocity = level.velocity)
+          case direction: Direction => move(direction).copy(paused = false)
+          case level: Level => copy(level = level, velocity = level.velocity, paused = false)
+          case NoInput =>
+            if (paused) this else move(Direction(snake.head.direction))
+          case Pause => copy(paused = !paused)
         }
       }.copy(recordedInput = NoInput)
   }.copy(time = time + 1)
