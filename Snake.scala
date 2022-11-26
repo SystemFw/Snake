@@ -76,9 +76,7 @@ class Gui extends JPanel {
   }
 
   Direction.values.foreach { case (name, direction) => onKey(name, direction) }
-  Level.values.zipWithIndex.foreach { case (level, n) =>
-    onKey((n + 1).toString, level)
-  }
+  Level.values.foreach { case level @ Level(n) => onKey(n.toString, level) }
   onKey(Pause.key, Pause)
 
   def getInput: Input = input.getAndSet(NoInput)
