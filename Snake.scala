@@ -334,8 +334,8 @@ case class State(
     val borders = {
       val lineOffset = Point(Margin, Margin + DigitSize.y)
       val edgeOffset = lineOffset.move(Point(0, UpperLine))
-      val X = FullDimensions.x + 2 * Border
-      val Y = FullDimensions.y + 2 * Border
+      val X = FullDimensions.x + 2 * Border - 1
+      val Y = FullDimensions.y + 2 * Border - 1
 
       val line =
         0
