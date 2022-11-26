@@ -240,7 +240,6 @@ case class State(
   }.copy(time = time + 1)
 
   def render: Vector[Point] = {
-    // TODO inner margin for snake asymetric (visible with up-down motion)
     val entities = {
       val apple = Sprite.apple.at(this.apple.position)
 
@@ -334,8 +333,8 @@ case class State(
     val borders = {
       val lineOffset = Point(Margin, Margin + DigitSize.y)
       val edgeOffset = lineOffset.move(Point(0, UpperLine))
-      val X = FullDimensions.x + 2 * Border - 1
-      val Y = FullDimensions.y + 2 * Border - 1
+      val X = FullDimensions.x + 2 * Border
+      val Y = FullDimensions.y + 2 * Border
 
       val line =
         0
@@ -344,9 +343,9 @@ case class State(
           .map(p => p.move(lineOffset))
 
       val border = for {
-        x <- 0.to(X).toVector // inclusive
-        y <- 0.to(Y).toVector
-        if (x == 0 || x == X) || (y == 0 || y == Y)
+        x <- 0.until(X).toVector
+        y <- 0.until(Y).toVector
+        if (x == 0 || x == X - 1) || (y == 0 || y == Y - 1)
       } yield Point(x, y).move(edgeOffset)
 
       border ++ line
