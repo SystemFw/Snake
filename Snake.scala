@@ -8,12 +8,6 @@ import scala.util.Random
 import scala.util.chaining._
 import Main._
 
-// TODO remove after readme
-/** Recreate the basic version of the classic Nokia 3310 Snake, no extras
-  * Behaviour taken from observing https://helpfulsheep.com/snake/
-  *
-  * To run: scala-cli Snake.scala
-  */
 object Main {
   def main(args: Array[String]): Unit = {
     val gui = Gui.start
