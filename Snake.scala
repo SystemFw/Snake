@@ -154,7 +154,9 @@ case class State(
       val eatingMonster = monster.exists(headNow.hits)
       val swallowed = eaten.lastOption.exists(snake.last.hits)
       val dead = snake.tail.exists(headNow.hits)
-      val aboutToEat = // TODO opens when wrapping around, probably shouldn't
+      // TODO opens when wrapping around, probably shouldn't
+      // TODO opens mount when turning into first tile of monster, probably shouldn't
+      val aboutToEat =
         (apple +: monster).exists(headNow.move(directionNow).hits)
 
       val snakeNow = headNow +: (if (hasEaten) snake else snake.init)
