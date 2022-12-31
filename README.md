@@ -10,7 +10,8 @@ A Scala clone of Snake II as played on the Nokia 3310, for fun and nostalgia.
 
 ## Demo
 
-https://user-images.githubusercontent.com/7769582/210119550-b1719c44-4028-41b7-93fb-51491388f268.mov
+https://user-images.githubusercontent.com/7769582/210119719-a4196f70-2dd9-40ed-870c-867d72d0489d.mov
+
 
 ## Run
 
